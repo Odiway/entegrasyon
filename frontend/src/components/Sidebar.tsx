@@ -36,21 +36,24 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
-  {
-    href: '/calendar',
-    label: 'Takvim',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M3 8h14M7 3v3M13 3v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    ),
-  },
 ];
+
+const ADMIN_NAV = {
+  href: '/users',
+  label: 'Kullanıcılar',
+  icon: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M3 17a7 7 0 0114 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+};
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+
+  const items = user?.role === 'admin' ? [...NAV_ITEMS, ADMIN_NAV] : NAV_ITEMS;
 
   return (
     <aside className="w-64 h-screen fixed left-0 top-0 bg-[#0d1117] border-r border-white/[0.06] flex flex-col z-40">
@@ -71,7 +74,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
           return (
             <Link

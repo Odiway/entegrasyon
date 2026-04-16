@@ -102,27 +102,11 @@ export const updateCalendarEvent = (id: number, data: any) =>
   apiFetch(`/api/calendar/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const deleteCalendarEvent = (id: number) =>
   apiFetch(`/api/calendar/${id}`, { method: 'DELETE' });
-export const intTemplateUrl = () => `${API_URL}/api/integration/template`;
 
-// Integration aliases (used by integration page)
-export const getIntegrationUploads = intGetUploads;
-export const uploadIntegration = (file: File) => intUpload(file);
-export const deleteIntegration = intDeleteUpload;
-export const getIntegrationDetail = intGetUpload;
-export const getIntegrationItems = intGetItems;
-export const getIntegrationStats = intGetStats;
-export const updateIntegrationItem = intUpdateItem;
-export const exportIntegration = (id: number, filters?: any) => intExportUrl(id, filters);
-export const reuploadIntegration = intReupload;
-export const approveIntegration = (id: number) => intApprove(id, []);
-export const getIntegrationHistory = intGetHistory;
-export const downloadIntegrationTemplate = () => { window.open(intTemplateUrl(), '_blank'); };
-
-// Calendar
-export const getCalendarEvents = (params?: any) => api.get('/api/calendar/events', { params });
-export const createCalendarEvent = (data: any) => api.post('/api/calendar/events', data);
-export const updateCalendarEvent = (id: number, data: any) =>
-  api.patch(`/api/calendar/events/${id}`, data);
-export const deleteCalendarEvent = (id: number) => api.delete(`/api/calendar/events/${id}`);
-
-export default api;
+// Users management (admin)
+export const createUser = (data: { email: string; full_name: string; password: string; role: string; uzmanlik?: string }) =>
+  apiFetch('/api/users', { method: 'POST', body: JSON.stringify(data) });
+export const updateUser = (id: number, data: any) =>
+  apiFetch(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+export const deleteUser = (id: number) =>
+  apiFetch(`/api/users/${id}`, { method: 'DELETE' });
