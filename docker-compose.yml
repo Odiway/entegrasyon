@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bomdb
+      POSTGRES_USER: bomuser
+      POSTGRES_PASSWORD: bompass123
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bomuser -d bomdb"]
+      interval: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://bomuser:bompass123@db:5432/bomdb
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:3001"
+      SECRET_KEY: dev-secret-key-change-in-prod
+      ACCESS_TOKEN_EXPIRE_MINUTES: "480"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - uploads:/app/uploads
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8001
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  uploads:

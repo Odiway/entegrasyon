@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  fullName       String
+  hashedPassword String
+  role           String   @default("designer") // admin, designer, integration_engineer
+  uzmanlik       String?  // GÖVDE, TRİM, HVAC, MEKANİK, ELEKTRİK etc.
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  createdTasks  Task[]      @relation("TaskCreator")
+  assignedTasks Task[]      @relation("TaskAssignee")
+  changeLogs    ChangeLog[]
+}
+
+model BomProject {
+  id          Int      @id @default(autoincrement())
+  name        String
+  filename    String
+  status      String   @default("uploaded") // uploaded, in_review, completed
+  totalRows   Int      @default(0)
+  uploadedBy  String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items BomItem[]
+  tasks Task[]
+}
+
+model BomItem {
+  id        Int @id @default(autoincrement())
+  projectId Int
+  rowNumber Int
+  level     Int @default(0)
+
+  // PLM fields
+  title                     String  @default("")
+  revision                  String  @default("")
+  quantity                  Float   @default(1.0)
+  description               String  @default("")
+  maturityState             String  @default("")
+  owner                     String  @default("")
+  malzemeNo                 String  @default("")
+  sapUsage                  String  @default("")
+  kullanimMiktari           String  @default("")
+  anaMalzeme                String  @default("")
+  anaMalzemeGrubu           String  @default("")
+  projeKodu                 String  @default("")
+  kutle                     String  @default("")
+
+  // Derived fields
+  uzmanlik      String?
+  montaj        String?
+  malzemeNoSap  String?
+  kalemTipi     String?
+  siparis       String?
+  dagitim       String?
+  birim         String?
+  toplamMiktar  Float?
+  needsReview   Boolean  @default(false)
+  status        String   @default("active") // active, modified, flagged
+
+  // Change tracking
+  updatedAt   DateTime?
+  updatedById Int?
+
+  project    BomProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskItems  TaskItem[]
+  changeLogs ChangeLog[]
+
+  @@index([projectId])
+  @@index([projectId, level])
+  @@index([projectId, uzmanlik])
+}
+
+model Task {
+  id           Int       @id @default(autoincrement())
+  projectId    Int
+  createdById  Int
+  assignedToId Int?
+  title        String
+  description  String?
+  status       String    @default("open") // open, in_progress, completed, rejected
+  priority     String    @default("medium") // low, medium, high, critical
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  completedAt  DateTime?
+
+  project    BomProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy  User       @relation("TaskCreator", fields: [createdById], references: [id])
+  assignedTo User?      @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  items      TaskItem[]
+}
+
+model TaskItem {
+  id              Int     @id @default(autoincrement())
+  taskId          Int
+  bomItemId       Int
+  requestedChange String?
+
+  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  bomItem BomItem @relation(fields: [bomItemId], references: [id], onDelete: Cascade)
+}
+
+model ChangeLog {
+  id          Int      @id @default(autoincrement())
+  bomItemId   Int
+  fieldName   String
+  oldValue    String?
+  newValue    String?
+  changedById Int
+  changedAt   DateTime @default(now())
+
+  bomItem   BomItem @relation(fields: [bomItemId], references: [id], onDelete: Cascade)
+  changedBy User    @relation(fields: [changedById], references: [id])
+
+  @@index([bomItemId])
+}
+
+model CalendarEvent {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  eventType   String   @default("task")
+  priority    String   @default("medium")
+  status      String   @default("pending")
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean  @default(true)
+  createdBy   String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
