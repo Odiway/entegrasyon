@@ -33,6 +33,13 @@ body::before {
 }
 
 /* Custom scrollbar */
+
+/* Dark dropdown options for select elements */
+select option {
+  background: #0f1420;
+  color: #f0f4f8;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
