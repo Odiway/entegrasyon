@@ -3,7 +3,7 @@
  * Handles BOM upload parsing and formatted download export.
  */
 import ExcelJS from 'exceljs';
-import { applyRules } from './rules';
+import { applyRules, UZMANLIK_KEYWORDS } from './rules';
 
 export interface ParsedRow {
   rowNumber: number;
@@ -45,19 +45,27 @@ function str(v: any): string { return v != null ? String(v).trim() : ''; }
 function num(v: any): number { const n = parseFloat(v); return isNaN(n) ? 1 : n; }
 
 /** Detect uzmanlik column from header row (case/accent insensitive) */
+function normalizeTr(s: string): string {
+  return s.toUpperCase()
+    .replace(/İ/g, 'I').replace(/ı/g, 'I')
+    .replace(/Ö/g, 'O').replace(/ö/g, 'O')
+    .replace(/Ü/g, 'U').replace(/ü/g, 'U')
+    .replace(/Ş/g, 'S').replace(/ş/g, 'S')
+    .replace(/Ç/g, 'C').replace(/ç/g, 'C')
+    .replace(/Ğ/g, 'G').replace(/ğ/g, 'G');
+}
+
 function findUzmanlikCol(worksheet: ExcelJS.Worksheet): number | null {
-  const headerRow = worksheet.getRow(1);
-  if (!headerRow) return null;
-  const vals = (headerRow.values as any[]) || [];
-  for (let i = 1; i < vals.length; i++) {
-    const h = str(vals[i]).toUpperCase()
-      .replace(/İ/g, 'I').replace(/ı/g, 'I')
-      .replace(/Ö/g, 'O').replace(/ö/g, 'O')
-      .replace(/Ü/g, 'U').replace(/ü/g, 'U')
-      .replace(/Ş/g, 'S').replace(/ş/g, 'S')
-      .replace(/Ç/g, 'C').replace(/ç/g, 'C')
-      .replace(/Ğ/g, 'G').replace(/ğ/g, 'G');
-    if (h === 'UZMANLIK') return i - 1; // 0-based
+  // Search first 3 rows for header (some exports have multi-row headers)
+  for (let r = 1; r <= Math.min(3, worksheet.rowCount); r++) {
+    const headerRow = worksheet.getRow(r);
+    if (!headerRow) continue;
+    const vals = (headerRow.values as any[]) || [];
+    for (let i = 1; i < vals.length; i++) {
+      const h = normalizeTr(str(vals[i]));
+      // Match exact "UZMANLIK" or containing it (e.g. "UZMANLIK GRUBU", "UZMANLIK ALANI")
+      if (h === 'UZMANLIK' || h.includes('UZMANLIK')) return i - 1; // 0-based
+    }
   }
   return null;
 }
@@ -71,6 +79,18 @@ export function parseBomRows(worksheet: ExcelJS.Worksheet): ParsedRow[] {
 
   const uzmanlikCol = findUzmanlikCol(worksheet);
   let lastExcelUzmanlik = ''; // propagate from parent rows
+
+  // Log for debugging uzmanlik detection
+  console.log(`[Excel Parse] uzmanlikCol: ${uzmanlikCol}, rowCount: ${worksheet.rowCount}`);
+  if (uzmanlikCol !== null) {
+    console.log(`[Excel Parse] Uzmanlik column found at index ${uzmanlikCol}`);
+  } else {
+    // Log headers for debugging
+    const hRow = worksheet.getRow(1);
+    const hVals = (hRow?.values as any[]) || [];
+    const headers = hVals.slice(1).map((v: any, i: number) => `${i}:${str(v)}`).filter((s: string) => !s.endsWith(':'));
+    console.log(`[Excel Parse] No uzmanlik column found. Headers: ${headers.join(', ')}`);
+  }
 
   worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
     if (rowIndex === 1) return; // skip header
@@ -90,7 +110,14 @@ export function parseBomRows(worksheet: ExcelJS.Worksheet): ParsedRow[] {
     const birim = str(v[COL.birim]);
 
     // Read uzmanlik directly from Excel column if present
-    const excelUzmanlik = uzmanlikCol !== null ? str(v[uzmanlikCol]) : '';
+    let excelUzmanlik = uzmanlikCol !== null ? str(v[uzmanlikCol]) : '';
+    // Normalize Excel value against known uzmanlik keywords
+    if (excelUzmanlik) {
+      const normalized = normalizeTr(excelUzmanlik);
+      const matched = UZMANLIK_KEYWORDS[excelUzmanlik] || UZMANLIK_KEYWORDS[normalized]
+        || Object.entries(UZMANLIK_KEYWORDS).find(([k]) => normalized.includes(normalizeTr(k)))?.[1];
+      if (matched) excelUzmanlik = matched;
+    }
     // Track last seen uzmanlik from Excel (propagates to children)
     if (excelUzmanlik) {
       lastExcelUzmanlik = excelUzmanlik;

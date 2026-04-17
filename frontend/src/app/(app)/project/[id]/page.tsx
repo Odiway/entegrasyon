@@ -9,6 +9,7 @@ import {
 
 const KALEM_OPTIONS = ['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'];
 const BIRIM_OPTIONS = ['AD', 'KG', 'M', 'M2', 'L', 'D', 'SET', 'LT'];
+const UZMANLIK_OPTIONS = ['GÖVDE', 'TRİM', 'HVAC', 'MEKANİK', 'ELEKTRİK'];
 
 const LVL: Record<number, any> = {
   0: { badge: 'bg-slate-500/80 text-white', row: '', font: 'text-slate-100 font-semibold' },
@@ -152,6 +153,7 @@ export default function ProjectDetailPage() {
   const startEdit = (item: any) => {
     setEditingId(item.id);
     setEditForm({
+      uzmanlik: item.uzmanlik || '',
       kalemTipi: item.kalemTipi || '',
       birim: item.birim || '',
       siparis: item.siparis || '',
@@ -596,7 +598,12 @@ export default function ProjectDetailPage() {
                         <td className="px-3 py-2 text-slate-400 font-mono text-[11px]">{item.rowNumber}</td>
                         <td className="px-3 py-2"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold ${lvl.badge}`}>{item.level}</span></td>
                         <td className="px-3 py-2 text-[11px] whitespace-nowrap">
-                          {item.uzmanlik ? (
+                          {isEditing ? (
+                            <select value={editForm.uzmanlik} onChange={e => setEditForm({...editForm, uzmanlik: e.target.value})}
+                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-1.5 py-1 text-[11px] w-24 text-white focus:outline-none">
+                              <option value="">--</option>{UZMANLIK_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                            </select>
+                          ) : item.uzmanlik ? (
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${uzClr ? uzClr.bg + ' ' + uzClr.text + ' ' + uzClr.border : 'bg-slate-600/30 text-slate-300 border-slate-500/20'}`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${uzClr?.dot || 'bg-slate-400'}`} />
                               {item.uzmanlik}
