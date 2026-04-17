@@ -50,13 +50,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <img src={src} alt="" className="w-full h-full object-cover" />
           </div>
         ))}
-        {/* Heavy dark overlay for readability */}
-        <div className="absolute inset-0 bg-[#080b12]/[0.88]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#080b12]/95 via-[#080b12]/85 to-[#080b12]/80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#080b12]/60 via-transparent to-[#080b12]/90" />
+        {/* Dark overlay — lighter so buses are visible */}
+        <div className="absolute inset-0 bg-[#080b12]/[0.72]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#080b12]/85 via-[#080b12]/65 to-[#080b12]/55" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#080b12]/50 via-transparent to-[#080b12]/70" />
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(8,11,18,0.6) 100%)'
+          background: 'radial-gradient(ellipse at center, transparent 50%, rgba(8,11,18,0.5) 100%)'
         }} />
       </div>
 
