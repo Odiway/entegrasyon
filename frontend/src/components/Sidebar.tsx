@@ -68,7 +68,7 @@ export default function Sidebar() {
   const items = user?.role === 'admin' ? [...NAV_ITEMS, ...ADMIN_NAV] : NAV_ITEMS;
 
   return (
-    <aside className="w-[260px] h-screen fixed left-0 top-0 glass-strong flex flex-col z-40">
+    <aside className="w-[260px] h-screen fixed left-0 top-0 flex flex-col z-40 overflow-hidden" style={{ background: 'rgba(8, 11, 18, 0.92)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
       {/* Decorative glow */}
       <div className="absolute -top-20 -left-20 w-40 h-40 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -137,6 +137,22 @@ export default function Sidebar() {
           </>
         )}
       </nav>
+
+      {/* Bus showcase */}
+      <div className="relative px-3 py-3 border-t border-white/[0.04]">
+        <div className="relative rounded-xl overflow-hidden h-[80px] group">
+          <img
+            src="https://www.temsa.com/tr/images/common/maraton-12.png"
+            alt="TEMSA Maraton"
+            className="w-full h-full object-contain object-center opacity-20 group-hover:opacity-40 transition-opacity duration-500 scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080b12] via-transparent to-[#080b12]/80" />
+          <div className="absolute bottom-2 left-3 right-3">
+            <p className="text-[9px] text-slate-500 font-medium tracking-wider uppercase">TEMSA Araçları</p>
+            <p className="text-[10px] text-slate-400">140K+ araç · 70+ ülke</p>
+          </div>
+        </div>
+      </div>
 
       {/* User */}
       <div className="relative px-4 py-4 border-t border-white/[0.06]">

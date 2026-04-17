@@ -4,6 +4,13 @@ import { useAuth } from '@/lib/auth';
 import { getProjects, getTasks } from '@/lib/api';
 import Link from 'next/link';
 
+const TEMSA_FLEET = [
+  { src: 'https://www.temsa.com/tr/images/common/maraton-12.png', name: 'Maraton 12', type: 'Şehirlerarası', desc: 'Lüks ve mükemmelliğin buluştuğu nokta' },
+  { src: 'https://www.temsa.com/tr/images/common/temsa-avenue-electron.png', name: 'Avenue Electron', type: 'Elektrikli', desc: '%100 elektrikli şehir içi otobüs' },
+  { src: 'https://www.temsa.com/tr/images/common/prestij.png', name: 'Prestij', type: 'Midibüs', desc: 'Efsane yenilendi — Güçlü ve şık' },
+  { src: 'https://www.temsa.com/tr/images/common/temsa-id-sb-plus.png', name: 'LD SB Plus', type: 'Servis', desc: 'İhtiyaçlarınız için özel tasarlandı' },
+];
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ projects: 0, tasks: 0, openTasks: 0 });
@@ -204,6 +211,44 @@ export default function DashboardPage() {
               })}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* TEMSA Fleet Showcase */}
+      <div className="mt-8 glass-card rounded-2xl p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+        <div className="absolute -top-20 -right-20 w-60 h-60 bg-red-600/[0.04] rounded-full blur-[80px] pointer-events-none" />
+        
+        <div className="flex items-center justify-between mb-5 relative">
+          <div>
+            <h2 className="text-base font-semibold gradient-text">TEMSA Araç Portföyü</h2>
+            <p className="text-xs text-slate-500 mt-0.5">BOM entegrasyonu yapılan araç modelleri</p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-slate-600">
+            <span className="px-2 py-1 rounded-md glass">140K+ üretim</span>
+            <span className="px-2 py-1 rounded-md glass">70+ ülke</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4 relative">
+          {TEMSA_FLEET.map((bus, i) => (
+            <div key={i} className="group relative rounded-xl overflow-hidden glass hover:border-white/[0.12] transition-all duration-500">
+              <div className="relative h-[120px] overflow-hidden bg-gradient-to-b from-white/[0.02] to-transparent p-3 flex items-center justify-center">
+                <img
+                  src={bus.src}
+                  alt={bus.name}
+                  className="h-full w-full object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.4)] group-hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+              <div className="px-3 pb-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-sm font-semibold text-white">{bus.name}</h3>
+                  <span className="px-1.5 py-0.5 rounded text-[8px] font-medium bg-red-500/15 text-red-400 border border-red-500/20">{bus.type}</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">{bus.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
