@@ -11,7 +11,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta name="description" content="PLM BOM → SAP Master BOM Dönüştürme Sistemi" />
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className="antialiased">
+      <body className="antialiased relative">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

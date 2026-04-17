@@ -240,36 +240,36 @@ export default function ProjectDetailPage() {
   return (
     <div className="flex h-[calc(100vh)] overflow-hidden">
       {navOpen && (
-        <div className="w-64 shrink-0 border-r border-white/[0.06] bg-[#0d1117] flex flex-col">
+        <div className="w-64 shrink-0 border-r border-white/[0.04] glass-strong flex flex-col">
           <div className="p-3 border-b border-white/[0.06]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Uzmanlık / Montaj</span>
-              <button onClick={() => setNavOpen(false)} className="text-slate-600 hover:text-white transition-colors">
+              <button onClick={() => setNavOpen(false)} className="text-slate-600 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/[0.06]">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
               </button>
             </div>
             <input type="text" placeholder="Filtrele..." value={navFilter} onChange={e => setNavFilter(e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/30" />
+              className="input-glass w-full text-xs" />
             {(filterUzmanlik || filterMontaj) && (
               <button onClick={() => { setFilterUzmanlik(''); setFilterMontaj(''); setFilterSiparis(''); setFilterKalemTipi(''); setPage(0); }}
-                className="mt-2 w-full text-center text-[10px] text-red-400/70 hover:text-red-400">Filtreleri temizle</button>
+                className="mt-2 w-full text-center text-[10px] text-red-400/70 hover:text-red-400 transition-colors">Filtreleri temizle</button>
             )}
           </div>
           <div className="flex-1 overflow-y-auto">
             <button onClick={() => { setFilterUzmanlik(''); setFilterMontaj(''); setPage(0); }}
-              className={`w-full text-left px-3 py-2 text-xs border-b border-white/[0.04] transition ${!filterUzmanlik && !filterMontaj ? 'bg-blue-500/10 text-blue-300' : 'text-slate-500 hover:bg-white/[0.03]'}`}>
+              className={`w-full text-left px-3 py-2.5 text-xs border-b border-white/[0.04] transition-all ${!filterUzmanlik && !filterMontaj ? 'bg-gradient-to-r from-blue-600/15 to-transparent text-blue-300 border-l-2 border-l-blue-500' : 'text-slate-500 hover:bg-white/[0.03]'}`}>
               Tümü <span className="text-[10px] text-slate-600 ml-1">({totalRows})</span>
             </button>
             {nav.filter(n => !navFilter || n.uzmanlik?.toLowerCase().includes(navFilter.toLowerCase()) || n.montajlar?.some((m: string) => m.toLowerCase().includes(navFilter.toLowerCase()))).map((group: any) => (
               <div key={group.uzmanlik}>
                 <button onClick={() => { setFilterUzmanlik(group.uzmanlik === filterUzmanlik ? '' : group.uzmanlik); setFilterMontaj(''); setPage(0); }}
-                  className={`w-full text-left px-3 py-2 text-xs border-b border-white/[0.04] transition flex items-center justify-between ${filterUzmanlik === group.uzmanlik ? 'bg-blue-500/10' : 'hover:bg-white/[0.03]'}`}>
+                  className={`w-full text-left px-3 py-2.5 text-xs border-b border-white/[0.04] transition-all flex items-center justify-between ${filterUzmanlik === group.uzmanlik ? 'bg-gradient-to-r from-blue-600/15 to-transparent border-l-2 border-l-blue-500' : 'hover:bg-white/[0.03]'}`}>
                   <span className="text-blue-300/90 font-medium">{group.uzmanlik || 'Diğer'}</span>
-                  <span className="text-[10px] text-slate-600">{group.montajlar?.length || 0}</span>
+                  <span className="text-[10px] text-slate-600 bg-white/[0.04] px-1.5 py-0.5 rounded-full">{group.montajlar?.length || 0}</span>
                 </button>
                 {(filterUzmanlik === group.uzmanlik || navFilter) && group.montajlar?.map((m: string) => (
                   <button key={m} onClick={() => { setFilterMontaj(m === filterMontaj ? '' : m); setPage(0); }}
-                    className={`w-full text-left px-3 py-1.5 text-[11px] border-b border-white/[0.02] transition pl-6 ${filterMontaj === m ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-500 hover:bg-emerald-500/[0.04] hover:text-emerald-400/70'}`}>
+                    className={`w-full text-left px-3 py-1.5 text-[11px] border-b border-white/[0.02] transition-all pl-6 ${filterMontaj === m ? 'bg-gradient-to-r from-emerald-600/15 to-transparent text-emerald-400 border-l-2 border-l-emerald-500' : 'text-slate-500 hover:bg-emerald-500/[0.04] hover:text-emerald-400/70'}`}>
                     <span className="truncate block">{m}</span>
                   </button>
                 ))}
@@ -282,7 +282,7 @@ export default function ProjectDetailPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="px-6 py-5 max-w-[1500px] mx-auto">
           {msg && (
-            <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-2xl flex items-center gap-2 ${msg.type === 'ok' ? 'bg-emerald-600/90 text-white' : 'bg-red-600/90 text-white'}`}>
+            <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-2xl flex items-center gap-2 animate-slide-up backdrop-blur-xl ${msg.type === 'ok' ? 'bg-emerald-600/90 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-red-600/90 text-white shadow-[0_0_20px_rgba(239,68,68,0.3)]'}`}>
               {msg.type === 'ok' ? '✓' : '⚠'} {msg.text}
             </div>
           )}
@@ -290,31 +290,31 @@ export default function ProjectDetailPage() {
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-4">
               {!navOpen && (
-                <button onClick={() => setNavOpen(true)} className="p-2 rounded-lg bg-white/[0.04] text-slate-500 hover:text-white hover:bg-white/[0.08] transition-all">
+                <button onClick={() => setNavOpen(true)} className="p-2 rounded-lg glass text-slate-500 hover:text-white transition-all">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
                 </button>
               )}
               <div>
                 <button onClick={() => router.push('/projects')} className="text-[11px] text-slate-600 hover:text-blue-400 mb-0.5 block transition-colors">← BOM Projeleri</button>
-                <h1 className="text-xl font-bold text-white">{project.name}</h1>
+                <h1 className="text-xl font-bold gradient-text">{project.name}</h1>
                 <p className="text-[11px] text-slate-600 mt-0.5">{project.filename} · {new Date(project.createdAt).toLocaleDateString('tr-TR')} · {project.uploadedBy}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {canSelect && selectedItems.size > 0 && (
                 <button onClick={() => setShowTaskModal(true)}
-                  className="px-4 py-2 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 hover:bg-purple-500/25 text-sm font-medium transition-all flex items-center gap-2">
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600/20 to-purple-500/10 border border-purple-500/30 text-purple-400 hover:shadow-[0_0_16px_rgba(147,51,234,0.2)] text-sm font-medium transition-all flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
                   Görev Ata ({selectedItems.size})
                 </button>
               )}
               <button onClick={handleExport} disabled={exporting}
-                className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50">
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600/15 to-emerald-500/5 border border-emerald-500/20 text-emerald-400 hover:shadow-[0_0_16px_rgba(16,185,129,0.2)] text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3 6l4 4 4-4M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {exporting ? 'İndiriliyor...' : 'Excel'}
               </button>
               {isAdmin && (
-                <button onClick={handleDeleteProject} className="p-2 rounded-xl text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Projeyi Sil">
+                <button onClick={handleDeleteProject} className="p-2 rounded-xl text-slate-600 hover:text-red-400 hover:bg-red-500/10 hover:shadow-[0_0_12px_rgba(239,68,68,0.15)] transition-all" title="Projeyi Sil">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1m2 0v9a1 1 0 01-1 1H5a1 1 0 01-1-1V4h8z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                 </button>
               )}
@@ -326,11 +326,11 @@ export default function ProjectDetailPage() {
             <StatCard label="İncelenmesi Gereken" value={needsReview} color="text-amber-400" />
             <StatCard label="Değiştirilmiş" value={modified} color="text-purple-400" />
             <StatCard label="Tamamlanan" value={resolved} color="text-emerald-400" />
-            <div className="bg-[#161b22] border border-white/[0.06] rounded-xl p-3">
+            <div className="glass-card p-3">
               <p className="text-[10px] text-slate-500 font-medium mb-1.5">İlerleme</p>
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-500 ${progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-600 to-blue-400'}`} style={{ width: progress + '%' }} />
+                <div className="flex-1 h-2 bg-slate-800/60 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 shadow-[0_0_12px_rgba(59,130,246,0.3)]'}`} style={{ width: progress + '%' }} />
                 </div>
                 <span className={`text-sm font-bold ${progress === 100 ? 'text-emerald-400' : 'text-white'}`}>%{progress}</span>
               </div>
@@ -344,7 +344,7 @@ export default function ProjectDetailPage() {
                 const clr: Record<string, string> = { EVET: 'text-emerald-400', HAYIR: 'text-red-400/70', MONTAJ: 'text-violet-400', 'KONTROL EDİLECEK': 'text-amber-400', NA: 'text-slate-600' };
                 return (
                   <button key={s.siparis} onClick={() => { setFilterSiparis(filterSiparis === s.siparis ? '' : s.siparis); setPage(0); }}
-                    className={`bg-[#161b22] border rounded-lg p-2 text-center transition-all cursor-pointer hover:bg-white/[0.03] ${filterSiparis === s.siparis ? 'border-blue-500/40 bg-blue-500/[0.06]' : 'border-white/[0.06]'}`}>
+                    className={`glass rounded-xl p-2 text-center transition-all cursor-pointer hover:scale-[1.02] ${filterSiparis === s.siparis ? 'ring-1 ring-blue-500/40 bg-blue-500/[0.06]' : ''}`}>
                     <p className="text-[9px] text-slate-500 font-medium truncate">Sipariş: {s.siparis}</p>
                     <p className={`text-sm font-bold ${clr[s.siparis] || 'text-slate-400'}`}>{s.count.toLocaleString('tr-TR')}</p>
                   </button>
@@ -356,23 +356,23 @@ export default function ProjectDetailPage() {
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             {[['all', 'Tümü', total], ['review', 'İncele', needsReview], ['modified', 'Değişen', modified]].map(([k, l, c]) => (
               <button key={k as string} onClick={() => { setFilter(k as string); setPage(0); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${filter === k ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-white/[0.03] text-slate-500 border border-white/[0.04] hover:bg-white/[0.06]'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${filter === k ? 'bg-gradient-to-r from-blue-600/25 to-blue-500/10 text-blue-300 border border-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.15)]' : 'glass text-slate-500 hover:text-slate-300'}`}>
                 {l} <span className="text-[10px] opacity-60">{c}</span>
               </button>
             ))}
             <div className="w-px h-5 bg-white/[0.06] mx-1" />
             <select value={filterLevel} onChange={e => { setFilterLevel(e.target.value); setPage(0); }}
-              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.03] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30">
+              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.06] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30 backdrop-blur-sm">
               <option value="">Tüm Seviyeler</option>
               {[0,1,2,3,4,5,6,7,8].map(l => <option key={l} value={l}>Level {l}</option>)}
             </select>
             <select value={filterSiparis} onChange={e => { setFilterSiparis(e.target.value); setPage(0); }}
-              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.03] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30">
+              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.06] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30 backdrop-blur-sm">
               <option value="">Tüm Sipariş</option>
               {['EVET', 'HAYIR', 'MONTAJ', 'KONTROL EDİLECEK', 'NA'].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <select value={filterKalemTipi} onChange={e => { setFilterKalemTipi(e.target.value); setPage(0); }}
-              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.03] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30">
+              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.06] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30 backdrop-blur-sm">
               <option value="">Tüm Kalem Tipi</option>
               {['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'].map(k => <option key={k} value={k}>{k}</option>)}
             </select>
@@ -381,7 +381,7 @@ export default function ProjectDetailPage() {
                 <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
               <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Title, malzeme no ara..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs bg-white/[0.03] text-slate-300 border border-white/[0.06] focus:outline-none focus:border-blue-500/30 placeholder-slate-600" />
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs bg-white/[0.06] text-slate-300 border border-white/[0.06] focus:outline-none focus:border-blue-500/30 focus:shadow-[0_0_12px_rgba(59,130,246,0.1)] placeholder-slate-600 backdrop-blur-sm transition-all" />
             </div>
             <div className="ml-auto flex items-center gap-1.5">
               {filterUzmanlik && <span className="px-2 py-1 rounded-md text-[10px] bg-blue-500/15 text-blue-300 border border-blue-500/20 flex items-center gap-1">{filterUzmanlik} <button onClick={() => { setFilterUzmanlik(''); setPage(0); }} className="hover:text-white">×</button></span>}
@@ -392,11 +392,11 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          <div className="bg-[#161b22] border border-white/[0.06] rounded-xl overflow-hidden">
+          <div className="glass-strong rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-white/[0.08] bg-[#0d1117]/60">
+                  <tr className="border-b border-white/[0.08] bg-white/[0.02]">
                     {canSelect && <th className="px-2 py-3 w-8"><input type="checkbox" className="accent-purple-500 w-3.5 h-3.5" checked={selectedItems.size > 0 && selectedItems.size === items.length} onChange={e => { if (e.target.checked) setSelectedItems(new Set(items.map(i => i.id))); else setSelectedItems(new Set()); }} /></th>}
                     {['#','Lv','Uzmanlık','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
                       <th key={h} className="px-2 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
@@ -437,47 +437,49 @@ export default function ProjectDetailPage() {
                 </tbody>
               </table>
             </div>
-            <div className="flex items-center justify-between border-t border-white/[0.06] px-4 py-2.5">
-              <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="px-3 py-1.5 text-xs rounded-lg bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-20 text-slate-400 transition-all">← Önceki</button>
+            <div className="flex items-center justify-between border-t border-white/[0.06] px-4 py-2.5 bg-white/[0.01]">
+              <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="px-3 py-1.5 text-xs rounded-lg glass hover:bg-white/[0.06] disabled:opacity-20 text-slate-400 transition-all">← Önceki</button>
               <span className="text-[11px] text-slate-600">Sayfa <b className="text-slate-400">{page + 1}</b> / {Math.max(1, Math.ceil(total / 200))} · {total.toLocaleString('tr-TR')} kayıt</span>
-              <button onClick={() => setPage(page + 1)} disabled={items.length < 200} className="px-3 py-1.5 text-xs rounded-lg bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-20 text-slate-400 transition-all">Sonraki →</button>
+              <button onClick={() => setPage(page + 1)} disabled={items.length < 200} className="px-3 py-1.5 text-xs rounded-lg glass hover:bg-white/[0.06] disabled:opacity-20 text-slate-400 transition-all">Sonraki →</button>
             </div>
           </div>
         </div>
       </div>
 
       {showTaskModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowTaskModal(false)}>
-          <div className="bg-[#161b22] border border-white/[0.1] rounded-2xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-white mb-1">Görev Oluştur</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md" onClick={() => setShowTaskModal(false)}>
+          <div className="glass-strong rounded-2xl p-6 w-full max-w-md shadow-2xl animate-slide-up relative overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/60 to-transparent" />
+            <h3 className="text-lg font-bold gradient-text mb-1">Görev Oluştur</h3>
             <p className="text-xs text-slate-500 mb-5">{selectedItems.size} kalem seçili</p>
             <div className="space-y-3">
-              <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Görev başlığı" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/40" />
-              <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} placeholder="Açıklama (opsiyonel)" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/40 h-20 resize-none" />
+              <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Görev başlığı" className="input-glass w-full" />
+              <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} placeholder="Açıklama (opsiyonel)" className="input-glass w-full h-20 resize-none" />
               <div className="grid grid-cols-2 gap-3">
-                <select value={taskAssignee} onChange={e => setTaskAssignee(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-blue-500/40"><option value="">Mühendis seç...</option>{engineers.map(e => <option key={e.id} value={e.id}>{e.full_name || e.fullName}</option>)}</select>
-                <select value={taskPriority} onChange={e => setTaskPriority(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-blue-500/40"><option value="low">Düşük</option><option value="medium">Orta</option><option value="high">Yüksek</option><option value="critical">Kritik</option></select>
+                <select value={taskAssignee} onChange={e => setTaskAssignee(e.target.value)} className="input-glass"><option value="">Mühendis seç...</option>{engineers.map(e => <option key={e.id} value={e.id}>{e.full_name || e.fullName}</option>)}</select>
+                <select value={taskPriority} onChange={e => setTaskPriority(e.target.value)} className="input-glass"><option value="low">Düşük</option><option value="medium">Orta</option><option value="high">Yüksek</option><option value="critical">Kritik</option></select>
               </div>
             </div>
             <div className="flex gap-2 justify-end mt-5">
-              <button onClick={() => setShowTaskModal(false)} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.04]">İptal</button>
-              <button onClick={handleCreateTask} disabled={!taskTitle || taskCreating} className="px-5 py-2 rounded-xl text-sm font-medium bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50 transition-all">{taskCreating ? 'Oluşturuluyor...' : 'Görev Oluştur'}</button>
+              <button onClick={() => setShowTaskModal(false)} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.04] transition-all">İptal</button>
+              <button onClick={handleCreateTask} disabled={!taskTitle || taskCreating} className="px-5 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:shadow-[0_0_20px_rgba(147,51,234,0.3)] disabled:opacity-50 transition-all">{taskCreating ? 'Oluşturuluyor...' : 'Görev Oluştur'}</button>
             </div>
           </div>
         </div>
       )}
 
       {historyItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setHistoryItem(null)}>
-          <div className="bg-[#161b22] border border-white/[0.1] rounded-2xl p-6 w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-white mb-1">Değişiklik Geçmişi</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md" onClick={() => setHistoryItem(null)}>
+          <div className="glass-strong rounded-2xl p-6 w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-2xl animate-slide-up relative overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/60 to-transparent" />
+            <h3 className="text-lg font-bold gradient-text mb-1">Değişiklik Geçmişi</h3>
             <p className="text-xs text-slate-500 mb-4">#{historyItem.rowNumber} · {historyItem.title}</p>
             {historyData.length === 0 ? (
               <p className="text-sm text-slate-500 py-6 text-center">Henüz değişiklik yok</p>
             ) : (
               <div className="space-y-2">
                 {historyData.map((log: any, i: number) => (
-                  <div key={i} className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.04]">
+                  <div key={i} className="glass rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-medium text-purple-400">{log.fieldName}</span>
                       <span className="text-[10px] text-slate-600">{new Date(log.changedAt).toLocaleString('tr-TR')}</span>
@@ -502,7 +504,7 @@ export default function ProjectDetailPage() {
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#161b22] border border-white/[0.06] rounded-xl p-3">
+    <div className="glass-card p-3">
       <p className="text-[10px] text-slate-500 font-medium mb-1">{label}</p>
       <p className={`text-lg font-bold ${color}`}>{(value || 0).toLocaleString('tr-TR')}</p>
     </div>

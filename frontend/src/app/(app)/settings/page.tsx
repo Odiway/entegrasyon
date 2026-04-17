@@ -45,17 +45,27 @@ export default function SettingsPage() {
   }
 
   const tabs = [
-    { key: 'kalem', label: 'Kalem Tipleri', icon: '📋' },
-    { key: 'level', label: 'Level Kuralları', icon: '📊' },
-    { key: 'uzmanlik', label: 'Uzmanlık & Birim', icon: '🔧' },
-    { key: 'formul', label: 'Formüller', icon: '🧮' },
-    { key: 'akis', label: 'İş Akışı', icon: '⚙️' },
+    { key: 'kalem', label: 'Kalem Tipleri', icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3h8v2H3zM3 7h6v2H3zM3 11h7v2H3z" fill="currentColor" opacity="0.8" /></svg>
+    )},
+    { key: 'level', label: 'Level Kuralları', icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11h3V5H2v6zM6 11h3V3H6v8zM10 11h3V7h-3v4z" fill="currentColor" opacity="0.8" /></svg>
+    )},
+    { key: 'uzmanlik', label: 'Uzmanlık & Birim', icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.5" /><path d="M7 1v2M7 11v2M1 7h2M11 7h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+    )},
+    { key: 'formul', label: 'Formüller', icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 2h8v10H3z" stroke="currentColor" strokeWidth="1.5" rx="1" /><path d="M5 5h4M5 7h3M5 9h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
+    )},
+    { key: 'akis', label: 'İş Akışı', icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="3" r="2" stroke="currentColor" strokeWidth="1.5" /><circle cx="7" cy="11" r="2" stroke="currentColor" strokeWidth="1.5" /><path d="M7 5v4" stroke="currentColor" strokeWidth="1.5" /></svg>
+    )},
   ];
 
   return (
-    <div className="px-6 py-6 max-w-[1200px] mx-auto">
+    <div className="px-6 py-6 max-w-[1200px] mx-auto animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-white">Ayarlar & Kurallar</h1>
+        <h1 className="text-xl font-bold gradient-text">Ayarlar & Kurallar</h1>
         <p className="text-sm text-slate-500 mt-1">Sistemin kullandığı iş kuralları ve dönüşüm mantığı</p>
       </div>
 
@@ -65,13 +75,14 @@ export default function SettingsPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
-            className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-[1px] ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-[1px] ${
               activeTab === tab.key
                 ? 'border-blue-500 text-blue-400'
                 : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
             }`}
           >
-            <span className="mr-1.5">{tab.icon}</span> {tab.label}
+            <span className={activeTab === tab.key ? 'text-blue-400' : 'text-slate-600'}>{tab.icon}</span>
+            {tab.label}
           </button>
         ))}
       </div>
@@ -291,8 +302,8 @@ export default function SettingsPage() {
 
 function SectionCard({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[#161b22] border border-white/[0.06] rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/[0.06]">
+    <div className="glass-card rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-white/[0.06]">
         <h3 className="text-sm font-semibold text-white">{title}</h3>
         {desc && <p className="text-[11px] text-slate-500 mt-0.5">{desc}</p>}
       </div>

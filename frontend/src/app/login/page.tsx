@@ -31,35 +31,44 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      {/* Background decoration */}
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Animated background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-600/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-600/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 -right-32 w-[500px] h-[500px] bg-red-600/[0.07] rounded-full blur-[100px] animate-float" />
+        <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] bg-blue-600/[0.07] rounded-full blur-[100px] animate-float" style={{ animationDelay: '-3s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/[0.04] rounded-full blur-[120px]" />
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }} />
       </div>
 
-      <div className="relative w-full max-w-md animate-fade-in">
+      <div className="relative w-full max-w-[420px] animate-slide-up">
         {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-600/20 mb-4">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-white">
-              <path d="M4 8h24v4H4zM4 14h18v4H4zM4 20h22v4H4z" fill="currentColor" opacity="0.8" />
-              <circle cx="26" cy="22" r="4" fill="currentColor" />
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-red-700 shadow-xl shadow-red-600/25 mb-5 relative">
+            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" className="text-white">
+              <path d="M4 7h22v4H4zM4 13h16v4H4zM4 19h20v4H4z" fill="currentColor" opacity="0.85" />
             </svg>
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 opacity-20 blur-lg" />
           </div>
-          <h1 className="text-2xl font-bold text-white">TEMSA Entegrasyon</h1>
-          <p className="text-sm text-slate-500 mt-1">BOM Dönüştürme & Yönetim Sistemi</p>
+          <h1 className="text-2xl font-bold gradient-text mb-1">TEMSA Entegrasyon</h1>
+          <p className="text-sm text-slate-500">BOM Dönüştürme & Yönetim Sistemi</p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#161b22] border border-white/[0.08] rounded-2xl p-8 shadow-2xl">
+        <div className="glass-strong rounded-2xl p-8 shadow-2xl shadow-black/20 relative overflow-hidden">
+          {/* Card top glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+
           <h2 className="text-lg font-semibold text-white mb-6">
             {isRegister ? 'Hesap Oluştur' : 'Giriş Yap'}
           </h2>
 
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2.5">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
                 <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M8 5v3M8 10v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
@@ -70,12 +79,12 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">Ad Soyad</label>
+                <label className="block text-xs font-medium text-slate-400 mb-2">Ad Soyad</label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/40 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                  className="input-glass"
                   placeholder="Oğuzhan İnandı"
                   required
                 />
@@ -83,24 +92,24 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Email</label>
+              <label className="block text-xs font-medium text-slate-400 mb-2">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/40 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                className="input-glass"
                 placeholder="email@temsa.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Şifre</label>
+              <label className="block text-xs font-medium text-slate-400 mb-2">Şifre</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/40 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                className="input-glass"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -110,7 +119,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl font-semibold text-white btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 mt-6"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -125,7 +134,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <button
               onClick={() => { setIsRegister(!isRegister); setError(''); }}
-              className="text-sm text-slate-500 hover:text-blue-400 transition-colors"
+              className="text-sm text-slate-500 hover:text-blue-400 transition-colors duration-200"
             >
               {isRegister ? 'Zaten hesabınız var mı? Giriş yapın' : 'Hesabınız yok mu? Kayıt olun'}
             </button>
@@ -133,7 +142,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[11px] text-slate-700 mt-6">
+        <p className="text-center text-[11px] text-slate-700 mt-8">
           TEMSA Digital Solutions — Entegrasyon Takımı © 2026
         </p>
       </div>
