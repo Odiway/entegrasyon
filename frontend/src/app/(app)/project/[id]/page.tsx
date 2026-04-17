@@ -11,26 +11,26 @@ const KALEM_OPTIONS = ['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanil
 const BIRIM_OPTIONS = ['AD', 'KG', 'M', 'M2', 'L', 'D', 'SET', 'LT'];
 
 const LVL: Record<number, any> = {
-  0: { badge: 'bg-slate-600/70 text-slate-200', row: '', font: 'text-slate-300 font-semibold' },
-  1: { badge: 'bg-indigo-500/80 text-indigo-50', row: 'bg-indigo-500/[0.03]', font: 'text-indigo-200 font-bold text-[13px]' },
-  2: { badge: 'bg-blue-500/90 text-white', row: 'bg-blue-500/[0.05]', font: 'text-blue-100 font-bold' },
-  3: { badge: 'bg-emerald-500/90 text-white', row: 'bg-emerald-500/[0.04]', font: 'text-emerald-200/90 font-semibold' },
-  4: { badge: 'bg-slate-500/50 text-slate-200', row: '', font: 'text-slate-300' },
-  5: { badge: 'bg-slate-600/40 text-slate-300', row: '', font: 'text-slate-400' },
+  0: { badge: 'bg-slate-500/80 text-white', row: '', font: 'text-slate-100 font-semibold' },
+  1: { badge: 'bg-indigo-500/90 text-white', row: 'bg-indigo-500/[0.04]', font: 'text-indigo-100 font-bold text-[13px]' },
+  2: { badge: 'bg-blue-500 text-white', row: 'bg-blue-500/[0.06]', font: 'text-blue-50 font-bold' },
+  3: { badge: 'bg-emerald-500 text-white', row: 'bg-emerald-500/[0.05]', font: 'text-emerald-100 font-semibold' },
+  4: { badge: 'bg-slate-500/60 text-white', row: '', font: 'text-slate-200' },
+  5: { badge: 'bg-slate-600/50 text-slate-200', row: '', font: 'text-slate-300' },
 };
 
 const KALEM_CLR: Record<string, string> = {
-  F: 'bg-violet-500/20 text-violet-300 border-violet-400/25',
-  Y: 'bg-blue-500/20 text-blue-300 border-blue-400/25',
-  E: 'bg-cyan-500/20 text-cyan-300 border-cyan-400/25',
-  H: 'bg-orange-500/20 text-orange-300 border-orange-400/25',
-  C: 'bg-pink-500/20 text-pink-300 border-pink-400/25',
-  'X DETAY': 'bg-red-500/15 text-red-300 border-red-400/20',
+  F: 'bg-violet-500/25 text-violet-200 border-violet-400/30',
+  Y: 'bg-blue-500/25 text-blue-200 border-blue-400/30',
+  E: 'bg-cyan-500/25 text-cyan-200 border-cyan-400/30',
+  H: 'bg-orange-500/25 text-orange-200 border-orange-400/30',
+  C: 'bg-pink-500/25 text-pink-200 border-pink-400/30',
+  'X DETAY': 'bg-red-500/20 text-red-200 border-red-400/25',
 };
 
 const SIP_CLR: Record<string, string> = {
-  EVET: 'text-emerald-300', HAYIR: 'text-red-300/80', MONTAJ: 'text-violet-300',
-  'KONTROL ED\u0130LECEK': 'text-amber-300', NA: 'text-slate-500',
+  EVET: 'text-emerald-200 font-semibold', HAYIR: 'text-red-200 font-semibold', MONTAJ: 'text-violet-200 font-semibold',
+  'KONTROL ED\u0130LECEK': 'text-amber-200 font-semibold', NA: 'text-slate-400',
 };
 
 export default function ProjectDetailPage() {
@@ -269,7 +269,7 @@ export default function ProjectDetailPage() {
         <div className="w-72 shrink-0 border-r border-white/[0.06] bg-[#0d1117]/80 backdrop-blur-xl flex flex-col">
           <div className="p-4 border-b border-white/[0.08]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Navigasyon</span>
+              <span className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Navigasyon</span>
               <button onClick={() => setNavOpen(false)} className="text-slate-500 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/[0.08]">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
               </button>
@@ -298,7 +298,7 @@ export default function ProjectDetailPage() {
               <div key={group.uzmanlik}>
                 <button onClick={() => { setFilterUzmanlik(group.uzmanlik === filterUzmanlik ? '' : group.uzmanlik); setFilterMontaj(''); setPage(0); }}
                   className={`w-full text-left px-4 py-3 text-xs border-b border-white/[0.04] transition-all flex items-center justify-between group ${filterUzmanlik === group.uzmanlik ? 'bg-gradient-to-r from-blue-500/15 to-transparent border-l-2 border-l-blue-400' : 'hover:bg-white/[0.04]'}`}>
-                  <span className="text-blue-200/90 font-semibold group-hover:text-blue-100">{group.uzmanlik || 'Di\u011Fer'}</span>
+                  <span className="text-blue-100 font-semibold group-hover:text-white">{group.uzmanlik || 'Di\u011Fer'}</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[10px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{group.montajlar?.length || 0}</span>
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className={`text-slate-600 transition-transform ${filterUzmanlik === group.uzmanlik ? 'rotate-90' : ''}`}>
@@ -342,13 +342,13 @@ export default function ProjectDetailPage() {
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                   BOM Projeleri
                 </button>
-                <h1 className="text-2xl font-bold text-white/90 tracking-tight">{project.name}</h1>
+                <h1 className="text-2xl font-bold text-white tracking-tight">{project.name}</h1>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[11px] text-slate-500 font-mono">{project.filename}</span>
+                  <span className="text-[11px] text-slate-400 font-mono">{project.filename}</span>
                   <span className="text-slate-700">&middot;</span>
-                  <span className="text-[11px] text-slate-500">{new Date(project.createdAt).toLocaleDateString('tr-TR')}</span>
+                  <span className="text-[11px] text-slate-400">{new Date(project.createdAt).toLocaleDateString('tr-TR')}</span>
                   <span className="text-slate-700">&middot;</span>
-                  <span className="text-[11px] text-slate-500">{project.uploadedBy}</span>
+                  <span className="text-[11px] text-slate-400">{project.uploadedBy}</span>
                 </div>
               </div>
             </div>
@@ -391,7 +391,7 @@ export default function ProjectDetailPage() {
 
           {stats?.bySiparis && stats.bySiparis.length > 0 && (
             <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mr-1">Sipari\u015F:</span>
+              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mr-1">Sipari\u015F:</span>
               {stats.bySiparis.map((s: any) => {
                 const clr: Record<string, string> = { EVET: 'emerald', HAYIR: 'red', MONTAJ: 'violet', 'KONTROL ED\u0130LECEK': 'amber', NA: 'slate' };
                 const c = clr[s.siparis] || 'slate';
@@ -422,17 +422,17 @@ export default function ProjectDetailPage() {
               <div className="w-px h-6 bg-white/[0.08] mx-1" />
 
               <select value={filterLevel} onChange={e => { setFilterLevel(e.target.value); setPage(0); }}
-                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-300 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
+                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
                 <option value="">T\u00fcm Seviyeler</option>
                 {[0,1,2,3,4,5,6,7,8].map(l => <option key={l} value={l}>Level {l}</option>)}
               </select>
               <select value={filterSiparis} onChange={e => { setFilterSiparis(e.target.value); setPage(0); }}
-                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-300 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
+                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
                 <option value="">T\u00fcm Sipari\u015F</option>
                 {['EVET', 'HAYIR', 'MONTAJ', 'KONTROL ED\u0130LECEK', 'NA'].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               <select value={filterKalemTipi} onChange={e => { setFilterKalemTipi(e.target.value); setPage(0); }}
-                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-300 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
+                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
                 <option value="">T\u00fcm Kalem Tipi</option>
                 {['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'].map(k => <option key={k} value={k}>{k}</option>)}
               </select>
@@ -455,16 +455,16 @@ export default function ProjectDetailPage() {
                 {activeFilters.length > 1 && (
                   <button onClick={clearAllFilters} className="text-[10px] text-red-400/70 hover:text-red-300 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-all">Temizle</button>
                 )}
-                <span className="text-[11px] text-slate-500 font-mono ml-1">{total.toLocaleString('tr-TR')} kay\u0131t</span>
+                <span className="text-[11px] text-slate-400 font-mono ml-1">{total.toLocaleString('tr-TR')} kay\u0131t</span>
               </div>
             </div>
           </div>
 
           <div ref={tableRef} className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden backdrop-blur-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-[12px]">
+              <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="border-b border-white/[0.1] bg-white/[0.03]">
+                  <tr className="border-b border-white/[0.1] bg-white/[0.05]">
                     {canSelect && (
                       <th className="px-3 py-3.5 w-10">
                         <input type="checkbox" className="accent-purple-400 w-3.5 h-3.5 rounded cursor-pointer" checked={selectedItems.size > 0 && selectedItems.size === items.length}
@@ -472,7 +472,7 @@ export default function ProjectDetailPage() {
                       </th>
                     )}
                     {['#','Lv','Uzmanl\u0131k','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipari\u015F','Da\u011F\u0131t\u0131m','Birim','Qty','Toplam','Durum',''].map(h => (
-                      <th key={h} className="px-3 py-3.5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      <th key={h} className="px-3 py-3.5 text-left text-[10px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -508,14 +508,14 @@ export default function ProjectDetailPage() {
                               className="accent-purple-400 w-3.5 h-3.5 rounded cursor-pointer" />
                           </td>
                         )}
-                        <td className="px-3 py-2 text-slate-500 font-mono text-[10px]">{item.rowNumber}</td>
+                        <td className="px-3 py-2 text-slate-400 font-mono text-[11px]">{item.rowNumber}</td>
                         <td className="px-3 py-2"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold ${lvl.badge}`}>{item.level}</span></td>
-                        <td className="px-3 py-2 text-[11px] text-slate-400 whitespace-nowrap">{item.uzmanlik || ''}</td>
-                        <td className="px-3 py-2 text-[11px] text-slate-500 max-w-[110px] truncate">{item.montaj || ''}</td>
+                        <td className="px-3 py-2 text-[11px] text-slate-200 whitespace-nowrap">{item.uzmanlik || ''}</td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300 max-w-[110px] truncate">{item.montaj || ''}</td>
                         <td className={`px-3 py-2 font-mono text-[11px] max-w-[250px] ${lvl.font}`} style={{ paddingLeft: Math.max(12, item.level * 14) }}>
                           <span className="truncate block">{item.title}</span>
                         </td>
-                        <td className="px-3 py-2 text-[11px] text-slate-500 font-mono max-w-[110px] truncate">
+                        <td className="px-3 py-2 text-[11px] text-slate-300 font-mono max-w-[110px] truncate">
                           {isEditing ? (
                             <input value={editForm.malzemeNoSap} onChange={e => setEditForm({...editForm, malzemeNoSap: e.target.value})}
                               className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-28 text-white focus:outline-none focus:border-blue-400/60" />
@@ -543,7 +543,7 @@ export default function ProjectDetailPage() {
                           {isEditing ? (
                             <input value={editForm.dagitim} onChange={e => setEditForm({...editForm, dagitim: e.target.value})}
                               className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-20 text-white focus:outline-none" />
-                          ) : <span className="text-[11px] text-slate-500">{item.dagitim || ''}</span>}
+                          ) : <span className="text-[11px] text-slate-300">{item.dagitim || ''}</span>}
                         </td>
                         <td className="px-3 py-2">
                           {isEditing ? (
@@ -551,15 +551,15 @@ export default function ProjectDetailPage() {
                               className="bg-white/[0.08] border border-blue-400/30 rounded-md px-1.5 py-1 text-[11px] w-14 text-white focus:outline-none">
                               <option value="">--</option>{BIRIM_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
                             </select>
-                          ) : <span className="text-[11px] text-slate-500">{item.birim || ''}</span>}
+                          ) : <span className="text-[11px] text-slate-300">{item.birim || ''}</span>}
                         </td>
-                        <td className="px-3 py-2 text-[11px] font-mono text-slate-400">
+                        <td className="px-3 py-2 text-[11px] font-mono text-slate-200">
                           {isEditing ? (
                             <input type="number" step="any" value={editForm.quantity} onChange={e => setEditForm({...editForm, quantity: e.target.value})}
                               className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-18 text-white focus:outline-none" />
                           ) : (item.quantity ?? '')}
                         </td>
-                        <td className="px-3 py-2 text-[11px] font-mono text-emerald-300/80 font-medium">
+                        <td className="px-3 py-2 text-[11px] font-mono text-emerald-200 font-semibold">
                           {isEditing ? (
                             <input type="number" step="any" value={editForm.toplamMiktar} onChange={e => setEditForm({...editForm, toplamMiktar: e.target.value})}
                               className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-18 text-white focus:outline-none" />
@@ -720,8 +720,8 @@ function StatCard({ label, value, color, icon }: { label: string; value: number;
   return (
     <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 backdrop-blur-sm hover:bg-white/[0.06] transition-all group">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-slate-500 group-hover:text-slate-400 transition-colors">{icon}</span>
-        <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">{label}</p>
+        <span className="text-slate-400 group-hover:text-slate-300 transition-colors">{icon}</span>
+        <p className="text-[11px] text-slate-300 font-semibold uppercase tracking-wide">{label}</p>
       </div>
       <p className={`text-2xl font-bold ${color}`}>{(value || 0).toLocaleString('tr-TR')}</p>
     </div>

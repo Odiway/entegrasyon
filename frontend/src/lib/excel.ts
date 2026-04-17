@@ -44,12 +44,33 @@ const COL = {
 function str(v: any): string { return v != null ? String(v).trim() : ''; }
 function num(v: any): number { const n = parseFloat(v); return isNaN(n) ? 1 : n; }
 
+/** Detect uzmanlik column from header row (case/accent insensitive) */
+function findUzmanlikCol(worksheet: ExcelJS.Worksheet): number | null {
+  const headerRow = worksheet.getRow(1);
+  if (!headerRow) return null;
+  const vals = (headerRow.values as any[]) || [];
+  for (let i = 1; i < vals.length; i++) {
+    const h = str(vals[i]).toUpperCase()
+      .replace(/İ/g, 'I').replace(/ı/g, 'I')
+      .replace(/Ö/g, 'O').replace(/ö/g, 'O')
+      .replace(/Ü/g, 'U').replace(/ü/g, 'U')
+      .replace(/Ş/g, 'S').replace(/ş/g, 'S')
+      .replace(/Ç/g, 'C').replace(/ç/g, 'C')
+      .replace(/Ğ/g, 'G').replace(/ğ/g, 'G');
+    if (h === 'UZMANLIK') return i - 1; // 0-based
+  }
+  return null;
+}
+
 export function parseBomRows(worksheet: ExcelJS.Worksheet): ParsedRow[] {
   const rows: ParsedRow[] = [];
   let level1Title = '';
   let level2Title = '';
   const parentStack: { level: number; qty: number }[] = [];
   let rowNum = 0;
+
+  const uzmanlikCol = findUzmanlikCol(worksheet);
+  let lastExcelUzmanlik = ''; // propagate from parent rows
 
   worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
     if (rowIndex === 1) return; // skip header
@@ -68,6 +89,15 @@ export function parseBomRows(worksheet: ExcelJS.Worksheet): ParsedRow[] {
     const kalemTipi = str(v[COL.kalemTipi]);
     const birim = str(v[COL.birim]);
 
+    // Read uzmanlik directly from Excel column if present
+    const excelUzmanlik = uzmanlikCol !== null ? str(v[uzmanlikCol]) : '';
+    // Track last seen uzmanlik from Excel (propagates to children)
+    if (excelUzmanlik) {
+      lastExcelUzmanlik = excelUzmanlik;
+    } else if (level <= 1) {
+      lastExcelUzmanlik = ''; // reset at top-level if no value
+    }
+
     if (level === 1) level1Title = title;
     if (level === 2) level2Title = title;
 
@@ -82,6 +112,13 @@ export function parseBomRows(worksheet: ExcelJS.Worksheet): ParsedRow[] {
       level, title, malzemeNo, anaMalzeme, sapUsage,
       quantity, kalemTipi, birim, level1Title, level2Title, parentQtyProduct,
     });
+
+    // Excel column value takes priority over derived value
+    // Use row-level value, or propagated parent value, or keep derived
+    const effectiveUzmanlik = excelUzmanlik || lastExcelUzmanlik;
+    if (effectiveUzmanlik) {
+      derived.uzmanlik = effectiveUzmanlik;
+    }
 
     rows.push({
       rowNumber: rowNum, level, title,

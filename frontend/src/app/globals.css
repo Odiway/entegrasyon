@@ -17,7 +17,7 @@
 
 body {
   background: var(--bg-primary);
-  color: #e6edf3;
+  color: #f0f4f8;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -77,9 +77,9 @@ body::before {
 
 /* ===== Input Styles ===== */
 .input-glass {
-  @apply w-full px-4 py-3 rounded-xl text-white placeholder-slate-600 transition-all duration-300;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  @apply w-full px-4 py-3 rounded-xl text-white placeholder-slate-500 transition-all duration-300;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .input-glass:focus {
   @apply outline-none;
@@ -180,7 +180,7 @@ body::before {
 
 /* ===== Gradient text ===== */
 .gradient-text {
-  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.85) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -191,5 +191,5 @@ body::before {
   @apply transition-all duration-200;
 }
 .table-row-hover:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.04);
 }

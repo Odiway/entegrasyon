@@ -32,10 +32,18 @@ export const BIRIM_OPTIONS = ['AD', 'KG', 'M', 'M2', 'L', 'D', 'SET', 'LT'];
 
 export function deriveUzmanlik(level1Title: string): string {
   if (!level1Title) return '';
-  const upper = level1Title.toUpperCase();
-  for (const [kw, val] of Object.entries(UZMANLIK_KEYWORDS)) {
-    if (upper.includes(kw)) return val;
-  }
+  // Normalize Turkish chars for reliable matching
+  const upper = level1Title.toUpperCase()
+    .replace(/İ/g, 'I').replace(/ı/g, 'I')
+    .replace(/ö/gi, 'O').replace(/ü/gi, 'U')
+    .replace(/ş/gi, 'S').replace(/ç/gi, 'C')
+    .replace(/ğ/gi, 'G');
+  // Check normalized versions
+  if (upper.includes('GOVDE')) return 'GÖVDE';
+  if (upper.includes('TRIM')) return 'TRİM';
+  if (upper.includes('HVAC')) return 'HVAC';
+  if (upper.includes('MEKANIK')) return 'MEKANİK';
+  if (upper.includes('ELEKTRIK')) return 'ELEKTRİK';
   return '';
 }
 
