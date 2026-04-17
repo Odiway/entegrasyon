@@ -30,7 +30,15 @@ const KALEM_CLR: Record<string, string> = {
 
 const SIP_CLR: Record<string, string> = {
   EVET: 'text-emerald-200 font-semibold', HAYIR: 'text-red-200 font-semibold', MONTAJ: 'text-violet-200 font-semibold',
-  'KONTROL ED\u0130LECEK': 'text-amber-200 font-semibold', NA: 'text-slate-400',
+  'KONTROL EDİLECEK': 'text-amber-200 font-semibold', NA: 'text-slate-400',
+};
+
+const UZ_CLR: Record<string, { bg: string; border: string; text: string; dot: string }> = {
+  'GÖVDE': { bg: 'bg-blue-500/15', border: 'border-blue-400/25', text: 'text-blue-200', dot: 'bg-blue-400' },
+  'TRİM': { bg: 'bg-purple-500/15', border: 'border-purple-400/25', text: 'text-purple-200', dot: 'bg-purple-400' },
+  'HVAC': { bg: 'bg-cyan-500/15', border: 'border-cyan-400/25', text: 'text-cyan-200', dot: 'bg-cyan-400' },
+  'MEKANİK': { bg: 'bg-orange-500/15', border: 'border-orange-400/25', text: 'text-orange-200', dot: 'bg-orange-400' },
+  'ELEKTRİK': { bg: 'bg-yellow-500/15', border: 'border-yellow-400/25', text: 'text-yellow-200', dot: 'bg-yellow-400' },
 };
 
 export default function ProjectDetailPage() {
@@ -51,6 +59,7 @@ export default function ProjectDetailPage() {
   const [filterMontaj, setFilterMontaj] = useState('');
   const [filterSiparis, setFilterSiparis] = useState('');
   const [filterKalemTipi, setFilterKalemTipi] = useState('');
+  const [filterDagitim, setFilterDagitim] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -108,13 +117,14 @@ export default function ProjectDetailPage() {
       if (filterMontaj) p.montaj = filterMontaj;
       if (filterSiparis) p.siparis = filterSiparis;
       if (filterKalemTipi) p.kalem_tipi = filterKalemTipi;
+      if (filterDagitim) p.dagitim = filterDagitim;
       if (search) p.q = search;
       const res = await getItems(projectId, p);
       setItems(res.items || []);
       setTotal(res.total || 0);
     } catch { setItems([]); setTotal(0); }
     setLoading(false);
-  }, [projectId, filter, filterUzmanlik, filterLevel, filterMontaj, filterSiparis, filterKalemTipi, search, page]);
+  }, [projectId, filter, filterUzmanlik, filterLevel, filterMontaj, filterSiparis, filterKalemTipi, filterDagitim, search, page]);
 
   useEffect(() => { loadProject(); loadStats(); loadNav(); }, [loadProject, loadStats, loadNav]);
   useEffect(() => { loadItems(); }, [loadItems]);
@@ -130,13 +140,14 @@ export default function ProjectDetailPage() {
 
   const activeFilters = useMemo(() => {
     const f: { key: string; label: string; color: string; onClear: () => void }[] = [];
-    if (filterUzmanlik) f.push({ key: 'uz', label: filterUzmanlik, color: 'blue', onClear: () => { setFilterUzmanlik(''); setPage(0); } });
-    if (filterMontaj) f.push({ key: 'mo', label: filterMontaj, color: 'emerald', onClear: () => { setFilterMontaj(''); setPage(0); } });
-    if (filterSiparis) f.push({ key: 'si', label: 'Sipari\u015F: ' + filterSiparis, color: 'violet', onClear: () => { setFilterSiparis(''); setPage(0); } });
-    if (filterKalemTipi) f.push({ key: 'kt', label: 'KT: ' + filterKalemTipi, color: 'amber', onClear: () => { setFilterKalemTipi(''); setPage(0); } });
+    if (filterUzmanlik) f.push({ key: 'uz', label: 'Uzmanlık: ' + filterUzmanlik, color: 'blue', onClear: () => { setFilterUzmanlik(''); setPage(0); } });
+    if (filterMontaj) f.push({ key: 'mo', label: 'Montaj: ' + filterMontaj, color: 'emerald', onClear: () => { setFilterMontaj(''); setPage(0); } });
+    if (filterSiparis) f.push({ key: 'si', label: 'Sipariş: ' + filterSiparis, color: 'violet', onClear: () => { setFilterSiparis(''); setPage(0); } });
+    if (filterKalemTipi) f.push({ key: 'kt', label: 'Kalem Tipi: ' + filterKalemTipi, color: 'amber', onClear: () => { setFilterKalemTipi(''); setPage(0); } });
     if (filterLevel) f.push({ key: 'lv', label: 'Level ' + filterLevel, color: 'orange', onClear: () => { setFilterLevel(''); setPage(0); } });
+    if (filterDagitim) f.push({ key: 'dg', label: 'Dağıtım: ' + filterDagitim, color: 'cyan', onClear: () => { setFilterDagitim(''); setPage(0); } });
     return f;
-  }, [filterUzmanlik, filterMontaj, filterSiparis, filterKalemTipi, filterLevel]);
+  }, [filterUzmanlik, filterMontaj, filterSiparis, filterKalemTipi, filterLevel, filterDagitim]);
 
   const startEdit = (item: any) => {
     setEditingId(item.id);
@@ -171,12 +182,12 @@ export default function ProjectDetailPage() {
       }
       if (Object.keys(changes).length === 0) { cancelEdit(); return; }
       await updateItem(projectId, itemId, changes);
-      showMsg('ok', 'Kay\u0131t g\u00fcncellendi');
+      showMsg('ok', 'Kayıt güncellendi');
       cancelEdit();
       await loadItems();
       await loadStats();
     } catch (e: any) {
-      showMsg('err', e.message || 'G\u00fcncelleme hatas\u0131');
+      showMsg('err', e.message || 'Güncelleme hatası');
     }
   };
 
@@ -200,12 +211,12 @@ export default function ProjectDetailPage() {
         priority: taskPriority,
         bomItemIds: Array.from(selectedItems),
       });
-      showMsg('ok', 'G\u00f6rev olu\u015Fturuldu (' + selectedItems.size + ' kalem)');
+      showMsg('ok', 'Görev oluşturuldu (' + selectedItems.size + ' kalem)');
       setSelectedItems(new Set());
       setShowTaskModal(false);
       setTaskTitle(''); setTaskDesc(''); setTaskAssignee(''); setTaskPriority('medium');
     } catch (e: any) {
-      showMsg('err', e.message || 'G\u00f6rev olu\u015Fturulamad\u0131');
+      showMsg('err', e.message || 'Görev oluşturulamadı');
     }
     setTaskCreating(false);
   };
@@ -230,22 +241,23 @@ export default function ProjectDetailPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
-      showMsg('err', e.message || 'Excel indirme hatas\u0131');
+      showMsg('err', e.message || 'Excel indirme hatası');
     }
     setExporting(false);
   };
 
   const handleDeleteProject = async () => {
-    if (!confirm('Bu projeyi silmek istedi\u011Finize emin misiniz?')) return;
+    if (!confirm('Bu projeyi silmek istediğinize emin misiniz?')) return;
     try {
       await deleteProject(projectId);
       router.push('/projects');
-    } catch (e: any) { showMsg('err', e.message || 'Silme hatas\u0131'); }
+    } catch (e: any) { showMsg('err', e.message || 'Silme hatası'); }
   };
 
   const clearAllFilters = () => {
     setFilterUzmanlik(''); setFilterMontaj(''); setFilterSiparis('');
-    setFilterKalemTipi(''); setFilterLevel(''); setFilter('all'); setSearch(''); setPage(0);
+    setFilterKalemTipi(''); setFilterLevel(''); setFilterDagitim('');
+    setFilter('all'); setSearch(''); setPage(0);
   };
 
   if (!project) {
@@ -265,6 +277,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="flex h-[calc(100vh)] overflow-hidden">
+      {/* LEFT NAV PANEL */}
       {navOpen && (
         <div className="w-72 shrink-0 border-r border-white/[0.06] bg-[#0d1117]/80 backdrop-blur-xl flex flex-col">
           <div className="p-4 border-b border-white/[0.08]">
@@ -279,10 +292,10 @@ export default function ProjectDetailPage() {
                 <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
               <input type="text" placeholder="Filtrele..." value={navFilter} onChange={e => setNavFilter(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-lg text-xs bg-white/[0.05] text-slate-300 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 placeholder-slate-600 transition-all" />
+                className="w-full pl-9 pr-3 py-2 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 placeholder-slate-500 transition-all" />
             </div>
             {(filterUzmanlik || filterMontaj) && (
-              <button onClick={() => { setFilterUzmanlik(''); setFilterMontaj(''); setFilterSiparis(''); setFilterKalemTipi(''); setPage(0); }}
+              <button onClick={() => { setFilterUzmanlik(''); setFilterMontaj(''); setFilterSiparis(''); setFilterKalemTipi(''); setFilterDagitim(''); setPage(0); }}
                 className="mt-2 w-full text-center text-[11px] text-red-400/80 hover:text-red-300 transition-colors py-1 rounded-lg hover:bg-red-500/10">Filtreleri temizle</button>
             )}
           </div>
@@ -290,27 +303,30 @@ export default function ProjectDetailPage() {
             <button onClick={() => { setFilterUzmanlik(''); setFilterMontaj(''); setPage(0); }}
               className={`w-full text-left px-4 py-3 text-xs border-b border-white/[0.05] transition-all ${!filterUzmanlik && !filterMontaj ? 'bg-gradient-to-r from-blue-500/15 to-transparent text-blue-200 border-l-2 border-l-blue-400' : 'text-slate-400 hover:bg-white/[0.04]'}`}>
               <div className="flex items-center justify-between">
-                <span className="font-medium">T\u00fcm\u00fc</span>
-                <span className="text-[10px] text-slate-500 bg-white/[0.06] px-2 py-0.5 rounded-full font-mono">{totalRows.toLocaleString('tr-TR')}</span>
+                <span className="font-medium">Tümü</span>
+                <span className="text-[10px] text-slate-400 bg-white/[0.06] px-2 py-0.5 rounded-full font-mono">{totalRows.toLocaleString('tr-TR')}</span>
               </div>
             </button>
             {nav.filter(n => !navFilter || n.uzmanlik?.toLowerCase().includes(navFilter.toLowerCase()) || n.montajlar?.some((m: string) => m.toLowerCase().includes(navFilter.toLowerCase()))).map((group: any) => (
               <div key={group.uzmanlik}>
                 <button onClick={() => { setFilterUzmanlik(group.uzmanlik === filterUzmanlik ? '' : group.uzmanlik); setFilterMontaj(''); setPage(0); }}
                   className={`w-full text-left px-4 py-3 text-xs border-b border-white/[0.04] transition-all flex items-center justify-between group ${filterUzmanlik === group.uzmanlik ? 'bg-gradient-to-r from-blue-500/15 to-transparent border-l-2 border-l-blue-400' : 'hover:bg-white/[0.04]'}`}>
-                  <span className="text-blue-100 font-semibold group-hover:text-white">{group.uzmanlik || 'Di\u011Fer'}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${(UZ_CLR[group.uzmanlik] || {}).dot || 'bg-slate-500'}`} />
+                    <span className="text-blue-100 font-semibold group-hover:text-white">{group.uzmanlik || 'Diğer'}</span>
+                  </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{group.montajlar?.length || 0}</span>
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className={`text-slate-600 transition-transform ${filterUzmanlik === group.uzmanlik ? 'rotate-90' : ''}`}>
+                    <span className="text-[10px] text-slate-400 bg-white/[0.05] px-2 py-0.5 rounded-full">{group.montajlar?.length || 0}</span>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className={`text-slate-500 transition-transform ${filterUzmanlik === group.uzmanlik ? 'rotate-90' : ''}`}>
                       <path d="M3 1l4 4-4 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                     </svg>
                   </div>
                 </button>
                 {(filterUzmanlik === group.uzmanlik || navFilter) && group.montajlar?.map((m: string) => (
                   <button key={m} onClick={() => { setFilterMontaj(m === filterMontaj ? '' : m); setPage(0); }}
-                    className={`w-full text-left px-4 py-2 text-[11px] border-b border-white/[0.03] transition-all pl-7 ${filterMontaj === m ? 'bg-gradient-to-r from-emerald-500/15 to-transparent text-emerald-300 border-l-2 border-l-emerald-400' : 'text-slate-500 hover:bg-emerald-500/[0.05] hover:text-emerald-300/80'}`}>
+                    className={`w-full text-left px-4 py-2 text-[11px] border-b border-white/[0.03] transition-all pl-7 ${filterMontaj === m ? 'bg-gradient-to-r from-emerald-500/15 to-transparent text-emerald-200 border-l-2 border-l-emerald-400' : 'text-slate-400 hover:bg-emerald-500/[0.05] hover:text-emerald-200'}`}>
                     <div className="flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${filterMontaj === m ? 'bg-emerald-400' : 'bg-slate-700'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${filterMontaj === m ? 'bg-emerald-400' : 'bg-slate-600'}`} />
                       <span className="truncate">{m}</span>
                     </div>
                   </button>
@@ -321,6 +337,7 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
+      {/* MAIN CONTENT */}
       <div className="flex-1 overflow-y-auto">
         <div className="px-6 py-5 max-w-[1600px] mx-auto">
           {msg && (
@@ -330,7 +347,8 @@ export default function ProjectDetailPage() {
             </div>
           )}
 
-          <div className="flex items-start justify-between mb-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-4">
               {!navOpen && (
                 <button onClick={() => setNavOpen(true)} className="p-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.1] transition-all">
@@ -345,9 +363,9 @@ export default function ProjectDetailPage() {
                 <h1 className="text-2xl font-bold text-white tracking-tight">{project.name}</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-[11px] text-slate-400 font-mono">{project.filename}</span>
-                  <span className="text-slate-700">&middot;</span>
+                  <span className="text-slate-600">&middot;</span>
                   <span className="text-[11px] text-slate-400">{new Date(project.createdAt).toLocaleDateString('tr-TR')}</span>
-                  <span className="text-slate-700">&middot;</span>
+                  <span className="text-slate-600">&middot;</span>
                   <span className="text-[11px] text-slate-400">{project.uploadedBy}</span>
                 </div>
               </div>
@@ -357,13 +375,13 @@ export default function ProjectDetailPage() {
                 <button onClick={() => setShowTaskModal(true)}
                   className="px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-400/30 text-purple-300 hover:bg-purple-500/25 hover:border-purple-400/50 text-sm font-medium transition-all flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                  G\u00f6rev Ata ({selectedItems.size})
+                  Görev Ata ({selectedItems.size})
                 </button>
               )}
               <button onClick={handleExport} disabled={exporting}
                 className="px-4 py-2.5 rounded-xl bg-emerald-500/12 border border-emerald-400/25 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-400/40 text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-40">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3 6l4 4 4-4M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                {exporting ? '\u0130ndiriliyor...' : 'Excel'}
+                {exporting ? 'İndiriliyor...' : 'Excel'}
               </button>
               {isAdmin && (
                 <button onClick={handleDeleteProject} className="p-2.5 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Projeyi Sil">
@@ -373,15 +391,16 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
+          {/* Stat Cards */}
           <div className="grid grid-cols-5 gap-3 mb-4">
-            <StatCard label="Toplam Sat\u0131r" value={totalRows} color="text-white/90" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
-            <StatCard label="\u0130ncelenmesi Gereken" value={needsReview} color="text-amber-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" /><path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>} />
-            <StatCard label="De\u011Fi\u015Ftirilmi\u015F" value={modified} color="text-purple-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
+            <StatCard label="Toplam Satır" value={totalRows} color="text-white" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
+            <StatCard label="İncelenmesi Gereken" value={needsReview} color="text-amber-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" /><path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>} />
+            <StatCard label="Değiştirilmiş"  value={modified} color="text-purple-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
             <StatCard label="Tamamlanan" value={resolved} color="text-emerald-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
             <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">\u0130lerleme</p>
-                <span className={`text-lg font-bold ${progress === 100 ? 'text-emerald-300' : 'text-white/90'}`}>%{progress}</span>
+                <p className="text-[11px] text-slate-300 font-semibold uppercase tracking-wide">İlerleme</p>
+                <span className={`text-lg font-bold ${progress === 100 ? 'text-emerald-300' : 'text-white'}`}>%{progress}</span>
               </div>
               <div className="h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-400'}`} style={{ width: progress + '%' }} />
@@ -389,31 +408,85 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          {stats?.bySiparis && stats.bySiparis.length > 0 && (
-            <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mr-1">Sipari\u015F:</span>
-              {stats.bySiparis.map((s: any) => {
-                const clr: Record<string, string> = { EVET: 'emerald', HAYIR: 'red', MONTAJ: 'violet', 'KONTROL ED\u0130LECEK': 'amber', NA: 'slate' };
-                const c = clr[s.siparis] || 'slate';
-                const active = filterSiparis === s.siparis;
-                return (
-                  <button key={s.siparis} onClick={() => { setFilterSiparis(active ? '' : s.siparis); setPage(0); }}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${active ? 'bg-' + c + '-500/20 text-' + c + '-300 border border-' + c + '-400/30' : 'bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08] hover:text-slate-200'}`}>
-                    <span className={'w-1.5 h-1.5 rounded-full bg-' + c + '-400'} />
-                    {s.siparis}
-                    <span className="text-[10px] opacity-60 font-mono">{s.count.toLocaleString('tr-TR')}</span>
-                  </button>
-                );
-              })}
+          {/* UZMANLIK BREAKDOWN */}
+          {stats?.byUzmanlik && stats.byUzmanlik.length > 0 && (
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 mb-3">
+              <div className="flex items-center gap-3 mb-2.5">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-slate-400"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /><circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1" opacity="0.3" /></svg>
+                <span className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Uzmanlık Dağılımı</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {stats.byUzmanlik.map((u: any) => {
+                  const uzClr = UZ_CLR[u.uzmanlik] || { bg: 'bg-slate-500/15', border: 'border-slate-400/20', text: 'text-slate-300', dot: 'bg-slate-400' };
+                  const active = filterUzmanlik === u.uzmanlik;
+                  return (
+                    <button key={u.uzmanlik} onClick={() => { setFilterUzmanlik(active ? '' : u.uzmanlik); setPage(0); }}
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border ${active ? uzClr.bg + ' ' + uzClr.text + ' ' + uzClr.border + ' ring-1 ring-white/10 shadow-lg' : 'bg-white/[0.03] text-slate-300 border-white/[0.06] hover:bg-white/[0.06] hover:text-white hover:border-white/[0.12]'}`}>
+                      <span className={`w-2.5 h-2.5 rounded-full ${active ? uzClr.dot : 'bg-slate-500'}`} />
+                      <span>{u.uzmanlik}</span>
+                      <span className="text-[10px] opacity-60 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded-md">{u.count.toLocaleString('tr-TR')}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
+          {/* SIPARIS & KALEM TIPI BREAKDOWNS */}
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {stats?.bySiparis && stats.bySiparis.length > 0 && (
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-slate-400"><path d="M1 3h10M1 6h7M1 9h9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                  <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Sipariş Durumu</span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {stats.bySiparis.map((s: any) => {
+                    const clr: Record<string, string> = { EVET: 'emerald', HAYIR: 'red', MONTAJ: 'violet', ['KONTROL EDİLECEK']: 'amber', NA: 'slate' };
+                    const c = clr[s.siparis] || 'slate';
+                    const active = filterSiparis === s.siparis;
+                    return (
+                      <button key={s.siparis} onClick={() => { setFilterSiparis(active ? '' : s.siparis); setPage(0); }}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${active ? `bg-${c}-500/20 text-${c}-200 border border-${c}-400/30 shadow-sm` : 'bg-white/[0.03] text-slate-300 border border-white/[0.05] hover:bg-white/[0.06] hover:text-white'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full bg-${c}-400`} />
+                        {s.siparis}
+                        <span className="text-[9px] opacity-50 font-mono">{s.count.toLocaleString('tr-TR')}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {stats?.byKalemTipi && stats.byKalemTipi.length > 0 && (
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-slate-400"><rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="7" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="1" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /></svg>
+                  <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Kalem Tipi Dağılımı</span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {stats.byKalemTipi.map((k: any) => {
+                    const kClr = KALEM_CLR[k.kalemTipi] || 'bg-slate-700/40 text-slate-300 border-slate-600/30';
+                    const active = filterKalemTipi === k.kalemTipi;
+                    return (
+                      <button key={k.kalemTipi} onClick={() => { setFilterKalemTipi(active ? '' : k.kalemTipi); setPage(0); }}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${active ? kClr + ' ring-1 ring-white/10 shadow-sm' : 'bg-white/[0.03] text-slate-300 border-white/[0.05] hover:bg-white/[0.06] hover:text-white'}`}>
+                        {k.kalemTipi}
+                        <span className="text-[9px] opacity-50 font-mono">{k.count.toLocaleString('tr-TR')}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* FILTER BAR */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 mb-4">
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center bg-white/[0.04] rounded-lg p-0.5">
-                {[['all', 'T\u00fcm\u00fc', total], ['review', '\u0130ncele', needsReview], ['modified', 'De\u011Fi\u015Fen', modified]].map(([k, l, c]) => (
+                {[['all', 'T\u00fcm\u00fc', total], ['review', '\u0130ncele', needsReview], ['modified', 'De\u011fi\u015fen', modified]].map(([k, l, c]) => (
                   <button key={k as string} onClick={() => { setFilter(k as string); setPage(0); }}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${filter === k ? 'bg-blue-500/20 text-blue-200 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${filter === k ? 'bg-blue-500/20 text-blue-200 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>
                     {l} <span className="text-[10px] opacity-50 font-mono">{c}</span>
                   </button>
                 ))}
@@ -423,43 +496,54 @@ export default function ProjectDetailPage() {
 
               <select value={filterLevel} onChange={e => { setFilterLevel(e.target.value); setPage(0); }}
                 className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
-                <option value="">T\u00fcm Seviyeler</option>
+                <option value="">Tüm Seviyeler</option>
                 {[0,1,2,3,4,5,6,7,8].map(l => <option key={l} value={l}>Level {l}</option>)}
               </select>
               <select value={filterSiparis} onChange={e => { setFilterSiparis(e.target.value); setPage(0); }}
                 className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
-                <option value="">T\u00fcm Sipari\u015F</option>
-                {['EVET', 'HAYIR', 'MONTAJ', 'KONTROL ED\u0130LECEK', 'NA'].map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="">Tüm Sipariş</option>
+                {['EVET', 'HAYIR', 'MONTAJ', 'KONTROL EDİLECEK', 'NA'].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               <select value={filterKalemTipi} onChange={e => { setFilterKalemTipi(e.target.value); setPage(0); }}
                 className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
-                <option value="">T\u00fcm Kalem Tipi</option>
+                <option value="">Tüm Kalem Tipi</option>
                 {['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'].map(k => <option key={k} value={k}>{k}</option>)}
               </select>
+              <select value={filterDagitim} onChange={e => { setFilterDagitim(e.target.value); setPage(0); }}
+                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
+                <option value="">Tüm Dağıtım</option>
+                {['EVET', 'HAYIR'].map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <select value={filterUzmanlik} onChange={e => { setFilterUzmanlik(e.target.value); setPage(0); }}
+                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
+                <option value="">Tüm Uzmanlık</option>
+                {(stats?.byUzmanlik || []).map((u: any) => <option key={u.uzmanlik} value={u.uzmanlik}>{u.uzmanlik} ({u.count})</option>)}
+              </select>
 
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative flex-1 min-w-[180px]">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                   <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
                 </svg>
                 <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Title, malzeme no ara..."
-                  className="w-full pl-9 pr-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 placeholder-slate-600 backdrop-blur-sm transition-all" />
+                  className="w-full pl-9 pr-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 placeholder-slate-500 backdrop-blur-sm transition-all" />
               </div>
 
-              <div className="flex items-center gap-1.5 ml-auto">
+              <div className="flex items-center gap-1.5 ml-auto flex-wrap">
                 {activeFilters.map(f => (
-                  <span key={f.key} className={'px-2.5 py-1 rounded-lg text-[10px] font-medium bg-' + f.color + '-500/15 text-' + f.color + '-300 border border-' + f.color + '-400/20 flex items-center gap-1.5 backdrop-blur-sm'}>
+                  <span key={f.key} className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-${f.color}-500/15 text-${f.color}-200 border border-${f.color}-400/20 flex items-center gap-1.5 backdrop-blur-sm`}>
                     {f.label}
                     <button onClick={f.onClear} className="hover:text-white transition-colors">&times;</button>
                   </span>
                 ))}
                 {activeFilters.length > 1 && (
-                  <button onClick={clearAllFilters} className="text-[10px] text-red-400/70 hover:text-red-300 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-all">Temizle</button>
+                  <button onClick={clearAllFilters} className="text-[10px] text-red-400/70 hover:text-red-300 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-all font-medium">Temizle</button>
                 )}
-                <span className="text-[11px] text-slate-400 font-mono ml-1">{total.toLocaleString('tr-TR')} kay\u0131t</span>
+                <span className="text-[11px] text-slate-400 font-mono ml-1">{total.toLocaleString('tr-TR')} kayıt</span>
               </div>
             </div>
           </div>
 
+          {/* TABLE */}
           <div ref={tableRef} className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden backdrop-blur-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
@@ -471,7 +555,7 @@ export default function ProjectDetailPage() {
                           onChange={e => { if (e.target.checked) setSelectedItems(new Set(items.map(i => i.id))); else setSelectedItems(new Set()); }} />
                       </th>
                     )}
-                    {['#','Lv','Uzmanl\u0131k','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipari\u015F','Da\u011F\u0131t\u0131m','Birim','Qty','Toplam','Durum',''].map(h => (
+                    {['#','Lv','Uzmanlık','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
                       <th key={h} className="px-3 py-3.5 text-left text-[10px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -481,20 +565,21 @@ export default function ProjectDetailPage() {
                     <tr><td colSpan={16} className="text-center py-20">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-slate-500 text-sm">Y\u00fckleniyor...</span>
+                        <span className="text-slate-400 text-sm">Yükleniyor...</span>
                       </div>
                     </td></tr>
                   ) : items.length === 0 ? (
                     <tr><td colSpan={16} className="text-center py-20">
                       <div className="text-5xl mb-3 opacity-20">{'\uD83D\uDCCB'}</div>
-                      <p className="text-slate-400 text-sm mb-1">Kay\u0131t bulunamad\u0131</p>
-                      <p className="text-slate-600 text-xs">Filtrelerinizi de\u011Fi\u015Ftirmeyi deneyin</p>
+                      <p className="text-slate-300 text-sm mb-1">Kayıt bulunamadı</p>
+                      <p className="text-slate-500 text-xs">Filtrelerinizi değiştirmeyi deneyin</p>
                     </td></tr>
                   ) : items.map(item => {
                     const lvl = LVL[item.level] || LVL[5];
                     const isEditing = editingId === item.id;
                     const isModified = item.status === 'modified' || item.updatedAt;
-                    const kalemClr = KALEM_CLR[item.kalemTipi] || 'bg-slate-700/40 text-slate-400 border-slate-600/30';
+                    const kalemClr = KALEM_CLR[item.kalemTipi] || 'bg-slate-700/40 text-slate-300 border-slate-600/30';
+                    const uzClr = UZ_CLR[item.uzmanlik];
                     return (
                       <tr key={item.id}
                         className={`border-b transition-colors duration-150 group
@@ -510,7 +595,14 @@ export default function ProjectDetailPage() {
                         )}
                         <td className="px-3 py-2 text-slate-400 font-mono text-[11px]">{item.rowNumber}</td>
                         <td className="px-3 py-2"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold ${lvl.badge}`}>{item.level}</span></td>
-                        <td className="px-3 py-2 text-[11px] text-slate-200 whitespace-nowrap">{item.uzmanlik || ''}</td>
+                        <td className="px-3 py-2 text-[11px] whitespace-nowrap">
+                          {item.uzmanlik ? (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${uzClr ? uzClr.bg + ' ' + uzClr.text + ' ' + uzClr.border : 'bg-slate-600/30 text-slate-300 border-slate-500/20'}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${uzClr?.dot || 'bg-slate-400'}`} />
+                              {item.uzmanlik}
+                            </span>
+                          ) : <span className="text-slate-500">{'\u2014'}</span>}
+                        </td>
                         <td className="px-3 py-2 text-[11px] text-slate-300 max-w-[110px] truncate">{item.montaj || ''}</td>
                         <td className={`px-3 py-2 font-mono text-[11px] max-w-[250px] ${lvl.font}`} style={{ paddingLeft: Math.max(12, item.level * 14) }}>
                           <span className="truncate block">{item.title}</span>
@@ -537,7 +629,7 @@ export default function ProjectDetailPage() {
                           {isEditing ? (
                             <input value={editForm.siparis} onChange={e => setEditForm({...editForm, siparis: e.target.value})}
                               className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-24 text-white focus:outline-none" />
-                          ) : <span className={`text-[11px] font-semibold ${SIP_CLR[item.siparis] || 'text-slate-400'}`}>{item.siparis || ''}</span>}
+                          ) : <span className={`text-[11px] font-semibold ${SIP_CLR[item.siparis] || 'text-slate-300'}`}>{item.siparis || ''}</span>}
                         </td>
                         <td className="px-3 py-2">
                           {isEditing ? (
@@ -567,30 +659,30 @@ export default function ProjectDetailPage() {
                         </td>
                         <td className="px-3 py-2">
                           {isModified && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-purple-500/15 text-purple-300 border border-purple-400/20">
-                              <span className="w-1 h-1 rounded-full bg-purple-400" /> de\u011Fi\u015Fti
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-purple-500/15 text-purple-200 border border-purple-400/20">
+                              <span className="w-1 h-1 rounded-full bg-purple-400" /> değişti
                             </span>
                           )}
                           {item.needsReview && !isModified && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-amber-500/15 text-amber-300 border border-amber-400/20">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-amber-500/15 text-amber-200 border border-amber-400/20">
                               <span className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" /> incele
                             </span>
                           )}
-                          {!isModified && !item.needsReview && <span className="text-emerald-400/40 text-xs">{'\u2713'}</span>}
+                          {!isModified && !item.needsReview && <span className="text-emerald-400/50 text-xs">{'\u2713'}</span>}
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           {isEditing ? (
                             <div className="flex items-center gap-1.5">
-                              <button onClick={() => saveEdit(item.id)} className="px-3 py-1 text-[10px] rounded-md bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 font-semibold transition-all border border-emerald-400/20">Kaydet</button>
-                              <button onClick={cancelEdit} className="px-2.5 py-1 text-[10px] rounded-md bg-white/[0.06] text-slate-400 hover:bg-white/[0.1] transition-all">\u0130ptal</button>
+                              <button onClick={() => saveEdit(item.id)} className="px-3 py-1 text-[10px] rounded-md bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 font-semibold transition-all border border-emerald-400/20">Kaydet</button>
+                              <button onClick={cancelEdit} className="px-2.5 py-1 text-[10px] rounded-md bg-white/[0.06] text-slate-300 hover:bg-white/[0.1] transition-all">İptal</button>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                               {canEdit && item.level >= 2 && (
-                                <button onClick={() => startEdit(item)} className="px-3 py-1 text-[10px] rounded-md bg-blue-500/15 text-blue-300 hover:bg-blue-500/25 font-semibold transition-all border border-blue-400/20">D\u00fczenle</button>
+                                <button onClick={() => startEdit(item)} className="px-3 py-1 text-[10px] rounded-md bg-blue-500/15 text-blue-200 hover:bg-blue-500/25 font-semibold transition-all border border-blue-400/20">Düzenle</button>
                               )}
                               {isModified && (
-                                <button onClick={() => showHistory(item)} className="px-2.5 py-1 text-[10px] rounded-md bg-purple-500/12 text-purple-300 hover:bg-purple-500/20 transition-all border border-purple-400/15">Ge\u00e7mi\u015F</button>
+                                <button onClick={() => showHistory(item)} className="px-2.5 py-1 text-[10px] rounded-md bg-purple-500/12 text-purple-200 hover:bg-purple-500/20 transition-all border border-purple-400/15">Geçmiş</button>
                               )}
                             </div>
                           )}
@@ -602,17 +694,18 @@ export default function ProjectDetailPage() {
               </table>
             </div>
 
+            {/* Pagination */}
             <div className="flex items-center justify-between border-t border-white/[0.08] px-5 py-3 bg-white/[0.02]">
               <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}
-                className="px-4 py-2 text-xs rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.1] disabled:opacity-20 text-slate-300 transition-all font-medium flex items-center gap-1.5">
+                className="px-4 py-2 text-xs rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.1] disabled:opacity-20 text-slate-200 transition-all font-medium flex items-center gap-1.5">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
-                \u00d6nceki
+                Önceki
               </button>
               <div className="flex items-center gap-2">
                 {totalPages <= 7 ? (
                   Array.from({ length: totalPages }, (_, i) => (
                     <button key={i} onClick={() => setPage(i)}
-                      className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i ? 'bg-blue-500/25 text-blue-200 border border-blue-400/30' : 'text-slate-500 hover:bg-white/[0.06] hover:text-slate-300'}`}>
+                      className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i ? 'bg-blue-500/25 text-blue-200 border border-blue-400/30' : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-200'}`}>
                       {i + 1}
                     </button>
                   ))
@@ -620,18 +713,18 @@ export default function ProjectDetailPage() {
                   <>
                     {[0, 1].map(i => (
                       <button key={i} onClick={() => setPage(i)}
-                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i ? 'bg-blue-500/25 text-blue-200 border border-blue-400/30' : 'text-slate-500 hover:bg-white/[0.06]'}`}>
+                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i ? 'bg-blue-500/25 text-blue-200 border border-blue-400/30' : 'text-slate-400 hover:bg-white/[0.06]'}`}>
                         {i + 1}
                       </button>
                     ))}
-                    {page > 2 && <span className="text-slate-700 text-xs px-1">...</span>}
+                    {page > 2 && <span className="text-slate-600 text-xs px-1">...</span>}
                     {page > 1 && page < totalPages - 2 && (
                       <button className="w-8 h-8 rounded-lg text-xs font-medium bg-blue-500/25 text-blue-200 border border-blue-400/30">{page + 1}</button>
                     )}
-                    {page < totalPages - 3 && <span className="text-slate-700 text-xs px-1">...</span>}
+                    {page < totalPages - 3 && <span className="text-slate-600 text-xs px-1">...</span>}
                     {[totalPages - 2, totalPages - 1].filter(i => i > 1).map(i => (
                       <button key={i} onClick={() => setPage(i)}
-                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i ? 'bg-blue-500/25 text-blue-200 border border-blue-400/30' : 'text-slate-500 hover:bg-white/[0.06]'}`}>
+                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i ? 'bg-blue-500/25 text-blue-200 border border-blue-400/30' : 'text-slate-400 hover:bg-white/[0.06]'}`}>
                         {i + 1}
                       </button>
                     ))}
@@ -639,7 +732,7 @@ export default function ProjectDetailPage() {
                 )}
               </div>
               <button onClick={() => setPage(page + 1)} disabled={items.length < 200}
-                className="px-4 py-2 text-xs rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.1] disabled:opacity-20 text-slate-300 transition-all font-medium flex items-center gap-1.5">
+                className="px-4 py-2 text-xs rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.1] disabled:opacity-20 text-slate-200 transition-all font-medium flex items-center gap-1.5">
                 Sonraki
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
               </button>
@@ -648,67 +741,69 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
+      {/* TASK MODAL */}
       {showTaskModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={() => setShowTaskModal(false)}>
           <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white/90 mb-1">G\u00f6rev Olu\u015Ftur</h3>
-            <p className="text-xs text-slate-400 mb-6">{selectedItems.size} kalem se\u00e7ili</p>
+            <h3 className="text-xl font-bold text-white mb-1">Görev Oluştur</h3>
+            <p className="text-xs text-slate-400 mb-6">{selectedItems.size} kalem seçili</p>
             <div className="space-y-4">
-              <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="G\u00f6rev ba\u015Fl\u0131\u011F\u0131"
+              <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Görev başlığı"
                 className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-purple-400/40 text-sm" />
-              <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} placeholder="A\u00e7\u0131klama (opsiyonel)"
+              <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} placeholder="Açıklama (opsiyonel)"
                 className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-purple-400/40 text-sm h-24 resize-none" />
               <div className="grid grid-cols-2 gap-3">
                 <select value={taskAssignee} onChange={e => setTaskAssignee(e.target.value)}
-                  className="px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-slate-300 focus:outline-none text-sm">
-                  <option value="">M\u00fchendis se\u00e7...</option>
+                  className="px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-slate-200 focus:outline-none text-sm">
+                  <option value="">Mühendis seç...</option>
                   {engineers.map(e => <option key={e.id} value={e.id}>{e.full_name || e.fullName}</option>)}
                 </select>
                 <select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}
-                  className="px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-slate-300 focus:outline-none text-sm">
-                  <option value="low">D\u00fc\u015F\u00fck</option><option value="medium">Orta</option><option value="high">Y\u00fcksek</option><option value="critical">Kritik</option>
+                  className="px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-slate-200 focus:outline-none text-sm">
+                  <option value="low">Düşük</option><option value="medium">Orta</option><option value="high">Yüksek</option><option value="critical">Kritik</option>
                 </select>
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowTaskModal(false)} className="px-5 py-2.5 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">\u0130ptal</button>
+              <button onClick={() => setShowTaskModal(false)} className="px-5 py-2.5 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">İptal</button>
               <button onClick={handleCreateTask} disabled={!taskTitle || taskCreating}
                 className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-purple-500/80 text-white hover:bg-purple-500 disabled:opacity-40 transition-all">
-                {taskCreating ? 'Olu\u015Fturuluyor...' : 'G\u00f6rev Olu\u015Ftur'}
+                {taskCreating ? 'Oluşturuluyor...' : 'Görev Oluştur'}
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* HISTORY MODAL */}
       {historyItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={() => setHistoryItem(null)}>
           <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white/90 mb-1">De\u011Fi\u015Fiklik Ge\u00e7mi\u015Fi</h3>
+            <h3 className="text-xl font-bold text-white mb-1">Değişiklik Geçmişi</h3>
             <p className="text-xs text-slate-400 mb-5">#{historyItem.rowNumber} &middot; {historyItem.title}</p>
             {historyData.length === 0 ? (
-              <p className="text-sm text-slate-400 py-8 text-center">Hen\u00fcz de\u011Fi\u015Fiklik yok</p>
+              <p className="text-sm text-slate-400 py-8 text-center">Henüz değişiklik yok</p>
             ) : (
               <div className="space-y-3">
                 {historyData.map((log: any, i: number) => (
                   <div key={i} className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-purple-300">{log.fieldName}</span>
-                      <span className="text-[10px] text-slate-500">{new Date(log.changedAt).toLocaleString('tr-TR')}</span>
+                      <span className="text-xs font-semibold text-purple-200">{log.fieldName}</span>
+                      <span className="text-[10px] text-slate-400">{new Date(log.changedAt).toLocaleString('tr-TR')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-red-300/70 line-through">{log.oldValue || '\u2014'}</span>
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 5h4M5.5 3l2 2-2 2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
-                      <span className="text-emerald-300 font-medium">{log.newValue || '\u2014'}</span>
+                      <span className="text-emerald-200 font-medium">{log.newValue || '\u2014'}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1.5">{log.changedBy?.fullName || ''}</p>
+                    <p className="text-[10px] text-slate-400 mt-1.5">{log.changedBy?.fullName || ''}</p>
                   </div>
                 ))}
               </div>
             )}
-            <button onClick={() => setHistoryItem(null)} className="mt-5 px-4 py-2.5 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] w-full transition-all font-medium">Kapat</button>
+            <button onClick={() => setHistoryItem(null)} className="mt-5 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-white/[0.06] w-full transition-all font-medium">Kapat</button>
           </div>
         </div>
       )}

@@ -18,6 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const montaj = url.searchParams.get('montaj');
     const siparis = url.searchParams.get('siparis');
     const kalemTipi = url.searchParams.get('kalem_tipi');
+    const dagitim = url.searchParams.get('dagitim');
 
     const where: any = { projectId };
 
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (montaj) where.montaj = montaj;
     if (siparis) where.siparis = siparis;
     if (kalemTipi) where.kalemTipi = kalemTipi;
+    if (dagitim) where.dagitim = dagitim;
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
