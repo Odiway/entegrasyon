@@ -38,22 +38,34 @@ const NAV_ITEMS = [
   },
 ];
 
-const ADMIN_NAV = {
-  href: '/users',
-  label: 'Kullanıcılar',
-  icon: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M3 17a7 7 0 0114 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  ),
-};
+const ADMIN_NAV = [
+  {
+    href: '/users',
+    label: 'Kullanıcılar',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M3 17a7 7 0 0114 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    href: '/settings',
+    label: 'Ayarlar & Kurallar',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M10 1v2M10 17v2M18.36 4.64l-1.42 1.42M3.05 14.95l-1.42 1.42M19 10h-2M3 10H1M18.36 15.36l-1.42-1.42M3.05 5.05L1.63 3.63" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const items = user?.role === 'admin' ? [...NAV_ITEMS, ADMIN_NAV] : NAV_ITEMS;
+  const items = user?.role === 'admin' ? [...NAV_ITEMS, ...ADMIN_NAV] : NAV_ITEMS;
 
   return (
     <aside className="w-64 h-screen fixed left-0 top-0 bg-[#0d1117] border-r border-white/[0.06] flex flex-col z-40">

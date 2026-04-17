@@ -26,16 +26,26 @@ export async function PATCH(req: Request, { params }: { params: { id: string; it
     const updateData: any = {};
     const changeLogs: any[] = [];
 
+    const numericFields = new Set(['quantity', 'toplamMiktar']);
+
     for (const field of editableFields) {
-      if (body[field] !== undefined && body[field] !== (existing as any)[field]) {
-        changeLogs.push({
-          bomItemId,
-          fieldName: field,
-          oldValue: String((existing as any)[field] ?? ''),
-          newValue: String(body[field] ?? ''),
-          changedById: user.id,
-        });
-        updateData[field] = body[field];
+      if (body[field] !== undefined) {
+        let newVal = body[field];
+        const oldVal = (existing as any)[field];
+        if (numericFields.has(field)) {
+          newVal = typeof newVal === 'string' ? parseFloat(newVal) : newVal;
+          if (isNaN(newVal)) continue;
+        }
+        if (String(newVal) !== String(oldVal ?? '')) {
+          changeLogs.push({
+            bomItemId,
+            fieldName: field,
+            oldValue: String(oldVal ?? ''),
+            newValue: String(newVal ?? ''),
+            changedById: user.id,
+          });
+          updateData[field] = newVal;
+        }
       }
     }
 

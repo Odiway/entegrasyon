@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import {
   getProject, getItems, getStats, getNav, updateItem, getItemHistory,
-  exportProjectUrl, createTask, getUsers, deleteProject,
+  exportProject, createTask, getUsers, deleteProject,
 } from '@/lib/api';
 
 const KALEM_OPTIONS = ['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'];
@@ -39,6 +39,8 @@ export default function ProjectDetailPage() {
   const [filterUzmanlik, setFilterUzmanlik] = useState('');
   const [filterLevel, setFilterLevel] = useState('');
   const [filterMontaj, setFilterMontaj] = useState('');
+  const [filterSiparis, setFilterSiparis] = useState('');
+  const [filterKalemTipi, setFilterKalemTipi] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -94,13 +96,15 @@ export default function ProjectDetailPage() {
       if (filterUzmanlik) p.uzmanlik = filterUzmanlik;
       if (filterLevel) p.level = filterLevel;
       if (filterMontaj) p.montaj = filterMontaj;
+      if (filterSiparis) p.siparis = filterSiparis;
+      if (filterKalemTipi) p.kalem_tipi = filterKalemTipi;
       if (search) p.q = search;
       const res = await getItems(projectId, p);
       setItems(res.items || []);
       setTotal(res.total || 0);
     } catch { setItems([]); setTotal(0); }
     setLoading(false);
-  }, [projectId, filter, filterUzmanlik, filterLevel, filterMontaj, search, page]);
+  }, [projectId, filter, filterUzmanlik, filterLevel, filterMontaj, filterSiparis, filterKalemTipi, search, page]);
 
   useEffect(() => { loadProject(); loadStats(); loadNav(); }, [loadProject, loadStats, loadNav]);
   useEffect(() => { loadItems(); }, [loadItems]);
@@ -122,6 +126,8 @@ export default function ProjectDetailPage() {
       siparis: item.siparis || '',
       dagitim: item.dagitim || '',
       malzemeNoSap: item.malzemeNoSap || '',
+      quantity: item.quantity ?? '',
+      toplamMiktar: item.toplamMiktar ?? '',
     });
   };
 
@@ -133,7 +139,15 @@ export default function ProjectDetailPage() {
       if (!item) return;
       const changes: any = {};
       for (const [k, v] of Object.entries(editForm)) {
-        if (v !== (item[k] || '')) changes[k] = v;
+        const orig = item[k] ?? '';
+        if (String(v) !== String(orig)) {
+          if (k === 'quantity' || k === 'toplamMiktar') {
+            const num = parseFloat(v as string);
+            if (!isNaN(num)) changes[k] = num;
+          } else {
+            changes[k] = v;
+          }
+        }
       }
       if (Object.keys(changes).length === 0) { cancelEdit(); return; }
       await updateItem(projectId, itemId, changes);
@@ -184,6 +198,23 @@ export default function ProjectDetailPage() {
     } catch { setHistoryData([]); }
   };
 
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportProject(projectId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project?.name || 'export'}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      showMsg('err', e.message || 'Excel indirme hatası');
+    }
+    setExporting(false);
+  };
+
   const handleDeleteProject = async () => {
     if (!confirm('Bu projeyi silmek istediğinize emin misiniz?')) return;
     try {
@@ -220,7 +251,7 @@ export default function ProjectDetailPage() {
             <input type="text" placeholder="Filtrele..." value={navFilter} onChange={e => setNavFilter(e.target.value)}
               className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/30" />
             {(filterUzmanlik || filterMontaj) && (
-              <button onClick={() => { setFilterUzmanlik(''); setFilterMontaj(''); setPage(0); }}
+              <button onClick={() => { setFilterUzmanlik(''); setFilterMontaj(''); setFilterSiparis(''); setFilterKalemTipi(''); setPage(0); }}
                 className="mt-2 w-full text-center text-[10px] text-red-400/70 hover:text-red-400">Filtreleri temizle</button>
             )}
           </div>
@@ -277,11 +308,11 @@ export default function ProjectDetailPage() {
                   Görev Ata ({selectedItems.size})
                 </button>
               )}
-              <a href={exportProjectUrl(projectId) + '?t=' + Date.now()}
-                className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-sm font-medium transition-all flex items-center gap-2">
+              <button onClick={handleExport} disabled={exporting}
+                className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3 6l4 4 4-4M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                Excel
-              </a>
+                {exporting ? 'İndiriliyor...' : 'Excel'}
+              </button>
               {isAdmin && (
                 <button onClick={handleDeleteProject} className="p-2 rounded-xl text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Projeyi Sil">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1m2 0v9a1 1 0 01-1 1H5a1 1 0 01-1-1V4h8z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
@@ -290,7 +321,7 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-5 gap-3 mb-5">
+          <div className="grid grid-cols-5 gap-3 mb-3">
             <StatCard label="Toplam Satır" value={totalRows} color="text-white" />
             <StatCard label="İncelenmesi Gereken" value={needsReview} color="text-amber-400" />
             <StatCard label="Değiştirilmiş" value={modified} color="text-purple-400" />
@@ -306,6 +337,22 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
+          {/* Sipariş Breakdown */}
+          {stats?.bySiparis && stats.bySiparis.length > 0 && (
+            <div className="grid grid-cols-6 gap-2 mb-5">
+              {stats.bySiparis.map((s: any) => {
+                const clr: Record<string, string> = { EVET: 'text-emerald-400', HAYIR: 'text-red-400/70', MONTAJ: 'text-violet-400', 'KONTROL EDİLECEK': 'text-amber-400', NA: 'text-slate-600' };
+                return (
+                  <button key={s.siparis} onClick={() => { setFilterSiparis(filterSiparis === s.siparis ? '' : s.siparis); setPage(0); }}
+                    className={`bg-[#161b22] border rounded-lg p-2 text-center transition-all cursor-pointer hover:bg-white/[0.03] ${filterSiparis === s.siparis ? 'border-blue-500/40 bg-blue-500/[0.06]' : 'border-white/[0.06]'}`}>
+                    <p className="text-[9px] text-slate-500 font-medium truncate">Sipariş: {s.siparis}</p>
+                    <p className={`text-sm font-bold ${clr[s.siparis] || 'text-slate-400'}`}>{s.count.toLocaleString('tr-TR')}</p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             {[['all', 'Tümü', total], ['review', 'İncele', needsReview], ['modified', 'Değişen', modified]].map(([k, l, c]) => (
               <button key={k as string} onClick={() => { setFilter(k as string); setPage(0); }}
@@ -319,6 +366,16 @@ export default function ProjectDetailPage() {
               <option value="">Tüm Seviyeler</option>
               {[0,1,2,3,4,5,6,7,8].map(l => <option key={l} value={l}>Level {l}</option>)}
             </select>
+            <select value={filterSiparis} onChange={e => { setFilterSiparis(e.target.value); setPage(0); }}
+              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.03] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30">
+              <option value="">Tüm Sipariş</option>
+              {['EVET', 'HAYIR', 'MONTAJ', 'KONTROL EDİLECEK', 'NA'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={filterKalemTipi} onChange={e => { setFilterKalemTipi(e.target.value); setPage(0); }}
+              className="px-2.5 py-1.5 rounded-lg text-xs bg-white/[0.03] text-slate-400 border border-white/[0.06] focus:outline-none focus:border-blue-500/30">
+              <option value="">Tüm Kalem Tipi</option>
+              {['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'].map(k => <option key={k} value={k}>{k}</option>)}
+            </select>
             <div className="relative flex-1 max-w-xs">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
                 <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
@@ -329,6 +386,8 @@ export default function ProjectDetailPage() {
             <div className="ml-auto flex items-center gap-1.5">
               {filterUzmanlik && <span className="px-2 py-1 rounded-md text-[10px] bg-blue-500/15 text-blue-300 border border-blue-500/20 flex items-center gap-1">{filterUzmanlik} <button onClick={() => { setFilterUzmanlik(''); setPage(0); }} className="hover:text-white">×</button></span>}
               {filterMontaj && <span className="px-2 py-1 rounded-md text-[10px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 flex items-center gap-1">{filterMontaj} <button onClick={() => { setFilterMontaj(''); setPage(0); }} className="hover:text-white">×</button></span>}
+              {filterSiparis && <span className="px-2 py-1 rounded-md text-[10px] bg-violet-500/15 text-violet-300 border border-violet-500/20 flex items-center gap-1">Sipariş: {filterSiparis} <button onClick={() => { setFilterSiparis(''); setPage(0); }} className="hover:text-white">×</button></span>}
+              {filterKalemTipi && <span className="px-2 py-1 rounded-md text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/20 flex items-center gap-1">KT: {filterKalemTipi} <button onClick={() => { setFilterKalemTipi(''); setPage(0); }} className="hover:text-white">×</button></span>}
               <span className="text-[11px] text-slate-600 font-mono">{total.toLocaleString('tr-TR')} kayıt</span>
             </div>
           </div>
@@ -368,8 +427,8 @@ export default function ProjectDetailPage() {
                         <td className="px-2 py-1">{isEditing ? <input value={editForm.siparis} onChange={e => setEditForm({...editForm, siparis: e.target.value})} className="bg-slate-800 border border-blue-500/30 rounded px-1.5 py-0.5 text-[11px] w-20 text-white focus:outline-none" /> : <span className={`text-[11px] font-medium ${SIP_CLR[item.siparis] || 'text-slate-500'}`}>{item.siparis || ''}</span>}</td>
                         <td className="px-2 py-1">{isEditing ? <input value={editForm.dagitim} onChange={e => setEditForm({...editForm, dagitim: e.target.value})} className="bg-slate-800 border border-blue-500/30 rounded px-1.5 py-0.5 text-[11px] w-16 text-white focus:outline-none" /> : <span className="text-[11px] text-slate-600">{item.dagitim || ''}</span>}</td>
                         <td className="px-2 py-1">{isEditing ? <select value={editForm.birim} onChange={e => setEditForm({...editForm, birim: e.target.value})} className="bg-slate-800 border border-blue-500/30 rounded px-1 py-0.5 text-[11px] w-12 text-white focus:outline-none"><option value="">--</option>{BIRIM_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}</select> : <span className="text-[11px] text-slate-600">{item.birim || ''}</span>}</td>
-                        <td className="px-2 py-1 text-[11px] font-mono text-slate-600">{item.quantity ?? ''}</td>
-                        <td className="px-2 py-1 text-[11px] font-mono text-emerald-400/80">{item.toplamMiktar ?? ''}</td>
+                        <td className="px-2 py-1 text-[11px] font-mono text-slate-600">{isEditing ? <input type="number" step="any" value={editForm.quantity} onChange={e => setEditForm({...editForm, quantity: e.target.value})} className="bg-slate-800 border border-blue-500/30 rounded px-1.5 py-0.5 text-[11px] w-16 text-white focus:outline-none" /> : (item.quantity ?? '')}</td>
+                        <td className="px-2 py-1 text-[11px] font-mono text-emerald-400/80">{isEditing ? <input type="number" step="any" value={editForm.toplamMiktar} onChange={e => setEditForm({...editForm, toplamMiktar: e.target.value})} className="bg-slate-800 border border-blue-500/30 rounded px-1.5 py-0.5 text-[11px] w-16 text-white focus:outline-none" /> : (item.toplamMiktar ?? '')}</td>
                         <td className="px-2 py-1">{isModified && <span className="px-1.5 py-0.5 rounded text-[9px] bg-purple-500/15 text-purple-400 border border-purple-500/20">değişti</span>}{item.needsReview && !isModified && <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/15 text-amber-400 border border-amber-500/20">incele</span>}{!isModified && !item.needsReview && <span className="text-emerald-500/30 text-[10px]">✓</span>}</td>
                         <td className="px-2 py-1 whitespace-nowrap">{isEditing ? (<div className="flex items-center gap-1"><button onClick={() => saveEdit(item.id)} className="px-2 py-0.5 text-[10px] rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 font-medium">Kaydet</button><button onClick={cancelEdit} className="px-2 py-0.5 text-[10px] rounded bg-slate-700/50 text-slate-400 hover:bg-slate-700">İptal</button></div>) : (<div className="flex items-center gap-1">{canEdit && item.level >= 2 && <button onClick={() => startEdit(item)} className="px-2 py-0.5 text-[10px] rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 font-medium transition-all">Düzenle</button>}{isModified && <button onClick={() => showHistory(item)} className="px-2 py-0.5 text-[10px] rounded bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all">Geçmiş</button>}</div>)}</td>
                       </tr>

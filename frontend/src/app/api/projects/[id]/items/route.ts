@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireUser(req);
+    const user = await requireUser(req);
     const projectId = parseInt(params.id);
     const url = new URL(req.url);
 
@@ -16,13 +16,23 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const status = url.searchParams.get('status');
     const search = url.searchParams.get('q');
     const montaj = url.searchParams.get('montaj');
+    const siparis = url.searchParams.get('siparis');
+    const kalemTipi = url.searchParams.get('kalem_tipi');
 
     const where: any = { projectId };
+
+    // Designer role: restrict to their own uzmanlik
+    if (user.role === 'designer' && user.uzmanlik) {
+      where.uzmanlik = user.uzmanlik;
+    }
+    // Allow explicit uzmanlik filter (overrides designer restriction only if same)
     if (uzmanlik) where.uzmanlik = uzmanlik;
     if (level) where.level = parseInt(level);
     if (needsReview === 'true') where.needsReview = true;
     if (status) where.status = status;
     if (montaj) where.montaj = montaj;
+    if (siparis) where.siparis = siparis;
+    if (kalemTipi) where.kalemTipi = kalemTipi;
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
