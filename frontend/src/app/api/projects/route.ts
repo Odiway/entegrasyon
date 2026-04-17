@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser, json, err } from '@/lib/auth-utils';
-import { parseBomRows } from '@/lib/excel';
+import { parseBomWorkbook } from '@/lib/excel';
 import ExcelJS from 'exceljs';
 
 export async function GET(req: Request) {
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const ws = wb.worksheets[0];
     if (!ws) return err('Excel sayfası bulunamadı');
 
-    const parsedRows = parseBomRows(ws);
+    const parsedRows = parseBomWorkbook(wb);
     const name = file.name.replace(/\.(xlsx|xls)$/i, '');
 
     const project = await prisma.bomProject.create({
@@ -67,6 +67,8 @@ export async function POST(req: Request) {
         birim: r.birim,
         uzmanlik: r.uzmanlik,
         montaj: r.montaj,
+        montajNo: r.montajNo,
+        opsStd: r.opsStd,
         malzemeNoSap: r.malzemeNoSap,
         siparis: r.siparis,
         dagitim: r.dagitim,

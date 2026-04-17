@@ -557,21 +557,21 @@ export default function ProjectDetailPage() {
                           onChange={e => { if (e.target.checked) setSelectedItems(new Set(items.map(i => i.id))); else setSelectedItems(new Set()); }} />
                       </th>
                     )}
-                    {['#','Lv','Uzmanlık','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
+                    {['#','Lv','Uzmanlık','OPS/STD','Montaj No','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
                       <th key={h} className="px-3 py-3.5 text-left text-[10px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={16} className="text-center py-20">
+                    <tr><td colSpan={18} className="text-center py-20">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
                         <span className="text-slate-400 text-sm">Yükleniyor...</span>
                       </div>
                     </td></tr>
                   ) : items.length === 0 ? (
-                    <tr><td colSpan={16} className="text-center py-20">
+                    <tr><td colSpan={18} className="text-center py-20">
                       <div className="text-5xl mb-3 opacity-20">{'\uD83D\uDCCB'}</div>
                       <p className="text-slate-300 text-sm mb-1">Kayıt bulunamadı</p>
                       <p className="text-slate-500 text-xs">Filtrelerinizi değiştirmeyi deneyin</p>
@@ -610,6 +610,14 @@ export default function ProjectDetailPage() {
                             </span>
                           ) : <span className="text-slate-500">{'\u2014'}</span>}
                         </td>
+                        <td className="px-3 py-2 text-[11px] whitespace-nowrap">
+                          {item.opsStd ? (
+                            <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold border ${item.opsStd === 'STANDART' ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/25' : 'bg-amber-500/15 text-amber-200 border-amber-400/25'}`}>
+                              {item.opsStd}
+                            </span>
+                          ) : <span className="text-slate-500">{'\u2014'}</span>}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300 font-mono max-w-[120px] truncate">{item.montajNo || ''}</td>
                         <td className="px-3 py-2 text-[11px] text-slate-300 max-w-[110px] truncate">{item.montaj || ''}</td>
                         <td className={`px-3 py-2 font-mono text-[11px] max-w-[250px] ${lvl.font}`} style={{ paddingLeft: Math.max(12, item.level * 14) }}>
                           <span className="truncate block">{item.title}</span>

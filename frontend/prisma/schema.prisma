@@ -61,6 +61,8 @@ model BomItem {
   // Derived fields
   uzmanlik      String?
   montaj        String?
+  montajNo      String?
+  opsStd        String?
   malzemeNoSap  String?
   kalemTipi     String?
   siparis       String?
