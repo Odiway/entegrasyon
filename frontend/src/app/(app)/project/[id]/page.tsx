@@ -213,14 +213,21 @@ export default function ProjectDetailPage() {
         priority: taskPriority,
         bomItemIds: Array.from(selectedItems),
       });
-      showMsg('ok', 'Görev oluşturuldu (' + selectedItems.size + ' kalem)');
+      showMsg('ok', 'Ticket oluşturuldu (' + selectedItems.size + ' kalem)');
       setSelectedItems(new Set());
       setShowTaskModal(false);
       setTaskTitle(''); setTaskDesc(''); setTaskAssignee(''); setTaskPriority('medium');
     } catch (e: any) {
-      showMsg('err', e.message || 'Görev oluşturulamadı');
+      showMsg('err', e.message || 'Ticket oluşturulamadı');
     }
     setTaskCreating(false);
+  };
+
+  const openTicketForItem = (item: any) => {
+    setSelectedItems(new Set([item.id]));
+    setTaskTitle(`${item.title} — ${item.malzemeNo || item.montajNo || ''}`);
+    setTaskDesc(`Row #${item.rowNumber} | Level ${item.level} | Kalem Tipi: ${item.kalemTipi || '-'} | Sipariş: ${item.siparis || '-'}`);
+    setShowTaskModal(true);
   };
 
   const showHistory = async (item: any) => {
@@ -377,7 +384,7 @@ export default function ProjectDetailPage() {
                 <button onClick={() => setShowTaskModal(true)}
                   className="px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-400/30 text-purple-300 hover:bg-purple-500/25 hover:border-purple-400/50 text-sm font-medium transition-all flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                  Görev Ata ({selectedItems.size})
+                  Ticket Aç ({selectedItems.size})
                 </button>
               )}
               <button onClick={handleExport} disabled={exporting}
@@ -701,6 +708,9 @@ export default function ProjectDetailPage() {
                               {canEdit && item.level >= 2 && (
                                 <button onClick={() => startEdit(item)} className="px-3 py-1 text-[10px] rounded-md bg-blue-500/15 text-blue-200 hover:bg-blue-500/25 font-semibold transition-all border border-blue-400/20">Düzenle</button>
                               )}
+                              {isDesigner && item.level >= 2 && (
+                                <button onClick={() => openTicketForItem(item)} className="px-3 py-1 text-[10px] rounded-md bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 font-semibold transition-all border border-amber-400/20">Ticket Aç</button>
+                              )}
                               {isModified && (
                                 <button onClick={() => showHistory(item)} className="px-2.5 py-1 text-[10px] rounded-md bg-purple-500/12 text-purple-200 hover:bg-purple-500/20 transition-all border border-purple-400/15">Geçmiş</button>
                               )}
@@ -766,7 +776,7 @@ export default function ProjectDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={() => setShowTaskModal(false)}>
           <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white mb-1">Görev Oluştur</h3>
+            <h3 className="text-xl font-bold text-white mb-1">Ticket Oluştur</h3>
             <p className="text-xs text-slate-400 mb-6">{selectedItems.size} kalem seçili</p>
             <div className="space-y-4">
               <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Görev başlığı"
@@ -789,7 +799,7 @@ export default function ProjectDetailPage() {
               <button onClick={() => setShowTaskModal(false)} className="px-5 py-2.5 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">İptal</button>
               <button onClick={handleCreateTask} disabled={!taskTitle || taskCreating}
                 className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-purple-500/80 text-white hover:bg-purple-500 disabled:opacity-40 transition-all">
-                {taskCreating ? 'Oluşturuluyor...' : 'Görev Oluştur'}
+                {taskCreating ? 'Oluşturuluyor...' : 'Ticket Oluştur'}
               </button>
             </div>
           </div>
