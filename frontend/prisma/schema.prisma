@@ -63,6 +63,7 @@ model BomItem {
   montaj        String?
   montajNo      String?
   opsStd        String?
+  prototip2     String?
   malzemeNoSap  String?
   kalemTipi     String?
   siparis       String?

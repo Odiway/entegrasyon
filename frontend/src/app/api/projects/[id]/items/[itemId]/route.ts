@@ -20,7 +20,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string; it
     // Allowed editable fields
     const editableFields = [
       'kalemTipi', 'siparis', 'dagitim', 'birim', 'quantity', 'toplamMiktar',
-      'malzemeNoSap', 'uzmanlik', 'montaj', 'montajNo', 'opsStd', 'needsReview', 'status',
+      'malzemeNoSap', 'uzmanlik', 'montaj', 'montajNo', 'opsStd', 'prototip2', 'needsReview', 'status',
     ];
 
     const updateData: any = {};

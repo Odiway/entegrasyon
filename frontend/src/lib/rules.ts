@@ -1,14 +1,16 @@
 /**
  * Rules engine — derives uzmanlik, siparis, dagitim, montaj, malzemeNoSap from BOM hierarchy.
- * 
- * Business rules (from documentation section 7 & 8):
- * - Level 0-1: siparis=NA, montaj=NA
- * - Level 2 F: siparis=MONTAJ, starts new montaj group
- * - Level 2 Y/H: siparis=EVET, dagitim=EVET
- * - Level 2 H (under F parent): siparis=EVET
- * - Level 3 F: siparis=MONTAJ (sub-assembly)
- * - Level 3+ follows SIPARIS_MAP / DAGITIM_MAP
- * - Toplam Miktar = qty × all parent quantities (for siparis EVET/KONTROL EDİLECEK)
+ *
+ * Sipariş rules (context-dependent, applied in excel.ts row loop):
+ * - Level 0: sipariş=NA
+ * - Level 1: sipariş=MONTAJ
+ * - Level 2 F: sipariş=MONTAJ (starts F-montaj group, children L3→EVET)
+ * - Level 2 Y: sipariş=EVET
+ * - Level 2 H: sipariş=Dağıtım (EVET)
+ * - Level 2 non-F under F-montaj: sipariş=EVET, but its L3 children→HAYIR
+ * - Level 3 F: sipariş=MONTAJ (starts sub-F group, children L4→EVET)
+ * - Level 3 Y/H (no F-montaj parent): sipariş=HAYIR
+ * - Level 5+: sipariş=HAYIR
  */
 
 export const UZMANLIK_KEYWORDS: Record<string, string> = {
@@ -87,84 +89,20 @@ export function applyRules(p: {
     needsReview: false,
   };
 
-  // Level 0-1: Root / Ana Grup — no siparis, no montaj
+  // Montaj derivation (non-context-dependent part)
   if (p.level <= 1) {
-    result.siparis = 'NA';
-    result.dagitim = '';
     result.montaj = 'NA';
-    return result;
-  }
-
-  // Level 2: Montaj/Grup level
-  if (p.level === 2) {
-    const kt = p.kalemTipi || 'F';
-    if (kt === 'F') {
-      // F = Montaj group — starts a new montaj, siparis=MONTAJ
-      result.siparis = 'MONTAJ';
-      result.dagitim = '';
-      result.montaj = p.title; // montaj = own title (new group)
-    } else if (kt === 'Y' || kt === 'E') {
-      result.siparis = 'EVET';
-      result.dagitim = 'EVET';
-      result.montaj = p.level2Title || p.title;
-    } else if (kt === 'H') {
-      // H at level 2: siparis=EVET (if parent was F context)
-      result.siparis = 'EVET';
-      result.dagitim = 'EVET';
-      result.montaj = p.level2Title || p.title;
-    } else if (kt === 'C') {
-      result.siparis = 'HAYIR';
-      result.dagitim = 'EVET';
-      result.montaj = p.level2Title || p.title;
-    } else {
-      result.siparis = 'MONTAJ';
-      result.dagitim = '';
-      result.montaj = p.title;
-    }
-    return result;
-  }
-
-  // Level 3+: Parça/Alt Parça level
-  result.montaj = p.level2Title;
-  const kt = p.kalemTipi;
-  const l2Kt = p.level2KalemTipi || 'F';
-  const l2IsF = l2Kt === 'F';
-
-  if (kt) {
-    if (kt === 'F') {
-      // F at level 3+ = sub-assembly (montaj)
-      result.siparis = 'MONTAJ';
-      result.dagitim = '';
-    } else if (kt.startsWith('X-Kesilerek') || kt === 'Kesilerek kullaniliyor') {
-      result.siparis = 'KONTROL EDİLECEK';
-      result.dagitim = 'EVET';
-      result.needsReview = true;
-    } else if (kt === 'Y' || kt === 'E') {
-      result.siparis = l2IsF ? 'EVET' : 'EVET';
-      result.dagitim = 'EVET';
-    } else if (kt === 'H') {
-      result.siparis = l2IsF ? 'EVET' : 'HAYIR';
-      result.dagitim = 'EVET';
-    } else if (kt === 'C') {
-      result.siparis = 'HAYIR';
-      result.dagitim = 'EVET';
-    } else if (kt === 'X DETAY') {
-      result.siparis = 'HAYIR';
-      result.dagitim = '';
-    } else {
-      result.siparis = l2IsF ? 'EVET' : 'EVET';
-      result.dagitim = 'EVET';
-    }
+  } else if (p.level === 2 && (p.kalemTipi === 'F' || !p.kalemTipi)) {
+    result.montaj = p.title;
   } else {
-    // No kalemTipi — needs review at level 3
-    result.siparis = 'EVET';
-    result.dagitim = 'EVET';
-    if (p.level === 3) result.needsReview = true;
+    result.montaj = p.level2Title;
   }
 
-  // Toplam Miktar: for level 3+ when siparis is EVET or KONTROL EDİLECEK
-  if (p.level >= 3 && (result.siparis === 'EVET' || result.siparis === 'KONTROL EDİLECEK')) {
-    result.toplamMiktar = (p.quantity || 1) * p.parentQtyProduct;
+  // Sipariş/Dağıtım are now computed in parseBomRows row loop (context-dependent)
+  // Only set needsReview for "Kesilerek" kalemTipi here
+  const kt = p.kalemTipi;
+  if (kt && (kt.startsWith('X-Kesilerek') || kt === 'Kesilerek kullaniliyor')) {
+    result.needsReview = true;
   }
 
   return result;
@@ -183,13 +121,16 @@ export function getRulesSummary() {
       { kod: 'X-Kesilerek', anlam: 'Kesilerek kullanılan', siparis: 'KONTROL EDİLECEK', dagitim: 'EVET' },
     ],
     levelKurallari: [
-      { level: '0-1', kural: 'Kök/Ana Grup — Sipariş=NA, Montaj=NA, otomatik' },
-      { level: '2 (F)', kural: 'Yeni montaj grubu başlatır, Sipariş=MONTAJ' },
-      { level: '2 (Y/H)', kural: 'Sipariş=EVET, Dağıtım=EVET' },
-      { level: '3 (F)', kural: 'Alt montaj (sub-assembly), Sipariş=MONTAJ' },
-      { level: '3+ (Y/E)', kural: 'Sipariş=EVET, Dağıtım=EVET' },
-      { level: '3+ (H)', kural: 'Level 2 F altında → EVET, değilse → HAYIR' },
-      { level: '4+', kural: 'Level 3 ile aynı kurallar, needs_review=false' },
+      { level: '0', kural: 'Sipariş=NA' },
+      { level: '1', kural: 'Sipariş=MONTAJ' },
+      { level: '2 (F)', kural: 'Sipariş=MONTAJ — yeni montaj grubu, altındaki L3→EVET' },
+      { level: '2 (Y)', kural: 'Sipariş=EVET' },
+      { level: '2 (H)', kural: 'Sipariş=EVET (Dağıtım)' },
+      { level: '2 (non-F, F-montaj altında)', kural: 'Sipariş=EVET, ama L3 çocukları→HAYIR' },
+      { level: '3 (F)', kural: 'Sipariş=MONTAJ — altındaki L4→EVET' },
+      { level: '3 (Y/H, F-montaj altında)', kural: 'Sipariş=EVET' },
+      { level: '3 (Y/H, F-montaj dışı)', kural: 'Sipariş=HAYIR' },
+      { level: '5-6-7', kural: 'Sipariş=HAYIR' },
     ],
     uzmanliklar: Object.values(UZMANLIK_KEYWORDS).filter((v, i, a) => a.indexOf(v) === i),
     birimler: BIRIM_OPTIONS,

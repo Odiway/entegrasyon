@@ -557,21 +557,21 @@ export default function ProjectDetailPage() {
                           onChange={e => { if (e.target.checked) setSelectedItems(new Set(items.map(i => i.id))); else setSelectedItems(new Set()); }} />
                       </th>
                     )}
-                    {['#','Lv','Uzmanlık','OPS/STD','Montaj No','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
+                    {['#','Lv','Uzmanlık','OPS/STD','P2','Montaj No','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
                       <th key={h} className="px-3 py-3.5 text-left text-[10px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={18} className="text-center py-20">
+                    <tr><td colSpan={19} className="text-center py-20">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
                         <span className="text-slate-400 text-sm">Yükleniyor...</span>
                       </div>
                     </td></tr>
                   ) : items.length === 0 ? (
-                    <tr><td colSpan={18} className="text-center py-20">
+                    <tr><td colSpan={19} className="text-center py-20">
                       <div className="text-5xl mb-3 opacity-20">{'\uD83D\uDCCB'}</div>
                       <p className="text-slate-300 text-sm mb-1">Kayıt bulunamadı</p>
                       <p className="text-slate-500 text-xs">Filtrelerinizi değiştirmeyi deneyin</p>
@@ -616,6 +616,11 @@ export default function ProjectDetailPage() {
                               {item.opsStd}
                             </span>
                           ) : <span className="text-slate-500">{'\u2014'}</span>}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-center whitespace-nowrap">
+                          {item.prototip2 === 'X' ? (
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-400/25">X</span>
+                          ) : <span className="text-slate-600">{'\u2014'}</span>}
                         </td>
                         <td className="px-3 py-2 text-[11px] text-slate-300 font-mono max-w-[120px] truncate">{item.montajNo || ''}</td>
                         <td className="px-3 py-2 text-[11px] text-slate-300 max-w-[110px] truncate">{item.montaj || ''}</td>

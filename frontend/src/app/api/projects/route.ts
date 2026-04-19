@@ -69,6 +69,7 @@ export async function POST(req: Request) {
         montaj: r.montaj,
         montajNo: r.montajNo,
         opsStd: r.opsStd,
+        prototip2: r.prototip2,
         malzemeNoSap: r.malzemeNoSap,
         siparis: r.siparis,
         dagitim: r.dagitim,

@@ -28,6 +28,7 @@ export interface ParsedRow {
   montaj: string;
   montajNo: string;
   opsStd: string;
+  prototip2: string;
   malzemeNoSap: string;
   siparis: string;
   dagitim: string;
@@ -97,9 +98,9 @@ function detectFormat(worksheet: ExcelJS.Worksheet): 'plm' | 'template' {
   return hasMontajNo ? 'template' : 'plm';
 }
 
-/** Parse uzmanlik lookup sheet — returns Map<montajNo (stripped) → {uzmanlik, opsStd}> */
-function parseUzmanlikSheet(workbook: ExcelJS.Workbook): Map<string, { uzmanlik: string; opsStd: string }> {
-  const map = new Map<string, { uzmanlik: string; opsStd: string }>();
+/** Parse uzmanlik lookup sheet — returns Map<montajNo (stripped) → {uzmanlik, opsStd, prototip2}> */
+function parseUzmanlikSheet(workbook: ExcelJS.Workbook): Map<string, { uzmanlik: string; opsStd: string; prototip2: string }> {
+  const map = new Map<string, { uzmanlik: string; opsStd: string; prototip2: string }>();
 
   // Find the uzmanlik sheet by name (case-insensitive, Turkish-aware)
   const uzSheet = workbook.worksheets.find(ws => {
@@ -116,21 +117,22 @@ function parseUzmanlikSheet(workbook: ExcelJS.Workbook): Map<string, { uzmanlik:
 
   // Detect column positions from header
   const hVals = (uzSheet.getRow(1).values as any[]) || [];
-  let montajCol = -1, uzmanlikCol = -1, opsCol = -1, tanimCol = -1;
+  let montajCol = -1, uzmanlikCol = -1, opsCol = -1, tanimCol = -1, protoCol = -1;
   for (let i = 1; i < hVals.length; i++) {
     const h = normalizeTr(str(hVals[i]));
     if (h.includes('MONTAJ') && (h.includes('NO') || h.includes('NUMARA'))) montajCol = i;
     else if (h.includes('UZMANLIK')) uzmanlikCol = i;
     else if (h.includes('OPS') || h.includes('STD') || h.includes('STANDART')) opsCol = i;
+    else if (h.includes('PROTO')) protoCol = i;
     else if (h.includes('TANIM') || h.includes('MONTAJ')) { if (montajCol === -1) montajCol = i; else tanimCol = i; }
   }
 
   // Fallback to positional if header detection fails
   if (montajCol === -1) montajCol = 1;
-  if (uzmanlikCol === -1) uzmanlikCol = 3;
-  if (opsCol === -1) opsCol = 4;
+  if (uzmanlikCol === -1) uzmanlikCol = 4;
+  if (opsCol === -1) opsCol = 3;
 
-  console.log(`[Excel Parse] Uzmanlik sheet columns — montaj:${montajCol}, uzmanlik:${uzmanlikCol}, ops:${opsCol}`);
+  console.log(`[Excel Parse] Uzmanlik sheet columns — montaj:${montajCol}, uzmanlik:${uzmanlikCol}, ops:${opsCol}, proto:${protoCol}`);
 
   uzSheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
     if (rowIndex === 1) return; // skip header
@@ -138,11 +140,13 @@ function parseUzmanlikSheet(workbook: ExcelJS.Workbook): Map<string, { uzmanlik:
     const montajNo = str(vals[montajCol]);
     const uzmanlik = normalizeUzmanlik(str(vals[uzmanlikCol]));
     const opsStd = str(vals[opsCol]);
+    const prototip2 = protoCol >= 0 ? str(vals[protoCol]).toUpperCase() : '';
 
     if (montajNo && uzmanlik) {
+      const entry = { uzmanlik, opsStd, prototip2: prototip2 === 'X' ? 'X' : '' };
       // Store both original and stripped versions for flexible matching
-      map.set(montajNo, { uzmanlik, opsStd });
-      map.set(stripTrailing(montajNo), { uzmanlik, opsStd });
+      map.set(montajNo, entry);
+      map.set(stripTrailing(montajNo), entry);
     }
   });
 
@@ -183,13 +187,22 @@ export function parseBomWorkbook(workbook: ExcelJS.Workbook): ParsedRow[] {
 /** Legacy single-sheet parser (kept for backward compat) */
 export function parseBomRows(
   worksheet: ExcelJS.Worksheet,
-  uzLookup?: Map<string, { uzmanlik: string; opsStd: string }>,
+  uzLookup?: Map<string, { uzmanlik: string; opsStd: string; prototip2: string }>,
 ): ParsedRow[] {
   const rows: ParsedRow[] = [];
   let level1Title = '';
   let level2Title = '';
   const parentStack: { level: number; qty: number }[] = [];
   let rowNum = 0;
+
+  // Sipariş context tracking
+  // "underL2F" = we're currently under a Level 2 F-montaj group
+  // "lastL2IsF" = the most recent Level 2 had kalemTipi=F
+  // "underL3F" = we're currently under a Level 3 F sub-montaj
+  let lastL2IsF = false;
+  let underL2NonF = false; // L2 non-F under a F-montaj context → children get HAYIR
+  let lastL3IsF = false;
+  let underL3NonF = false;
 
   // Detect format
   const format = detectFormat(worksheet);
@@ -227,7 +240,6 @@ export function parseBomRows(
     const kalemTipi = COL.kalemTipi >= 0 ? str(v[COL.kalemTipi]) : '';
     const birim = COL.birim >= 0 ? str(v[COL.birim]) : '';
     const montajNo = COL.montajNo >= 0 ? str(v[COL.montajNo]) : '';
-    const excelSiparis = (COL as any).siparis >= 0 ? str(v[(COL as any).siparis]) : '';
 
     // Track montaj no for uzmanlik lookup (propagates to children)
     if (montajNo && montajNo !== 'NA') {
@@ -245,15 +257,17 @@ export function parseBomRows(
       lastExcelUzmanlik = '';
     }
 
-    // Lookup uzmanlik from the uzmanlik sheet by montajNo
+    // Lookup uzmanlik/opsStd/prototip2 from the uzmanlik sheet by montajNo
     const effectiveMontajNo = montajNo || lastMontajNo;
     let lookupUz = '';
     let lookupOps = '';
+    let lookupProto = '';
     if (uzLookup && effectiveMontajNo) {
       const entry = uzLookup.get(effectiveMontajNo) || uzLookup.get(stripTrailing(effectiveMontajNo));
       if (entry) {
         lookupUz = entry.uzmanlik;
         lookupOps = entry.opsStd;
+        lookupProto = entry.prototip2;
       }
     }
 
@@ -276,10 +290,107 @@ export function parseBomRows(
     const finalUzmanlik = excelUzmanlik || lastExcelUzmanlik || lookupUz || derived.uzmanlik;
     if (finalUzmanlik) derived.uzmanlik = finalUzmanlik;
 
-    // If template has siparis column and there's a value, use it
-    if (excelSiparis && excelSiparis !== 'NA') {
-      derived.siparis = excelSiparis;
+    // ───── SIPARIŞ RULES (context-dependent) ─────
+    const kt = kalemTipi || derived.kalemTipi || '';
+    let siparis = '';
+    let dagitim = '';
+
+    if (level === 0) {
+      siparis = 'NA';
+    } else if (level === 1) {
+      siparis = 'MONTAJ';
+    } else if (level === 2) {
+      if (kt === 'F') {
+        siparis = 'MONTAJ';
+        lastL2IsF = true;
+        underL2NonF = false;
+        // reset L3 state
+        lastL3IsF = false;
+        underL3NonF = false;
+      } else if (kt === 'Y' || kt === 'E') {
+        siparis = 'EVET';
+        dagitim = 'EVET';
+        // Non-F under F-montaj: children L3 → HAYIR
+        if (lastL2IsF) underL2NonF = true;
+        else underL2NonF = false;
+        lastL3IsF = false;
+        underL3NonF = false;
+      } else if (kt === 'H') {
+        siparis = 'EVET';
+        dagitim = 'EVET';
+        if (lastL2IsF) underL2NonF = true;
+        else underL2NonF = false;
+        lastL3IsF = false;
+        underL3NonF = false;
+      } else if (kt === 'C') {
+        siparis = 'HAYIR';
+        dagitim = 'EVET';
+        lastL3IsF = false;
+        underL3NonF = false;
+      } else {
+        // Default L2 with no/unknown kalem tipi
+        siparis = 'MONTAJ';
+        lastL2IsF = true;
+        underL2NonF = false;
+        lastL3IsF = false;
+        underL3NonF = false;
+      }
+    } else if (level === 3) {
+      if (kt === 'F') {
+        siparis = 'MONTAJ';
+        lastL3IsF = true;
+        underL3NonF = false;
+      } else if (underL2NonF) {
+        // L3 under a non-F L2 (which itself is under an F-montaj) → HAYIR
+        siparis = 'HAYIR';
+        dagitim = kt === 'Y' || kt === 'H' || kt === 'E' ? 'EVET' : '';
+      } else if (lastL2IsF) {
+        // L3 directly under L2-F montaj → EVET
+        siparis = 'EVET';
+        dagitim = 'EVET';
+        // Track if this L3 is non-F for L4 children
+        if (kt !== 'F') underL3NonF = true;
+      } else {
+        // L3 Y/H outside F-montaj → HAYIR
+        siparis = (kt === 'Y' || kt === 'H') ? 'HAYIR' : 'HAYIR';
+        dagitim = (kt === 'Y' || kt === 'H' || kt === 'E') ? 'EVET' : '';
+      }
+    } else if (level === 4) {
+      if (kt === 'F') {
+        siparis = 'MONTAJ';
+      } else if (underL3NonF || underL2NonF) {
+        // L4 under non-F L3 or non-F L2 → HAYIR
+        siparis = 'HAYIR';
+        dagitim = (kt === 'Y' || kt === 'H' || kt === 'E') ? 'EVET' : '';
+      } else if (lastL3IsF || lastL2IsF) {
+        // L4 under L3-F or L2-F → EVET
+        siparis = 'EVET';
+        dagitim = 'EVET';
+      } else {
+        siparis = (kt === 'Y' || kt === 'H') ? 'HAYIR' : 'HAYIR';
+        dagitim = (kt === 'Y' || kt === 'H' || kt === 'E') ? 'EVET' : '';
+      }
+    } else {
+      // Level 5, 6, 7+ → HAYIR
+      siparis = 'HAYIR';
     }
+
+    // Kesilerek kullanılan → KONTROL EDİLECEK
+    if (kt.startsWith('X-Kesilerek') || kt === 'Kesilerek kullaniliyor') {
+      siparis = 'KONTROL EDİLECEK';
+      dagitim = 'EVET';
+    }
+
+    derived.siparis = siparis;
+    derived.dagitim = dagitim;
+
+    // Toplam Miktar: for level 3+ when siparis is EVET or KONTROL EDİLECEK
+    if (level >= 3 && (siparis === 'EVET' || siparis === 'KONTROL EDİLECEK')) {
+      derived.toplamMiktar = (quantity || 1) * parentQtyProduct;
+    }
+
+    const finalKalemTipi = kalemTipi || derived.kalemTipi || '';
+    const finalBirim = birim || derived.birim || '';
 
     rows.push({
       rowNumber: rowNum, level, title,
@@ -292,10 +403,11 @@ export function parseBomRows(
       anaMalzemeGrubu: (COL as any).anaMalzemeGrubu >= 0 ? str(v[(COL as any).anaMalzemeGrubu]) : '',
       projeKodu: (COL as any).projeKodu >= 0 ? str(v[(COL as any).projeKodu]) : '',
       kutle: (COL as any).kutle >= 0 ? str(v[(COL as any).kutle]) : '',
-      kalemTipi: kalemTipi || derived.kalemTipi || '',
-      birim: birim || derived.birim || '',
+      kalemTipi: finalKalemTipi,
+      birim: finalBirim,
       montajNo: effectiveMontajNo,
       opsStd: lookupOps,
+      prototip2: lookupProto,
       ...derived,
     });
 
