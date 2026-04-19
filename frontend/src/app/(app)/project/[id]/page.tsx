@@ -207,7 +207,6 @@ export default function ProjectDetailPage() {
     try {
       await createTask({
         projectId,
-        assignedToId: taskAssignee ? parseInt(taskAssignee) : undefined,
         title: taskTitle,
         description: taskDesc || undefined,
         priority: taskPriority,
@@ -216,7 +215,7 @@ export default function ProjectDetailPage() {
       showMsg('ok', 'Ticket oluşturuldu (' + selectedItems.size + ' kalem)');
       setSelectedItems(new Set());
       setShowTaskModal(false);
-      setTaskTitle(''); setTaskDesc(''); setTaskAssignee(''); setTaskPriority('medium');
+      setTaskTitle(''); setTaskDesc(''); setTaskPriority('medium');
     } catch (e: any) {
       showMsg('err', e.message || 'Ticket oluşturulamadı');
     }
@@ -779,16 +778,15 @@ export default function ProjectDetailPage() {
             <h3 className="text-xl font-bold text-white mb-1">Ticket Oluştur</h3>
             <p className="text-xs text-slate-400 mb-6">{selectedItems.size} kalem seçili</p>
             <div className="space-y-4">
-              <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Görev başlığı"
+              <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Ticket başlığı"
                 className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-purple-400/40 text-sm" />
               <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} placeholder="Açıklama (opsiyonel)"
                 className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-purple-400/40 text-sm h-24 resize-none" />
               <div className="grid grid-cols-2 gap-3">
-                <select value={taskAssignee} onChange={e => setTaskAssignee(e.target.value)}
-                  className="px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-slate-200 focus:outline-none text-sm">
-                  <option value="">Mühendis seç...</option>
-                  {engineers.map(e => <option key={e.id} value={e.id}>{e.full_name || e.fullName}</option>)}
-                </select>
+                <div className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 text-sm flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1a6 6 0 100 12A6 6 0 007 1z" stroke="currentColor" strokeWidth="1.2"/><path d="M5 7h4M7 5v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                  Admin'e atanacak
+                </div>
                 <select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}
                   className="px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-slate-200 focus:outline-none text-sm">
                   <option value="low">Düşük</option><option value="medium">Orta</option><option value="high">Yüksek</option><option value="critical">Kritik</option>

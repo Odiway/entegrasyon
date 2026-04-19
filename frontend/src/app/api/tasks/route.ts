@@ -54,11 +54,18 @@ export async function POST(req: Request) {
       return err('En az bir BOM kalemi seçilmeli');
     }
 
+    // Auto-assign to admin if no assignee specified
+    let finalAssigneeId = assignedToId || null;
+    if (!finalAssigneeId) {
+      const admin = await prisma.user.findFirst({ where: { role: 'admin' }, select: { id: true } });
+      if (admin) finalAssigneeId = admin.id;
+    }
+
     const task = await prisma.task.create({
       data: {
         projectId,
         createdById: user.id,
-        assignedToId: assignedToId || null,
+        assignedToId: finalAssigneeId,
         title,
         description: description || null,
         priority: priority || 'medium',
