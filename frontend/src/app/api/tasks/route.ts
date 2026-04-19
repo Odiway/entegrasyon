@@ -82,6 +82,18 @@ export async function POST(req: Request) {
       },
     });
 
+    // Notify assignee about the new ticket
+    if (finalAssigneeId && finalAssigneeId !== user.id) {
+      await prisma.notification.create({
+        data: {
+          userId: finalAssigneeId,
+          type: 'task_created',
+          message: `"${title}" — yeni ticket oluşturuldu (${user.fullName})`,
+          taskId: task.id,
+        },
+      });
+    }
+
     return json(task, 201);
   } catch (e: any) {
     return err(e.message || 'Görev oluşturma hatası', 500);

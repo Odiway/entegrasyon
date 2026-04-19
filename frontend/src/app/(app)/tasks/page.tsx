@@ -210,6 +210,39 @@ export default function TasksPage() {
                     </div>
                   )}
 
+                  {/* Task History / Değişim Geçmişi */}
+                  {selectedTask.history && selectedTask.history.length > 0 && (
+                    <div className="mb-5">
+                      <h4 className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2.5">Değişim Geçmişi</h4>
+                      <div className="space-y-1 max-h-48 overflow-y-auto">
+                        {selectedTask.history.map((h: any) => {
+                          const FIELD_LABELS: Record<string, string> = {
+                            status: 'Durum', title: 'Başlık', description: 'Açıklama',
+                            priority: 'Öncelik', assignedToId: 'Atanan',
+                          };
+                          const STATUS_L: Record<string, string> = {
+                            open: 'Açık', in_progress: 'Devam Ediyor', completed: 'Tamamlandı', rejected: 'Reddedildi',
+                          };
+                          const display = h.field === 'status'
+                            ? `${STATUS_L[h.oldValue] || h.oldValue} → ${STATUS_L[h.newValue] || h.newValue}`
+                            : h.field === 'priority'
+                            ? `${h.oldValue} → ${h.newValue}`
+                            : 'güncellendi';
+                          return (
+                            <div key={h.id} className="glass rounded-lg px-3 py-2 text-[10px] flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                              <span className="text-slate-400">
+                                <span className="text-slate-300 font-medium">{FIELD_LABELS[h.field] || h.field}</span>
+                                {' '}{display}
+                              </span>
+                              <span className="ml-auto text-slate-600 whitespace-nowrap">{new Date(h.createdAt).toLocaleString('tr-TR')}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Actions */}
                   <div className="flex flex-col gap-2 pt-2 border-t border-white/[0.06]">
                     {isEngineer && selectedTask.status === 'open' && (

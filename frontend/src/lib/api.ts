@@ -110,3 +110,9 @@ export const updateUser = (id: number, data: any) =>
   apiFetch(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const deleteUser = (id: number) =>
   apiFetch(`/api/users/${id}`, { method: 'DELETE' });
+
+// Notifications
+export const getNotifications = (unreadOnly = false) =>
+  apiFetch(`/api/notifications${unreadOnly ? '?unread=1' : ''}`);
+export const markNotificationsRead = (ids: number[] | 'all') =>
+  apiFetch('/api/notifications', { method: 'PATCH', body: JSON.stringify({ ids }) });

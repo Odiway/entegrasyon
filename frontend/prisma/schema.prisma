@@ -103,6 +103,7 @@ model Task {
   createdBy  User       @relation("TaskCreator", fields: [createdById], references: [id])
   assignedTo User?      @relation("TaskAssignee", fields: [assignedToId], references: [id])
   items      TaskItem[]
+  history    TaskHistory[]
 }
 
 model TaskItem {
@@ -128,6 +129,33 @@ model ChangeLog {
   changedBy User    @relation(fields: [changedById], references: [id])
 
   @@index([bomItemId])
+}
+
+model TaskHistory {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  userId    Int
+  field     String   // status, title, description, priority, assignedToId
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      // recipient
+  type      String   // task_created, task_status_changed, task_assigned, task_updated
+  message   String
+  taskId    Int?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([userId])
 }
 
 model CalendarEvent {

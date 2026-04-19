@@ -2,6 +2,8 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
+import { useState, useEffect, useRef } from 'react';
+import { getNotifications, markNotificationsRead } from '@/lib/api';
 
 const NAV_ITEMS = [
   {
@@ -64,8 +66,36 @@ const ADMIN_NAV = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   const items = user?.role === 'admin' ? [...NAV_ITEMS, ...ADMIN_NAV] : NAV_ITEMS;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  useEffect(() => {
+    const load = async () => {
+      try { setNotifications(await getNotifications()); } catch {}
+    };
+    load();
+    const timer = setInterval(load, 15000); // poll every 15s
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotifs(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markNotificationsRead('all');
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch {}
+  };
 
   return (
     <aside className="w-[260px] h-screen fixed left-0 top-0 flex flex-col z-40 overflow-hidden" style={{ background: 'rgba(8, 11, 18, 0.78)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRight: '1px solid rgba(255,255,255,0.08)' }}>
@@ -137,6 +167,64 @@ export default function Sidebar() {
           </>
         )}
       </nav>
+
+      {/* Notification bell */}
+      <div ref={notifRef} className="relative px-3 py-2 border-t border-white/[0.04]">
+        <button onClick={() => setShowNotifs(p => !p)}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
+            showNotifs ? 'bg-gradient-to-r from-amber-600/20 to-amber-500/10 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+          }`}>
+          <span className="relative">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 2a5 5 0 00-5 5v3l-1.3 2.6a.75.75 0 00.67 1.1h11.26a.75.75 0 00.67-1.1L15 10V7a5 5 0 00-5-5z" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M8 15a2 2 0 004 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[8px] font-bold flex items-center justify-center shadow shadow-red-500/50 animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </span>
+          Bildirimler
+          {unreadCount > 0 && (
+            <span className="ml-auto px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-red-500/20 text-red-400">{unreadCount}</span>
+          )}
+        </button>
+
+        {showNotifs && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 rounded-2xl overflow-hidden shadow-2xl shadow-black/50 z-50"
+            style={{ background: 'rgba(12, 16, 24, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+              <h4 className="text-xs font-semibold text-white">Bildirimler</h4>
+              {unreadCount > 0 && (
+                <button onClick={handleMarkAllRead} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
+                  Tümünü okundu işaretle
+                </button>
+              )}
+            </div>
+            <div className="max-h-72 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-600">Bildirim yok</div>
+              ) : (
+                notifications.slice(0, 20).map(n => (
+                  <Link key={n.id} href="/tasks" onClick={() => setShowNotifs(false)}
+                    className={`block px-4 py-3 border-b border-white/[0.03] hover:bg-white/[0.04] transition-colors ${
+                      !n.isRead ? 'bg-blue-500/[0.04]' : ''
+                    }`}>
+                    <div className="flex items-start gap-2.5">
+                      {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-400 mt-1 shrink-0 shadow shadow-blue-400/50" />}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[11px] leading-relaxed ${!n.isRead ? 'text-slate-200' : 'text-slate-400'}`}>{n.message}</p>
+                        <p className="text-[9px] text-slate-600 mt-1">{new Date(n.createdAt).toLocaleString('tr-TR')}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Bus showcase */}
       <div className="relative px-3 py-3 border-t border-white/[0.04]">
