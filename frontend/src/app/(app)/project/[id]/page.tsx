@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import {
   getProject, getItems, getStats, getNav, updateItem, getItemHistory,
-  exportProject, createTask, getUsers, deleteProject,
+  exportProject, createTask, getUsers, deleteProject, findItemPosition,
 } from '@/lib/api';
 
 const KALEM_OPTIONS = ['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'];
@@ -61,7 +61,11 @@ export default function ProjectDetailPage() {
   const [filterSiparis, setFilterSiparis] = useState('');
   const [filterKalemTipi, setFilterKalemTipi] = useState('');
   const [filterDagitim, setFilterDagitim] = useState('');
+  const [filterPrototip2, setFilterPrototip2] = useState('');
   const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [goToRow, setGoToRow] = useState('');
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [navOpen, setNavOpen] = useState(true);
@@ -69,6 +73,10 @@ export default function ProjectDetailPage() {
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [editMode, setEditMode] = useState<'select' | 'adet' | 'siparis_hayir' | 'malzeme_eksik' | null>(null);
+  const [editItem, setEditItem] = useState<any>(null);
+  const [editValue, setEditValue] = useState('');
+  const [editComment, setEditComment] = useState('');
 
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -119,13 +127,14 @@ export default function ProjectDetailPage() {
       if (filterSiparis) p.siparis = filterSiparis;
       if (filterKalemTipi) p.kalem_tipi = filterKalemTipi;
       if (filterDagitim) p.dagitim = filterDagitim;
+      if (filterPrototip2) p.prototip2 = filterPrototip2;
       if (search) p.q = search;
       const res = await getItems(projectId, p);
       setItems(res.items || []);
       setTotal(res.total || 0);
     } catch { setItems([]); setTotal(0); }
     setLoading(false);
-  }, [projectId, filter, filterUzmanlik, filterLevel, filterMontaj, filterSiparis, filterKalemTipi, filterDagitim, search, page]);
+  }, [projectId, filter, filterUzmanlik, filterLevel, filterMontaj, filterSiparis, filterKalemTipi, filterDagitim, filterPrototip2, search, page]);
 
   useEffect(() => { loadProject(); loadStats(); loadNav(); }, [loadProject, loadStats, loadNav]);
   useEffect(() => { loadItems(); }, [loadItems]);
@@ -147,24 +156,18 @@ export default function ProjectDetailPage() {
     if (filterKalemTipi) f.push({ key: 'kt', label: 'Kalem Tipi: ' + filterKalemTipi, color: 'amber', onClear: () => { setFilterKalemTipi(''); setPage(0); } });
     if (filterLevel) f.push({ key: 'lv', label: 'Level ' + filterLevel, color: 'orange', onClear: () => { setFilterLevel(''); setPage(0); } });
     if (filterDagitim) f.push({ key: 'dg', label: 'Dağıtım: ' + filterDagitim, color: 'cyan', onClear: () => { setFilterDagitim(''); setPage(0); } });
+    if (filterPrototip2) f.push({ key: 'p2', label: 'Üretilecek araç: ' + filterPrototip2, color: 'rose', onClear: () => { setFilterPrototip2(''); setPage(0); } });
     return f;
-  }, [filterUzmanlik, filterMontaj, filterSiparis, filterKalemTipi, filterLevel, filterDagitim]);
+  }, [filterUzmanlik, filterMontaj, filterSiparis, filterKalemTipi, filterLevel, filterDagitim, filterPrototip2]);
 
   const startEdit = (item: any) => {
-    setEditingId(item.id);
-    setEditForm({
-      uzmanlik: item.uzmanlik || '',
-      kalemTipi: item.kalemTipi || '',
-      birim: item.birim || '',
-      siparis: item.siparis || '',
-      dagitim: item.dagitim || '',
-      malzemeNoSap: item.malzemeNoSap || '',
-      quantity: item.quantity ?? '',
-      toplamMiktar: item.toplamMiktar ?? '',
-    });
+    setEditItem(item);
+    setEditMode('select');
+    setEditValue('');
+    setEditComment('');
   };
 
-  const cancelEdit = () => { setEditingId(null); setEditForm({}); };
+  const cancelEdit = () => { setEditingId(null); setEditForm({}); setEditItem(null); setEditMode(null); setEditValue(''); setEditComment(''); };
 
   const saveEdit = async (itemId: number) => {
     try {
@@ -190,6 +193,89 @@ export default function ProjectDetailPage() {
       await loadStats();
     } catch (e: any) {
       showMsg('err', e.message || 'Güncelleme hatası');
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editItem) return;
+    try {
+      const changes: any = {};
+      if (editMode === 'adet') {
+        const num = parseFloat(editValue);
+        if (isNaN(num) || num <= 0) { showMsg('err', 'Geçerli bir miktar girin'); return; }
+        changes.quantity = num;
+      } else if (editMode === 'siparis_hayir') {
+        changes.siparis = 'HAYIR';
+        if (editComment) changes.dagitim = editComment;
+      } else if (editMode === 'malzeme_eksik') {
+        changes.needsReview = true;
+        if (editComment) changes.dagitim = editComment;
+      }
+      if (Object.keys(changes).length === 0) { cancelEdit(); return; }
+      await updateItem(projectId, editItem.id, changes);
+      showMsg('ok', 'Kayıt güncellendi');
+      cancelEdit();
+      await loadItems();
+      await loadStats();
+    } catch (e: any) {
+      showMsg('err', e.message || 'Güncelleme hatası');
+    }
+  };
+
+  // Navigate to a specific item's position in the list
+  const navigateToItem = async (item: any) => {
+    // Clear all filters to show full list
+    setFilterUzmanlik(''); setFilterMontaj(''); setFilterSiparis('');
+    setFilterKalemTipi(''); setFilterLevel(''); setFilterDagitim('');
+    setFilterPrototip2(''); setFilter('all'); setSearch('');
+    setShowSearchResults(false);
+
+    try {
+      const res = await findItemPosition(projectId, item.rowNumber);
+      if (res.page !== undefined) {
+        setPage(res.page);
+        setItems(res.items || []);
+        setTotal(res.total || 0);
+        // Scroll to the row after load
+        setTimeout(() => {
+          const row = document.getElementById(`bom-row-${item.rowNumber}`);
+          if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('ring-2', 'ring-blue-400/60', 'bg-blue-500/[0.12]');
+            setTimeout(() => row.classList.remove('ring-2', 'ring-blue-400/60', 'bg-blue-500/[0.12]'), 3000);
+          }
+        }, 200);
+      }
+    } catch {
+      showMsg('err', 'Satır bulunamadı');
+    }
+  };
+
+  const handleGoToRow = async () => {
+    const rowNum = parseInt(goToRow);
+    if (isNaN(rowNum) || rowNum <= 0) return;
+    await navigateToItem({ rowNumber: rowNum });
+    setGoToRow('');
+  };
+
+  // Search with debounced results for click-to-navigate
+  const searchDebounceRef = useRef<any>(null);
+  const handleSearchInput = (val: string) => {
+    setSearch(val);
+    setPage(0);
+
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (val.length >= 2) {
+      searchDebounceRef.current = setTimeout(async () => {
+        try {
+          const res = await getItems(projectId, { q: val, limit: 20, offset: 0 });
+          setSearchResults(res.items || []);
+          setShowSearchResults(true);
+        } catch { setSearchResults([]); }
+      }, 300);
+    } else {
+      setSearchResults([]);
+      setShowSearchResults(false);
     }
   };
 
@@ -265,7 +351,7 @@ export default function ProjectDetailPage() {
   const clearAllFilters = () => {
     setFilterUzmanlik(''); setFilterMontaj(''); setFilterSiparis('');
     setFilterKalemTipi(''); setFilterLevel(''); setFilterDagitim('');
-    setFilter('all'); setSearch(''); setPage(0);
+    setFilterPrototip2(''); setFilter('all'); setSearch(''); setPage(0);
   };
 
   if (!project) {
@@ -522,6 +608,12 @@ export default function ProjectDetailPage() {
                 <option value="">Tüm Dağıtım</option>
                 {['EVET', 'HAYIR'].map(d => <option key={d} value={d}>{d}</option>)}
               </select>
+              <select value={filterPrototip2} onChange={e => { setFilterPrototip2(e.target.value); setPage(0); }}
+                className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
+                <option value="">Üretilecek araç</option>
+                <option value="X">X (Evet)</option>
+                <option value="YOK">Yok</option>
+              </select>
               <select value={filterUzmanlik} onChange={e => { setFilterUzmanlik(e.target.value); setPage(0); }}
                 className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 backdrop-blur-sm cursor-pointer">
                 <option value="">Tüm Uzmanlık</option>
@@ -532,8 +624,42 @@ export default function ProjectDetailPage() {
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                   <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
                 </svg>
-                <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} placeholder="Title, malzeme no ara..."
+                <input value={search} onChange={e => handleSearchInput(e.target.value)} onFocus={() => { if (searchResults.length > 0) setShowSearchResults(true); }} placeholder="Title, malzeme no, montaj no ara..."
                   className="w-full pl-9 pr-3 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 placeholder-slate-500 backdrop-blur-sm transition-all" />
+                {showSearchResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden shadow-2xl shadow-black/50 max-h-72 overflow-y-auto"
+                    style={{ background: 'rgba(12, 16, 24, 0.97)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
+                      <span className="text-[10px] text-slate-400 font-semibold uppercase">Sonuçlar ({searchResults.length})</span>
+                      <button onClick={() => setShowSearchResults(false)} className="text-[10px] text-slate-500 hover:text-white">&times;</button>
+                    </div>
+                    {searchResults.map(r => (
+                      <button key={r.id} onClick={() => navigateToItem(r)}
+                        className="w-full text-left px-3 py-2.5 flex items-center gap-2.5 hover:bg-blue-500/[0.08] border-b border-white/[0.03] transition-colors">
+                        <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-[9px] font-bold ${(LVL[r.level] || LVL[5]).badge}`}>{r.level}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] text-slate-200 truncate">{r.title}</p>
+                          <p className="text-[9px] text-slate-500 truncate">
+                            #{r.rowNumber} {r.montajNo ? `· ${r.montajNo}` : ''} {r.malzemeNoSap ? `· ${r.malzemeNoSap}` : ''} {r.uzmanlik ? `· ${r.uzmanlik}` : ''}
+                          </p>
+                        </div>
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-slate-500 shrink-0"><path d="M3 1l4 4-4 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Go to row */}
+              <div className="flex items-center gap-1">
+                <input value={goToRow} onChange={e => setGoToRow(e.target.value.replace(/\D/g, ''))}
+                  onKeyDown={e => { if (e.key === 'Enter') handleGoToRow(); }}
+                  placeholder="Satır #"
+                  className="w-16 px-2 py-1.5 rounded-lg text-xs bg-white/[0.05] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-blue-400/40 placeholder-slate-500 text-center" />
+                <button onClick={handleGoToRow} disabled={!goToRow}
+                  className="px-2 py-1.5 rounded-lg text-xs bg-blue-500/15 text-blue-300 border border-blue-400/20 hover:bg-blue-500/25 disabled:opacity-30 transition-all font-medium" title="Satıra git">
+                  Git
+                </button>
               </div>
 
               <div className="flex items-center gap-1.5 ml-auto flex-wrap">
@@ -563,7 +689,7 @@ export default function ProjectDetailPage() {
                           onChange={e => { if (e.target.checked) setSelectedItems(new Set(items.map(i => i.id))); else setSelectedItems(new Set()); }} />
                       </th>
                     )}
-                    {['#','Lv','Uzmanlık','OPS/STD','P2','Montaj No','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
+                    {['#','Lv','Uzmanlık','OPS/STD','Üretilecek araç','Montaj No','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
                       <th key={h} className="px-3 py-3.5 text-left text-[10px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -589,7 +715,7 @@ export default function ProjectDetailPage() {
                     const kalemClr = KALEM_CLR[item.kalemTipi] || 'bg-slate-700/40 text-slate-300 border-slate-600/30';
                     const uzClr = UZ_CLR[item.uzmanlik];
                     return (
-                      <tr key={item.id}
+                      <tr key={item.id} id={`bom-row-${item.rowNumber}`}
                         className={`border-b transition-colors duration-150 group
                           ${item.level === 2 ? 'border-blue-400/15 ' + lvl.row : item.level === 3 ? 'border-emerald-400/10 ' + lvl.row : 'border-white/[0.04]'}
                           ${item.needsReview ? 'bg-amber-500/[0.03]' : ''}
@@ -604,12 +730,7 @@ export default function ProjectDetailPage() {
                         <td className="px-3 py-2 text-slate-400 font-mono text-[11px]">{item.rowNumber}</td>
                         <td className="px-3 py-2"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold ${lvl.badge}`}>{item.level}</span></td>
                         <td className="px-3 py-2 text-[11px] whitespace-nowrap">
-                          {isEditing ? (
-                            <select value={editForm.uzmanlik} onChange={e => setEditForm({...editForm, uzmanlik: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-1.5 py-1 text-[11px] w-24 text-white focus:outline-none">
-                              <option value="">--</option>{UZMANLIK_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
-                            </select>
-                          ) : item.uzmanlik ? (
+                          {item.uzmanlik ? (
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${uzClr ? uzClr.bg + ' ' + uzClr.text + ' ' + uzClr.border : 'bg-slate-600/30 text-slate-300 border-slate-500/20'}`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${uzClr?.dot || 'bg-slate-400'}`} />
                               {item.uzmanlik}
@@ -634,54 +755,27 @@ export default function ProjectDetailPage() {
                           <span className="truncate block">{item.title}</span>
                         </td>
                         <td className="px-3 py-2 text-[11px] text-slate-300 font-mono max-w-[110px] truncate">
-                          {isEditing ? (
-                            <input value={editForm.malzemeNoSap} onChange={e => setEditForm({...editForm, malzemeNoSap: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-28 text-white focus:outline-none focus:border-blue-400/60" />
-                          ) : (item.malzemeNoSap || '')}
+                          {item.malzemeNoSap || ''}
                         </td>
                         <td className="px-3 py-2">
-                          {isEditing ? (
-                            <select value={editForm.kalemTipi} onChange={e => setEditForm({...editForm, kalemTipi: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-1.5 py-1 text-[11px] w-20 text-white focus:outline-none">
-                              <option value="">--</option>{KALEM_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
-                            </select>
-                          ) : (
                             <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold border ${kalemClr}`}>
                               {item.kalemTipi || '\u2014'}
                             </span>
-                          )}
                         </td>
                         <td className="px-3 py-2">
-                          {isEditing ? (
-                            <input value={editForm.siparis} onChange={e => setEditForm({...editForm, siparis: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-24 text-white focus:outline-none" />
-                          ) : <span className={`text-[11px] font-semibold ${SIP_CLR[item.siparis] || 'text-slate-300'}`}>{item.siparis || ''}</span>}
+                          <span className={`text-[11px] font-semibold ${SIP_CLR[item.siparis] || 'text-slate-300'}`}>{item.siparis || ''}</span>
                         </td>
                         <td className="px-3 py-2">
-                          {isEditing ? (
-                            <input value={editForm.dagitim} onChange={e => setEditForm({...editForm, dagitim: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-20 text-white focus:outline-none" />
-                          ) : <span className="text-[11px] text-slate-300">{item.dagitim || ''}</span>}
+                          <span className="text-[11px] text-slate-300">{item.dagitim || ''}</span>
                         </td>
                         <td className="px-3 py-2">
-                          {isEditing ? (
-                            <select value={editForm.birim} onChange={e => setEditForm({...editForm, birim: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-1.5 py-1 text-[11px] w-14 text-white focus:outline-none">
-                              <option value="">--</option>{BIRIM_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
-                            </select>
-                          ) : <span className="text-[11px] text-slate-300">{item.birim || ''}</span>}
+                          <span className="text-[11px] text-slate-300">{item.birim || ''}</span>
                         </td>
                         <td className="px-3 py-2 text-[11px] font-mono text-slate-200">
-                          {isEditing ? (
-                            <input type="number" step="any" value={editForm.quantity} onChange={e => setEditForm({...editForm, quantity: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-18 text-white focus:outline-none" />
-                          ) : (item.quantity ?? '')}
+                          {item.quantity ?? ''}
                         </td>
                         <td className="px-3 py-2 text-[11px] font-mono text-emerald-200 font-semibold">
-                          {isEditing ? (
-                            <input type="number" step="any" value={editForm.toplamMiktar} onChange={e => setEditForm({...editForm, toplamMiktar: e.target.value})}
-                              className="bg-white/[0.08] border border-blue-400/30 rounded-md px-2 py-1 text-[11px] w-18 text-white focus:outline-none" />
-                          ) : (item.toplamMiktar ?? '')}
+                          {item.toplamMiktar ?? ''}
                         </td>
                         <td className="px-3 py-2">
                           {isModified && (
@@ -697,12 +791,6 @@ export default function ProjectDetailPage() {
                           {!isModified && !item.needsReview && <span className="text-emerald-400/50 text-xs">{'\u2713'}</span>}
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap">
-                          {isEditing ? (
-                            <div className="flex items-center gap-1.5">
-                              <button onClick={() => saveEdit(item.id)} className="px-3 py-1 text-[10px] rounded-md bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 font-semibold transition-all border border-emerald-400/20">Kaydet</button>
-                              <button onClick={cancelEdit} className="px-2.5 py-1 text-[10px] rounded-md bg-white/[0.06] text-slate-300 hover:bg-white/[0.1] transition-all">İptal</button>
-                            </div>
-                          ) : (
                             <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                               {canEdit && item.level >= 2 && (
                                 <button onClick={() => startEdit(item)} className="px-3 py-1 text-[10px] rounded-md bg-blue-500/15 text-blue-200 hover:bg-blue-500/25 font-semibold transition-all border border-blue-400/20">Düzenle</button>
@@ -714,7 +802,6 @@ export default function ProjectDetailPage() {
                                 <button onClick={() => showHistory(item)} className="px-2.5 py-1 text-[10px] rounded-md bg-purple-500/12 text-purple-200 hover:bg-purple-500/20 transition-all border border-purple-400/15">Geçmiş</button>
                               )}
                             </div>
-                          )}
                         </td>
                       </tr>
                     );
@@ -769,6 +856,118 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* EDIT MODAL — 3 Options */}
+      {editItem && editMode && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={cancelEdit}>
+          <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent" />
+            <h3 className="text-xl font-bold text-white mb-1">Düzenle</h3>
+            <p className="text-xs text-slate-400 mb-5">
+              #{editItem.rowNumber} · L{editItem.level} · {editItem.title}
+              {editItem.montajNo ? ` · ${editItem.montajNo}` : ''}
+            </p>
+
+            {editMode === 'select' && (
+              <div className="space-y-3">
+                <button onClick={() => setEditMode('adet')}
+                  className="w-full text-left px-5 py-4 rounded-2xl bg-blue-500/[0.08] border border-blue-400/20 hover:bg-blue-500/[0.15] hover:border-blue-400/40 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300 shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M5 9h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white group-hover:text-blue-200 transition-colors">Adet Yanlışlığı</p>
+                      <p className="text-[11px] text-slate-400">Doğru miktarı girin</p>
+                    </div>
+                  </div>
+                </button>
+                <button onClick={() => setEditMode('siparis_hayir')}
+                  className="w-full text-left px-5 py-4 rounded-2xl bg-red-500/[0.08] border border-red-400/20 hover:bg-red-500/[0.15] hover:border-red-400/40 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-300 shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5l8 8M13 5l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white group-hover:text-red-200 transition-colors">Sipariş Edilmemeli</p>
+                      <p className="text-[11px] text-slate-400">Açıklama / yorum girin</p>
+                    </div>
+                  </div>
+                </button>
+                <button onClick={() => setEditMode('malzeme_eksik')}
+                  className="w-full text-left px-5 py-4 rounded-2xl bg-amber-500/[0.08] border border-amber-400/20 hover:bg-amber-500/[0.15] hover:border-amber-400/40 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-300 shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5"/><path d="M9 6v4M9 12.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white group-hover:text-amber-200 transition-colors">Malzeme Eksikliği</p>
+                      <p className="text-[11px] text-slate-400">İlgili montaja ait sipariş edilecek malzeme eksik</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {editMode === 'adet' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Mevcut Miktar</label>
+                  <div className="px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-300 text-sm font-mono">{editItem.quantity ?? '—'}</div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Doğru Miktar</label>
+                  <input type="number" step="any" value={editValue} onChange={e => setEditValue(e.target.value)} autoFocus
+                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-blue-400/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-400/60 text-sm" placeholder="Doğru miktarı girin" />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
+                  <button onClick={handleEditSubmit} disabled={!editValue}
+                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-blue-500/80 text-white hover:bg-blue-500 disabled:opacity-40 transition-all">Kaydet</button>
+                </div>
+              </div>
+            )}
+
+            {editMode === 'siparis_hayir' && (
+              <div className="space-y-4">
+                <div className="px-4 py-3 rounded-xl bg-red-500/[0.08] border border-red-400/15">
+                  <p className="text-xs text-red-200 font-medium">Bu kalem "Sipariş Edilmemeli" olarak işaretlenecek</p>
+                  <p className="text-[10px] text-red-300/60 mt-0.5">Sipariş durumu HAYIR olarak güncellenecek</p>
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama / Yorum</label>
+                  <textarea value={editComment} onChange={e => setEditComment(e.target.value)} autoFocus
+                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-red-400/40 text-sm h-24 resize-none" placeholder="Neden sipariş edilmemeli?" />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
+                  <button onClick={handleEditSubmit}
+                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-red-500/80 text-white hover:bg-red-500 transition-all">Kaydet</button>
+                </div>
+              </div>
+            )}
+
+            {editMode === 'malzeme_eksik' && (
+              <div className="space-y-4">
+                <div className="px-4 py-3 rounded-xl bg-amber-500/[0.08] border border-amber-400/15">
+                  <p className="text-xs text-amber-200 font-medium">İlgili montaja ait sipariş edilecek malzeme eksikliği</p>
+                  <p className="text-[10px] text-amber-300/60 mt-0.5">Kalem inceleme gerektiren olarak işaretlenecek</p>
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama / Yorum</label>
+                  <textarea value={editComment} onChange={e => setEditComment(e.target.value)} autoFocus
+                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/40 text-sm h-24 resize-none" placeholder="Eksik malzeme detaylarını yazın" />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
+                  <button onClick={handleEditSubmit}
+                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-amber-500/80 text-white hover:bg-amber-500 transition-all">Kaydet</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* TASK MODAL */}
       {showTaskModal && (

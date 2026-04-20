@@ -69,6 +69,8 @@ export const updateItem = (pid: number, iid: number, data: any) =>
   apiFetch(`/api/projects/${pid}/items/${iid}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const getItemHistory = (pid: number, iid: number) =>
   apiFetch(`/api/projects/${pid}/items/${iid}/history`);
+export const findItemPosition = (pid: number, rowNumber: number) =>
+  apiFetch(`/api/projects/${pid}/items?find_row=${rowNumber}&limit=200`);
 
 // Project stats/nav/export
 export const getStats = (id: number) => apiFetch(`/api/projects/${id}/stats`);
