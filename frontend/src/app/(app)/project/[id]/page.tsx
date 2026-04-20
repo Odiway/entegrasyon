@@ -100,7 +100,7 @@ export default function ProjectDetailPage() {
   const isEngineer = user?.role === 'integration_engineer';
   const isAdmin = user?.role === 'admin';
   const canSelect = isDesigner || isAdmin;
-  const canEdit = isEngineer || isAdmin;
+  const canEdit = isEngineer || isAdmin || isDesigner;
 
   const showMsg = (type: 'ok' | 'err', text: string) => {
     setMsg({ type, text });
@@ -943,9 +943,6 @@ export default function ProjectDetailPage() {
                                 <button onClick={() => navigateToItem(item)} className="px-2 py-0.5 text-[9px] rounded-md bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/25 font-semibold transition-all border border-cyan-400/20" title="Listedeki sırasına git">
                                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="inline"><path d="M5 1v6M3 5l2 2 2-2M1 9h8" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/></svg>
                                 </button>
-                              )}
-                              {isDesigner && item.level >= 2 && (
-                                <button onClick={() => openTicketForItem(item)} className="px-2 py-0.5 text-[9px] rounded-md bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 font-semibold transition-all border border-amber-400/20">Ticket</button>
                               )}
                               {isModified && (
                                 <button onClick={() => showHistory(item)} className="px-2 py-0.5 text-[9px] rounded-md bg-purple-500/12 text-purple-200 hover:bg-purple-500/20 transition-all border border-purple-400/15">Geçmiş</button>

@@ -50,7 +50,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const projectId = parseInt(params.id);
     const body = await req.json();
 
-    if (user.role !== 'integration_engineer' && user.role !== 'admin') {
+    if (user.role !== 'integration_engineer' && user.role !== 'admin' && user.role !== 'designer') {
       return err('Yetkiniz yok', 403);
     }
 
