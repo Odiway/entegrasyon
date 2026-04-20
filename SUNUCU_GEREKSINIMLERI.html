@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>TEMSA - Sanal Sunucu Gereksinimleri</title>
+<style>
+  @page { margin: 2cm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .header { text-align: center; border-bottom: 3px solid #c41e3a; padding-bottom: 20px; margin-bottom: 30px; }
+  .header h1 { font-size: 24px; color: #c41e3a; margin-bottom: 4px; }
+  .header h2 { font-size: 16px; color: #444; font-weight: 400; }
+  .header .meta { font-size: 12px; color: #888; margin-top: 8px; }
+  .section { margin-bottom: 28px; }
+  .section h3 { font-size: 16px; color: #c41e3a; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-bottom: 12px; }
+  .section h4 { font-size: 14px; color: #333; margin: 12px 0 6px 0; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border: 1px solid #ddd; font-weight: 600; }
+  td { padding: 8px 12px; border: 1px solid #ddd; vertical-align: top; }
+  tr:nth-child(even) { background: #fafafa; }
+  .highlight { background: #fff3f5 !important; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-min { background: #e8f5e9; color: #2e7d32; }
+  .badge-rec { background: #e3f2fd; color: #1565c0; }
+  .badge-req { background: #fce4ec; color: #c62828; }
+  ul { margin: 6px 0 6px 20px; font-size: 13px; }
+  li { margin-bottom: 4px; }
+  .note { background: #fffde7; border-left: 4px solid #fbc02d; padding: 10px 14px; font-size: 12px; margin: 12px 0; border-radius: 0 4px 4px 0; }
+  .footer { text-align: center; font-size: 11px; color: #999; border-top: 1px solid #ddd; padding-top: 16px; margin-top: 40px; }
+  .twoCol { display: flex; gap: 20px; }
+  .twoCol > div { flex: 1; }
+  .tag { display: inline-block; background: #f5f5f5; border: 1px solid #ddd; padding: 1px 6px; border-radius: 3px; font-size: 11px; margin: 1px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>TEMSA Sanal Sunucu Gereksinimleri</h1>
+  <h2>Web Uygulamaları Hosting Altyapısı</h2>
+  <div class="meta">Hazırlayan: Oğuzhan İnandı &nbsp;|&nbsp; Tarih: 20.04.2026 &nbsp;|&nbsp; Versiyon: 1.0</div>
+</div>
+
+<!-- 1. GENEL BAKIŞ -->
+<div class="section">
+  <h3>1. Genel Bakış</h3>
+  <p style="font-size:13px; margin-bottom:10px;">
+    Bu dokümanda, mevcut Vercel platformunda çalışan PLM BOM Entegrasyon uygulaması ve benzer birkaç web uygulamasının
+    şirket içi sanal sunucuya taşınması için gereken sunucu gereksinimleri detaylandırılmaktadır.
+  </p>
+  <table>
+    <tr><th style="width:180px;">Parametre</th><th>Değer</th></tr>
+    <tr><td>Mevcut Uygulama Sayısı</td><td>1 (PLM BOM Entegrasyon) + planlanmış 2-3 ek uygulama</td></tr>
+    <tr><td>Beklenen Kullanıcı Sayısı</td><td>10-50 eşzamanlı kullanıcı (şirket içi)</td></tr>
+    <tr><td>Erişim Tipi</td><td>Şirket içi ağ (intranet) — VPN ile uzaktan erişim opsiyonel</td></tr>
+    <tr><td>Çalışma Saatleri</td><td>7/24 (kesintisiz)</td></tr>
+  </table>
+</div>
+
+<!-- 2. DONANIM GEREKSİNİMLERİ -->
+<div class="section">
+  <h3>2. Donanım Gereksinimleri</h3>
+  <table>
+    <tr>
+      <th style="width:180px;">Kaynak</th>
+      <th style="width:180px;"><span class="badge badge-min">Minimum</span></th>
+      <th><span class="badge badge-rec">Önerilen (Birden Fazla Uygulama İçin)</span></th>
+    </tr>
+    <tr>
+      <td><strong>İşlemci (vCPU)</strong></td>
+      <td>4 vCPU</td>
+      <td>8 vCPU (x86_64)</td>
+    </tr>
+    <tr>
+      <td><strong>RAM</strong></td>
+      <td>8 GB</td>
+      <td>16 GB</td>
+    </tr>
+    <tr>
+      <td><strong>Disk (SSD)</strong></td>
+      <td>80 GB SSD</td>
+      <td>200 GB SSD (NVMe tercih edilir)</td>
+    </tr>
+    <tr>
+      <td><strong>Ağ</strong></td>
+      <td>1 Gbps</td>
+      <td>1 Gbps (şirket içi LAN)</td>
+    </tr>
+  </table>
+  <div class="note">
+    <strong>Not:</strong> Disk alanı hesabı: İşletim sistemi ~10 GB, Docker images ~15 GB, PostgreSQL verileri ~20 GB,
+    yüklenen Excel dosyaları ~10 GB, log dosyaları ~5 GB, yedekleme alanı ~30 GB + gelecek uygulamalar için boşluk.
+  </div>
+</div>
+
+<!-- 3. İŞLETİM SİSTEMİ -->
+<div class="section">
+  <h3>3. İşletim Sistemi</h3>
+  <table>
+    <tr><th style="width:180px;">Parametre</th><th>Değer</th></tr>
+    <tr class="highlight"><td><strong>İşletim Sistemi</strong></td><td><strong>Ubuntu Server 22.04 LTS (64-bit)</strong> — Önerilen</td></tr>
+    <tr><td>Alternatif</td><td>Rocky Linux 9 / AlmaLinux 9 / Debian 12</td></tr>
+    <tr><td>Masaüstü Ortamı</td><td>Gerekli değil (headless server)</td></tr>
+    <tr><td>SSH Erişimi</td><td>Gerekli (port 22 veya özel port)</td></tr>
+  </table>
+</div>
+
+<!-- 4. YAZILIM GEREKSİNİMLERİ -->
+<div class="section">
+  <h3>4. Yazılım & Servis Gereksinimleri</h3>
+
+  <h4>4.1 Temel Yazılımlar (Sunucuya Kurulacak)</h4>
+  <table>
+    <tr><th style="width:220px;">Yazılım</th><th style="width:120px;">Versiyon</th><th>Açıklama</th></tr>
+    <tr class="highlight"><td><strong>Docker Engine</strong></td><td>24.x+</td><td>Tüm uygulamalar konteyner olarak çalışacak</td></tr>
+    <tr class="highlight"><td><strong>Docker Compose</strong></td><td>v2.x+</td><td>Multi-container orchestration</td></tr>
+    <tr><td>Node.js</td><td>20.x LTS</td><td>Next.js frontend build & runtime</td></tr>
+    <tr><td>Python</td><td>3.12.x</td><td>FastAPI backend runtime</td></tr>
+    <tr><td>PostgreSQL</td><td>16.x</td><td>Veritabanı (Docker container içinde)</td></tr>
+    <tr><td>Nginx</td><td>1.24+</td><td>Reverse proxy & SSL termination</td></tr>
+    <tr><td>Git</td><td>2.x+</td><td>Kaynak kod yönetimi & deployment</td></tr>
+    <tr><td>Certbot (opsiyonel)</td><td>Latest</td><td>SSL sertifikası (eğer dışarıya açılacaksa)</td></tr>
+  </table>
+
+  <h4>4.2 Uygulama Teknoloji Yığını (Referans)</h4>
+  <div class="twoCol">
+    <div>
+      <strong style="font-size:12px;">Frontend</strong>
+      <div style="margin-top:4px;">
+        <span class="tag">Next.js 14</span>
+        <span class="tag">React 18</span>
+        <span class="tag">TypeScript 5</span>
+        <span class="tag">Tailwind CSS 3</span>
+        <span class="tag">Prisma ORM 5</span>
+        <span class="tag">ExcelJS</span>
+      </div>
+    </div>
+    <div>
+      <strong style="font-size:12px;">Backend</strong>
+      <div style="margin-top:4px;">
+        <span class="tag">FastAPI</span>
+        <span class="tag">Python 3.12</span>
+        <span class="tag">SQLAlchemy</span>
+        <span class="tag">Uvicorn</span>
+        <span class="tag">asyncpg</span>
+        <span class="tag">OpenPyXL</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. AĞ & PORT GEREKSİNİMLERİ -->
+<div class="section">
+  <h3>5. Ağ & Port Gereksinimleri</h3>
+  <table>
+    <tr><th style="width:100px;">Port</th><th style="width:120px;">Protokol</th><th style="width:160px;">Servis</th><th>Yön</th></tr>
+    <tr class="highlight"><td><strong>80</strong></td><td>TCP (HTTP)</td><td>Nginx (→ HTTPS redirect)</td><td>Inbound</td></tr>
+    <tr class="highlight"><td><strong>443</strong></td><td>TCP (HTTPS)</td><td>Nginx reverse proxy</td><td>Inbound</td></tr>
+    <tr><td>22</td><td>TCP (SSH)</td><td>Sunucu yönetimi</td><td>Inbound</td></tr>
+    <tr><td>3000</td><td>TCP</td><td>Next.js (internal)</td><td>Internal only</td></tr>
+    <tr><td>8000-8005</td><td>TCP</td><td>Backend API (internal)</td><td>Internal only</td></tr>
+    <tr><td>5432</td><td>TCP</td><td>PostgreSQL (internal)</td><td>Internal only</td></tr>
+    <tr><td>443</td><td>TCP</td><td>GitHub (git pull)</td><td>Outbound</td></tr>
+    <tr><td>443</td><td>TCP</td><td>npm/pip registry</td><td>Outbound</td></tr>
+  </table>
+  <div class="note">
+    <strong>Önemli:</strong> Port 3000, 8000-8005 ve 5432 sadece sunucu içi (localhost/Docker network) erişimde olacak,
+    dışarıya sadece 80/443 (Nginx üzerinden) ve 22 (SSH) açık olmalıdır.
+  </div>
+</div>
+
+<!-- 6. GÜVENLİK -->
+<div class="section">
+  <h3>6. Güvenlik Gereksinimleri</h3>
+  <table>
+    <tr><th style="width:220px;">Gereksinim</th><th>Açıklama</th></tr>
+    <tr><td>Firewall</td><td>UFW / iptables — yalnızca 22, 80, 443 portları açık</td></tr>
+    <tr><td>SSL/TLS Sertifikası</td><td>Şirket içi CA sertifikası veya Let's Encrypt (dışarıya açılırsa)</td></tr>
+    <tr><td>SSH Key Authentication</td><td>Parola yerine SSH key ile giriş önerilir</td></tr>
+    <tr><td>Otomatik Güncellemeler</td><td>unattended-upgrades (güvenlik yamaları)</td></tr>
+    <tr><td>Fail2Ban</td><td>Brute-force saldırı koruması</td></tr>
+    <tr><td>Veritabanı</td><td>PostgreSQL sadece Docker internal network'ten erişilebilir</td></tr>
+    <tr><td>Yedekleme</td><td>Günlük otomatik DB backup + haftalık full backup</td></tr>
+  </table>
+</div>
+
+<!-- 7. DOMAIN & DNS -->
+<div class="section">
+  <h3>7. Domain & DNS Gereksinimleri</h3>
+  <table>
+    <tr><th style="width:220px;">Parametre</th><th>Değer</th></tr>
+    <tr><td>Hostname (örnek)</td><td><code>apps.temsa.local</code> veya <code>entegrasyon.temsa.com.tr</code></td></tr>
+    <tr><td>DNS Kaydı</td><td>A kaydı → sunucu IP adresi (şirket içi DNS sunucusuna)</td></tr>
+    <tr><td>Ek Uygulamalar</td><td>Subdomain veya path-based routing (Nginx ile)</td></tr>
+  </table>
+  <div class="note">
+    <strong>Örnek yapı:</strong>
+    <code>entegrasyon.temsa.local</code> → PLM BOM Entegrasyon &nbsp;|&nbsp;
+    <code>app2.temsa.local</code> → Diğer uygulama &nbsp;|&nbsp;
+    <code>app3.temsa.local</code> → Diğer uygulama
+  </div>
+</div>
+
+<!-- 8. YEDEKLEME & RECOVERY -->
+<div class="section">
+  <h3>8. Yedekleme & Felaket Kurtarma</h3>
+  <table>
+    <tr><th style="width:220px;">Parametre</th><th>Değer</th></tr>
+    <tr><td>Veritabanı Yedekleme</td><td>Günlük <code>pg_dump</code> — 30 gün saklama</td></tr>
+    <tr><td>Uygulama Dosyaları</td><td>Git repository'den tekrar deploy edilebilir</td></tr>
+    <tr><td>Upload Dosyaları</td><td>Haftalık yedekleme (Excel dosyaları)</td></tr>
+    <tr><td>VM Snapshot</td><td>Haftalık VM snapshot önerilir</td></tr>
+    <tr><td>RPO (Recovery Point)</td><td>Maksimum 24 saat veri kaybı</td></tr>
+    <tr><td>RTO (Recovery Time)</td><td>Maksimum 4 saat</td></tr>
+  </table>
+</div>
+
+<!-- 9. MONITORING -->
+<div class="section">
+  <h3>9. İzleme & Bakım</h3>
+  <ul>
+    <li><strong>Disk doluluk izleme</strong> — %85 üzerinde uyarı</li>
+    <li><strong>Bellek/CPU izleme</strong> — aşırı kullanımda uyarı</li>
+    <li><strong>Docker container sağlık kontrolü</strong> — otomatik restart</li>
+    <li><strong>Log rotasyonu</strong> — logrotate ile haftalık rotasyon</li>
+    <li><strong>Uptime izleme</strong> — HTTP health-check endpoint</li>
+  </ul>
+</div>
+
+<!-- 10. ÖZET TABLO -->
+<div class="section">
+  <h3>10. Özet Gereksinim Tablosu</h3>
+  <table>
+    <tr>
+      <th style="width:180px;">Kaynak</th>
+      <th style="width:180px;"><span class="badge badge-min">Minimum</span></th>
+      <th><span class="badge badge-rec">Önerilen</span></th>
+    </tr>
+    <tr><td>İşletim Sistemi</td><td colspan="2">Ubuntu Server 22.04 LTS (64-bit)</td></tr>
+    <tr><td>vCPU</td><td>4 çekirdek</td><td>8 çekirdek</td></tr>
+    <tr><td>RAM</td><td>8 GB</td><td>16 GB</td></tr>
+    <tr><td>Disk</td><td>80 GB SSD</td><td>200 GB NVMe SSD</td></tr>
+    <tr><td>Ağ</td><td>1 Gbps</td><td>1 Gbps</td></tr>
+    <tr><td>Docker</td><td colspan="2">Docker Engine 24+ & Compose v2+</td></tr>
+    <tr><td>PostgreSQL</td><td colspan="2">16.x (Docker container)</td></tr>
+    <tr><td>Node.js</td><td colspan="2">20.x LTS</td></tr>
+    <tr><td>Python</td><td colspan="2">3.12.x</td></tr>
+    <tr><td>Nginx</td><td colspan="2">1.24+ (reverse proxy)</td></tr>
+    <tr><td>Portlar (dış)</td><td colspan="2">22 (SSH), 80 (HTTP), 443 (HTTPS)</td></tr>
+    <tr><td>Outbound İnternet</td><td colspan="2">GitHub, npm, pip (deploy sırasında)</td></tr>
+    <tr><td>Yedekleme</td><td colspan="2">Günlük DB dump + haftalık VM snapshot</td></tr>
+    <tr><td>SSL</td><td colspan="2">Şirket içi CA veya Let's Encrypt</td></tr>
+    <tr><td>Statik IP</td><td colspan="2">1 adet (şirket içi ağda)</td></tr>
+    <tr><td>DNS</td><td colspan="2">Şirket DNS'ine A kaydı (subdomain)</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TEMSA — Bilgi Teknolojileri &nbsp;|&nbsp; Sanal Sunucu Gereksinim Dokümanı &nbsp;|&nbsp; 20.04.2026
+</div>
+
+</body>
+</html>

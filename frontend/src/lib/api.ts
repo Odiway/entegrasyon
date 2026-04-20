@@ -118,3 +118,13 @@ export const getNotifications = (unreadOnly = false) =>
   apiFetch(`/api/notifications${unreadOnly ? '?unread=1' : ''}`);
 export const markNotificationsRead = (ids: number[] | 'all') =>
   apiFetch('/api/notifications', { method: 'PATCH', body: JSON.stringify({ ids }) });
+
+// Edit Requests
+export const getEditRequests = (pid: number, status?: string) => {
+  const qs = status ? `?status=${status}` : '';
+  return apiFetch(`/api/projects/${pid}/edit-requests${qs}`);
+};
+export const createEditRequest = (pid: number, data: { bomItemId: number; editType: string; fieldName?: string; oldValue?: string; newValue?: string; comment?: string }) =>
+  apiFetch(`/api/projects/${pid}/edit-requests`, { method: 'POST', body: JSON.stringify(data) });
+export const reviewEditRequest = (pid: number, reqId: number, status: 'approved' | 'rejected') =>
+  apiFetch(`/api/projects/${pid}/edit-requests/${reqId}`, { method: 'PATCH', body: JSON.stringify({ status }) });

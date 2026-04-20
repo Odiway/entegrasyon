@@ -158,6 +158,25 @@ model Notification {
   @@index([userId])
 }
 
+model EditRequest {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  bomItemId   Int
+  requestedBy Int
+  editType    String   // adet, siparis_hayir, malzeme_eksik
+  fieldName   String   // e.g. quantity, siparis, needsReview
+  oldValue    String?
+  newValue    String?
+  comment     String?
+  status      String   @default("pending") // pending, approved, rejected
+  reviewedBy  Int?
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([projectId, status])
+  @@index([bomItemId])
+}
+
 model CalendarEvent {
   id          Int      @id @default(autoincrement())
   title       String

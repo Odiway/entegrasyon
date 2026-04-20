@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import {
   getProject, getItems, getStats, getNav, updateItem, getItemHistory,
   exportProject, createTask, getUsers, deleteProject, findItemPosition,
+  getEditRequests, createEditRequest, reviewEditRequest,
 } from '@/lib/api';
 
 const KALEM_OPTIONS = ['F', 'Y', 'E', 'H', 'C', 'X DETAY', 'X-Kesilerek Kullanilan'];
@@ -90,6 +91,9 @@ export default function ProjectDetailPage() {
   const [historyItem, setHistoryItem] = useState<any>(null);
   const [historyData, setHistoryData] = useState<any[]>([]);
 
+  const [editRequests, setEditRequests] = useState<any[]>([]);
+  const [showEditRequests, setShowEditRequests] = useState(false);
+
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const isDesigner = user?.role === 'designer';
@@ -161,10 +165,30 @@ export default function ProjectDetailPage() {
   }, [filterUzmanlik, filterMontaj, filterSiparis, filterKalemTipi, filterLevel, filterDagitim, filterPrototip2]);
 
   const startEdit = (item: any) => {
-    setEditItem(item);
-    setEditMode('select');
-    setEditValue('');
-    setEditComment('');
+    if (isAdmin) {
+      // Admin gets inline full edit
+      setEditingId(item.id);
+      setEditForm({
+        kalemTipi: item.kalemTipi || '',
+        siparis: item.siparis || '',
+        dagitim: item.dagitim || '',
+        birim: item.birim || '',
+        quantity: item.quantity ?? '',
+        toplamMiktar: item.toplamMiktar ?? '',
+        malzemeNoSap: item.malzemeNoSap || '',
+        uzmanlik: item.uzmanlik || '',
+        montaj: item.montaj || '',
+        montajNo: item.montajNo || '',
+        opsStd: item.opsStd || '',
+        prototip2: item.prototip2 || '',
+      });
+    } else {
+      // Engineer gets 3-option modal that goes to approval
+      setEditItem(item);
+      setEditMode('select');
+      setEditValue('');
+      setEditComment('');
+    }
   };
 
   const cancelEdit = () => { setEditingId(null); setEditForm({}); setEditItem(null); setEditMode(null); setEditValue(''); setEditComment(''); };
@@ -198,27 +222,36 @@ export default function ProjectDetailPage() {
 
   const handleEditSubmit = async () => {
     if (!editItem) return;
+    if (!editComment && editMode !== 'adet') { showMsg('err', 'Lütfen detaylı açıklama yazın'); return; }
+    if (editMode === 'adet' && !editValue) { showMsg('err', 'Geçerli bir miktar girin'); return; }
     try {
-      const changes: any = {};
+      const data: any = {
+        bomItemId: editItem.id,
+        editType: editMode,
+      };
       if (editMode === 'adet') {
         const num = parseFloat(editValue);
         if (isNaN(num) || num <= 0) { showMsg('err', 'Geçerli bir miktar girin'); return; }
-        changes.quantity = num;
+        data.fieldName = 'quantity';
+        data.oldValue = String(editItem.quantity ?? '');
+        data.newValue = String(num);
+        data.comment = editComment || undefined;
       } else if (editMode === 'siparis_hayir') {
-        changes.siparis = 'HAYIR';
-        if (editComment) changes.dagitim = editComment;
+        data.fieldName = 'siparis';
+        data.oldValue = editItem.siparis || '';
+        data.newValue = 'HAYIR';
+        data.comment = editComment;
       } else if (editMode === 'malzeme_eksik') {
-        changes.needsReview = true;
-        if (editComment) changes.dagitim = editComment;
+        data.fieldName = 'needsReview';
+        data.oldValue = String(editItem.needsReview);
+        data.newValue = 'true';
+        data.comment = editComment;
       }
-      if (Object.keys(changes).length === 0) { cancelEdit(); return; }
-      await updateItem(projectId, editItem.id, changes);
-      showMsg('ok', 'Kayıt güncellendi');
+      await createEditRequest(projectId, data);
+      showMsg('ok', 'Düzenleme talebi gönderildi — Admin onayı bekleniyor');
       cancelEdit();
-      await loadItems();
-      await loadStats();
     } catch (e: any) {
-      showMsg('err', e.message || 'Güncelleme hatası');
+      showMsg('err', e.message || 'Talep oluşturulamadı');
     }
   };
 
@@ -322,6 +355,32 @@ export default function ProjectDetailPage() {
       setHistoryData(Array.isArray(logs) ? logs : logs.logs || []);
     } catch { setHistoryData([]); }
   };
+
+  const loadEditRequests = useCallback(async () => {
+    if (!isAdmin) return;
+    try {
+      const reqs = await getEditRequests(projectId, 'pending');
+      setEditRequests(Array.isArray(reqs) ? reqs : []);
+    } catch { setEditRequests([]); }
+  }, [projectId, isAdmin]);
+
+  useEffect(() => { loadEditRequests(); }, [loadEditRequests]);
+
+  const handleReviewRequest = async (reqId: number, status: 'approved' | 'rejected') => {
+    try {
+      await reviewEditRequest(projectId, reqId, status);
+      showMsg('ok', status === 'approved' ? 'Talep onaylandı' : 'Talep reddedildi');
+      await loadEditRequests();
+      if (status === 'approved') {
+        await loadItems();
+        await loadStats();
+      }
+    } catch (e: any) {
+      showMsg('err', e.message || 'İşlem hatası');
+    }
+  };
+
+  const hasActiveFilters = !!(filterUzmanlik || filterMontaj || filterSiparis || filterKalemTipi || filterLevel || filterDagitim || filterPrototip2 || search || filter !== 'all');
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
@@ -465,6 +524,14 @@ export default function ProjectDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {isAdmin && editRequests.length > 0 && (
+                <button onClick={() => setShowEditRequests(true)}
+                  className="px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400/50 text-sm font-medium transition-all flex items-center gap-2 relative">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.3"/><path d="M7 4v3.5M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  Onay Bekleyen
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">{editRequests.length}</span>
+                </button>
+              )}
               {canSelect && selectedItems.size > 0 && (
                 <button onClick={() => setShowTaskModal(true)}
                   className="px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-400/30 text-purple-300 hover:bg-purple-500/25 hover:border-purple-400/50 text-sm font-medium transition-all flex items-center gap-2">
@@ -680,17 +747,17 @@ export default function ProjectDetailPage() {
           {/* TABLE */}
           <div ref={tableRef} className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden backdrop-blur-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
+              <table className="w-full text-[12px]">
                 <thead>
                   <tr className="border-b border-white/[0.1] bg-white/[0.05]">
                     {canSelect && (
-                      <th className="px-3 py-3.5 w-10">
+                      <th className="px-2 py-3 w-8">
                         <input type="checkbox" className="accent-purple-400 w-3.5 h-3.5 rounded cursor-pointer" checked={selectedItems.size > 0 && selectedItems.size === items.length}
                           onChange={e => { if (e.target.checked) setSelectedItems(new Set(items.map(i => i.id))); else setSelectedItems(new Set()); }} />
                       </th>
                     )}
-                    {['#','Lv','Uzmanlık','OPS/STD','Üretilecek araç','Montaj No','Montaj','Title','MalzNo SAP','Kalem Tipi','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
-                      <th key={h} className="px-3 py-3.5 text-left text-[10px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    {['#','Lv','Uzmanlık','OPS/STD','Ürt.araç','Montaj No','Montaj','Title','MalzNo SAP','Kalem','Sipariş','Dağıtım','Birim','Qty','Toplam','Durum',''].map(h => (
+                      <th key={h} className="px-2 py-3 text-left text-[9px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -722,86 +789,169 @@ export default function ProjectDetailPage() {
                           ${isModified ? 'bg-purple-500/[0.03]' : ''}
                           hover:bg-white/[0.06]`}>
                         {canSelect && (
-                          <td className="px-3 py-2">
+                          <td className="px-2 py-1.5">
                             <input type="checkbox" checked={selectedItems.has(item.id)} onChange={() => toggleSelect(item.id)}
                               className="accent-purple-400 w-3.5 h-3.5 rounded cursor-pointer" />
                           </td>
                         )}
-                        <td className="px-3 py-2 text-slate-400 font-mono text-[11px]">{item.rowNumber}</td>
-                        <td className="px-3 py-2"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold ${lvl.badge}`}>{item.level}</span></td>
-                        <td className="px-3 py-2 text-[11px] whitespace-nowrap">
-                          {item.uzmanlik ? (
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${uzClr ? uzClr.bg + ' ' + uzClr.text + ' ' + uzClr.border : 'bg-slate-600/30 text-slate-300 border-slate-500/20'}`}>
+                        <td className="px-2 py-1.5 text-slate-400 font-mono text-[10px]">{item.rowNumber}</td>
+                        <td className="px-2 py-1.5"><span className={`inline-flex items-center justify-center w-5 h-5 rounded-md text-[9px] font-bold ${lvl.badge}`}>{item.level}</span></td>
+                        <td className="px-2 py-1.5 text-[10px] whitespace-nowrap">
+                          {isEditing ? (
+                            <select value={editForm.uzmanlik} onChange={e => setEditForm({ ...editForm, uzmanlik: e.target.value })}
+                              className="w-20 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30">
+                              <option value="">—</option>
+                              {UZMANLIK_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                            </select>
+                          ) : item.uzmanlik ? (
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold border ${uzClr ? uzClr.bg + ' ' + uzClr.text + ' ' + uzClr.border : 'bg-slate-600/30 text-slate-300 border-slate-500/20'}`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${uzClr?.dot || 'bg-slate-400'}`} />
                               {item.uzmanlik}
                             </span>
                           ) : <span className="text-slate-500">{'\u2014'}</span>}
                         </td>
-                        <td className="px-3 py-2 text-[11px] whitespace-nowrap">
-                          {item.opsStd ? (
-                            <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold border ${item.opsStd === 'STANDART' ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/25' : 'bg-amber-500/15 text-amber-200 border-amber-400/25'}`}>
+                        <td className="px-2 py-1.5 text-[10px] whitespace-nowrap">
+                          {isEditing ? (
+                            <select value={editForm.opsStd} onChange={e => setEditForm({ ...editForm, opsStd: e.target.value })}
+                              className="w-20 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30">
+                              <option value="">—</option>
+                              <option value="STANDART">STANDART</option>
+                              <option value="OPSİYONEL">OPSİYONEL</option>
+                            </select>
+                          ) : item.opsStd ? (
+                            <span className={`inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold border ${item.opsStd === 'STANDART' ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/25' : 'bg-amber-500/15 text-amber-200 border-amber-400/25'}`}>
                               {item.opsStd}
                             </span>
                           ) : <span className="text-slate-500">{'\u2014'}</span>}
                         </td>
-                        <td className="px-3 py-2 text-[11px] text-center whitespace-nowrap">
-                          {item.prototip2 === 'X' ? (
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-400/25">X</span>
+                        <td className="px-2 py-1.5 text-[10px] text-center whitespace-nowrap">
+                          {isEditing ? (
+                            <select value={editForm.prototip2} onChange={e => setEditForm({ ...editForm, prototip2: e.target.value })}
+                              className="w-14 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30">
+                              <option value="">—</option>
+                              <option value="X">X</option>
+                            </select>
+                          ) : item.prototip2 === 'X' ? (
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold border border-rose-400/25">X</span>
                           ) : <span className="text-slate-600">{'\u2014'}</span>}
                         </td>
-                        <td className="px-3 py-2 text-[11px] text-slate-300 font-mono max-w-[120px] truncate">{item.montajNo || ''}</td>
-                        <td className="px-3 py-2 text-[11px] text-slate-300 max-w-[110px] truncate">{item.montaj || ''}</td>
-                        <td className={`px-3 py-2 font-mono text-[11px] max-w-[250px] ${lvl.font}`} style={{ paddingLeft: Math.max(12, item.level * 14) }}>
+                        <td className="px-2 py-1.5 text-[10px] text-slate-300 font-mono max-w-[100px] truncate">
+                          {isEditing ? (
+                            <input value={editForm.montajNo} onChange={e => setEditForm({ ...editForm, montajNo: e.target.value })}
+                              className="w-24 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30" />
+                          ) : item.montajNo || ''}
+                        </td>
+                        <td className="px-2 py-1.5 text-[10px] text-slate-300 max-w-[90px] truncate">
+                          {isEditing ? (
+                            <input value={editForm.montaj} onChange={e => setEditForm({ ...editForm, montaj: e.target.value })}
+                              className="w-24 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30" />
+                          ) : item.montaj || ''}
+                        </td>
+                        <td className={`px-2 py-1.5 font-mono text-[10px] max-w-[200px] ${lvl.font}`} style={{ paddingLeft: Math.max(8, item.level * 12) }}>
                           <span className="truncate block">{item.title}</span>
                         </td>
-                        <td className="px-3 py-2 text-[11px] text-slate-300 font-mono max-w-[110px] truncate">
-                          {item.malzemeNoSap || ''}
+                        <td className="px-2 py-1.5 text-[10px] text-slate-300 font-mono max-w-[90px] truncate">
+                          {isEditing ? (
+                            <input value={editForm.malzemeNoSap} onChange={e => setEditForm({ ...editForm, malzemeNoSap: e.target.value })}
+                              className="w-24 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30" />
+                          ) : item.malzemeNoSap || ''}
                         </td>
-                        <td className="px-3 py-2">
-                            <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold border ${kalemClr}`}>
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <select value={editForm.kalemTipi} onChange={e => setEditForm({ ...editForm, kalemTipi: e.target.value })}
+                              className="w-16 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30">
+                              <option value="">—</option>
+                              {KALEM_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
+                            </select>
+                          ) : (
+                            <span className={`inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold border ${kalemClr}`}>
                               {item.kalemTipi || '\u2014'}
                             </span>
+                          )}
                         </td>
-                        <td className="px-3 py-2">
-                          <span className={`text-[11px] font-semibold ${SIP_CLR[item.siparis] || 'text-slate-300'}`}>{item.siparis || ''}</span>
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <select value={editForm.siparis} onChange={e => setEditForm({ ...editForm, siparis: e.target.value })}
+                              className="w-20 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30">
+                              <option value="">—</option>
+                              {['EVET','HAYIR','MONTAJ','KONTROL EDİLECEK','NA'].map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          ) : (
+                            <span className={`text-[10px] font-semibold ${SIP_CLR[item.siparis] || 'text-slate-300'}`}>{item.siparis || ''}</span>
+                          )}
                         </td>
-                        <td className="px-3 py-2">
-                          <span className="text-[11px] text-slate-300">{item.dagitim || ''}</span>
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <select value={editForm.dagitim} onChange={e => setEditForm({ ...editForm, dagitim: e.target.value })}
+                              className="w-16 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30">
+                              <option value="">—</option>
+                              <option value="EVET">EVET</option>
+                              <option value="HAYIR">HAYIR</option>
+                            </select>
+                          ) : (
+                            <span className="text-[10px] text-slate-300">{item.dagitim || ''}</span>
+                          )}
                         </td>
-                        <td className="px-3 py-2">
-                          <span className="text-[11px] text-slate-300">{item.birim || ''}</span>
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <select value={editForm.birim} onChange={e => setEditForm({ ...editForm, birim: e.target.value })}
+                              className="w-14 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30">
+                              <option value="">—</option>
+                              {BIRIM_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+                            </select>
+                          ) : (
+                            <span className="text-[10px] text-slate-300">{item.birim || ''}</span>
+                          )}
                         </td>
-                        <td className="px-3 py-2 text-[11px] font-mono text-slate-200">
-                          {item.quantity ?? ''}
+                        <td className="px-2 py-1.5 text-[10px] font-mono text-slate-200">
+                          {isEditing ? (
+                            <input type="number" step="any" value={editForm.quantity} onChange={e => setEditForm({ ...editForm, quantity: e.target.value })}
+                              className="w-14 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30" />
+                          ) : item.quantity ?? ''}
                         </td>
-                        <td className="px-3 py-2 text-[11px] font-mono text-emerald-200 font-semibold">
-                          {item.toplamMiktar ?? ''}
+                        <td className="px-2 py-1.5 text-[10px] font-mono text-emerald-200 font-semibold">
+                          {isEditing ? (
+                            <input type="number" step="any" value={editForm.toplamMiktar} onChange={e => setEditForm({ ...editForm, toplamMiktar: e.target.value })}
+                              className="w-14 px-1 py-0.5 rounded text-[10px] bg-white/[0.08] text-white border border-blue-400/30" />
+                          ) : item.toplamMiktar ?? ''}
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-1.5">
                           {isModified && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-purple-500/15 text-purple-200 border border-purple-400/20">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-purple-500/15 text-purple-200 border border-purple-400/20">
                               <span className="w-1 h-1 rounded-full bg-purple-400" /> değişti
                             </span>
                           )}
                           {item.needsReview && !isModified && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-amber-500/15 text-amber-200 border border-amber-400/20">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-amber-500/15 text-amber-200 border border-amber-400/20">
                               <span className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" /> incele
                             </span>
                           )}
                           {!isModified && !item.needsReview && <span className="text-emerald-400/50 text-xs">{'\u2713'}</span>}
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <td className="px-2 py-1.5 whitespace-nowrap">
+                          {isEditing ? (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => saveEdit(item.id)} className="px-2 py-0.5 text-[9px] rounded bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 font-semibold border border-emerald-400/20">Kaydet</button>
+                              <button onClick={cancelEdit} className="px-2 py-0.5 text-[9px] rounded bg-white/[0.06] text-slate-300 hover:bg-white/[0.1] border border-white/[0.08]">İptal</button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                               {canEdit && item.level >= 2 && (
-                                <button onClick={() => startEdit(item)} className="px-3 py-1 text-[10px] rounded-md bg-blue-500/15 text-blue-200 hover:bg-blue-500/25 font-semibold transition-all border border-blue-400/20">Düzenle</button>
+                                <button onClick={() => startEdit(item)} className="px-2 py-0.5 text-[9px] rounded-md bg-blue-500/15 text-blue-200 hover:bg-blue-500/25 font-semibold transition-all border border-blue-400/20">Düzenle</button>
+                              )}
+                              {hasActiveFilters && (
+                                <button onClick={() => navigateToItem(item)} className="px-2 py-0.5 text-[9px] rounded-md bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/25 font-semibold transition-all border border-cyan-400/20" title="Listedeki sırasına git">
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="inline"><path d="M5 1v6M3 5l2 2 2-2M1 9h8" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/></svg>
+                                </button>
                               )}
                               {isDesigner && item.level >= 2 && (
-                                <button onClick={() => openTicketForItem(item)} className="px-3 py-1 text-[10px] rounded-md bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 font-semibold transition-all border border-amber-400/20">Ticket Aç</button>
+                                <button onClick={() => openTicketForItem(item)} className="px-2 py-0.5 text-[9px] rounded-md bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 font-semibold transition-all border border-amber-400/20">Ticket</button>
                               )}
                               {isModified && (
-                                <button onClick={() => showHistory(item)} className="px-2.5 py-1 text-[10px] rounded-md bg-purple-500/12 text-purple-200 hover:bg-purple-500/20 transition-all border border-purple-400/15">Geçmiş</button>
+                                <button onClick={() => showHistory(item)} className="px-2 py-0.5 text-[9px] rounded-md bg-purple-500/12 text-purple-200 hover:bg-purple-500/20 transition-all border border-purple-400/15">Geçmiş</button>
                               )}
                             </div>
+                          )}
                         </td>
                       </tr>
                     );
@@ -857,15 +1007,19 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* EDIT MODAL — 3 Options */}
+      {/* EDIT MODAL — 3 Options (Engineer → Admin Approval) */}
       {editItem && editMode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={cancelEdit}>
           <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white mb-1">Düzenle</h3>
-            <p className="text-xs text-slate-400 mb-5">
+            <h3 className="text-xl font-bold text-white mb-1">Düzenleme Talebi</h3>
+            <p className="text-xs text-slate-400 mb-1">
               #{editItem.rowNumber} · L{editItem.level} · {editItem.title}
               {editItem.montajNo ? ` · ${editItem.montajNo}` : ''}
+            </p>
+            <p className="text-[10px] text-amber-300/70 mb-5 flex items-center gap-1">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1"/><path d="M5 3v2.5M5 7v.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/></svg>
+              Admin onayı gerektirir
             </p>
 
             {editMode === 'select' && (
@@ -920,10 +1074,15 @@ export default function ProjectDetailPage() {
                   <input type="number" step="any" value={editValue} onChange={e => setEditValue(e.target.value)} autoFocus
                     className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-blue-400/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-400/60 text-sm" placeholder="Doğru miktarı girin" />
                 </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama <span className="text-red-400">*</span></label>
+                  <textarea value={editComment} onChange={e => setEditComment(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-blue-400/40 text-sm h-20 resize-none" placeholder="Neden adet değişikliği gerekiyor?" />
+                </div>
                 <div className="flex gap-3 justify-end pt-2">
                   <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
-                  <button onClick={handleEditSubmit} disabled={!editValue}
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-blue-500/80 text-white hover:bg-blue-500 disabled:opacity-40 transition-all">Kaydet</button>
+                  <button onClick={handleEditSubmit} disabled={!editValue || !editComment}
+                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-blue-500/80 text-white hover:bg-blue-500 disabled:opacity-40 transition-all">Talep Gönder</button>
                 </div>
               </div>
             )}
@@ -935,14 +1094,14 @@ export default function ProjectDetailPage() {
                   <p className="text-[10px] text-red-300/60 mt-0.5">Sipariş durumu HAYIR olarak güncellenecek</p>
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama / Yorum</label>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama <span className="text-red-400">*</span></label>
                   <textarea value={editComment} onChange={e => setEditComment(e.target.value)} autoFocus
-                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-red-400/40 text-sm h-24 resize-none" placeholder="Neden sipariş edilmemeli?" />
+                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-red-400/40 text-sm h-24 resize-none" placeholder="Neden sipariş edilmemeli? Detaylı açıklama yazın" />
                 </div>
                 <div className="flex gap-3 justify-end pt-2">
                   <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
-                  <button onClick={handleEditSubmit}
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-red-500/80 text-white hover:bg-red-500 transition-all">Kaydet</button>
+                  <button onClick={handleEditSubmit} disabled={!editComment}
+                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-red-500/80 text-white hover:bg-red-500 disabled:opacity-40 transition-all">Talep Gönder</button>
                 </div>
               </div>
             )}
@@ -954,14 +1113,14 @@ export default function ProjectDetailPage() {
                   <p className="text-[10px] text-amber-300/60 mt-0.5">Kalem inceleme gerektiren olarak işaretlenecek</p>
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama / Yorum</label>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama <span className="text-red-400">*</span></label>
                   <textarea value={editComment} onChange={e => setEditComment(e.target.value)} autoFocus
                     className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/40 text-sm h-24 resize-none" placeholder="Eksik malzeme detaylarını yazın" />
                 </div>
                 <div className="flex gap-3 justify-end pt-2">
                   <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
-                  <button onClick={handleEditSubmit}
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-amber-500/80 text-white hover:bg-amber-500 transition-all">Kaydet</button>
+                  <button onClick={handleEditSubmit} disabled={!editComment}
+                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-amber-500/80 text-white hover:bg-amber-500 disabled:opacity-40 transition-all">Talep Gönder</button>
                 </div>
               </div>
             )}
@@ -999,6 +1158,79 @@ export default function ProjectDetailPage() {
                 {taskCreating ? 'Oluşturuluyor...' : 'Ticket Oluştur'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT REQUESTS APPROVAL MODAL (Admin) */}
+      {showEditRequests && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={() => setShowEditRequests(false)}>
+          <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+            <h3 className="text-xl font-bold text-white mb-1">Onay Bekleyen Düzenleme Talepleri</h3>
+            <p className="text-xs text-slate-400 mb-5">{editRequests.length} talep bekliyor</p>
+            {editRequests.length === 0 ? (
+              <p className="text-sm text-slate-400 py-8 text-center">Bekleyen talep yok</p>
+            ) : (
+              <div className="space-y-3">
+                {editRequests.map((req: any) => {
+                  const typeLabels: Record<string, { label: string; color: string; icon: string }> = {
+                    adet: { label: 'Adet Yanlışlığı', color: 'blue', icon: '±' },
+                    siparis_hayir: { label: 'Sipariş Edilmemeli', color: 'red', icon: '✕' },
+                    malzeme_eksik: { label: 'Malzeme Eksikliği', color: 'amber', icon: '!' },
+                  };
+                  const t = typeLabels[req.editType] || { label: req.editType, color: 'slate', icon: '?' };
+                  return (
+                    <div key={req.id} className={`bg-white/[0.04] border border-${t.color}-400/20 rounded-xl p-4`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg bg-${t.color}-500/20 text-${t.color}-300 text-[10px] font-bold`}>{t.icon}</span>
+                            <span className={`text-xs font-semibold text-${t.color}-200`}>{t.label}</span>
+                            <span className="text-[10px] text-slate-500">{new Date(req.createdAt).toLocaleString('tr-TR')}</span>
+                          </div>
+                          {req.bomItem && (
+                            <p className="text-[11px] text-slate-300 mb-1.5">
+                              #{req.bomItem.rowNumber} · L{req.bomItem.level} · <span className="text-white font-medium">{req.bomItem.title}</span>
+                              {req.bomItem.montajNo ? ` · ${req.bomItem.montajNo}` : ''}
+                            </p>
+                          )}
+                          {req.editType === 'adet' && (
+                            <div className="flex items-center gap-2 text-xs mb-1.5">
+                              <span className="text-red-300/70 line-through">{req.oldValue || '—'}</span>
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 5h4M5.5 3l2 2-2 2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
+                              <span className="text-emerald-200 font-medium">{req.newValue || '—'}</span>
+                            </div>
+                          )}
+                          {req.comment && (
+                            <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 mt-1.5">
+                              <p className="text-[10px] text-slate-400 font-medium mb-0.5">Açıklama:</p>
+                              <p className="text-[11px] text-slate-200">{req.comment}</p>
+                            </div>
+                          )}
+                          <p className="text-[10px] text-slate-500 mt-1.5">
+                            Talep eden: <span className="text-slate-300">{req.requestedByUser?.fullName || '—'}</span>
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-1.5 shrink-0">
+                          <button onClick={() => handleReviewRequest(req.id, 'approved')}
+                            className="px-4 py-2 text-[11px] rounded-lg bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 font-semibold transition-all border border-emerald-400/25 flex items-center gap-1.5">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            Onayla
+                          </button>
+                          <button onClick={() => handleReviewRequest(req.id, 'rejected')}
+                            className="px-4 py-2 text-[11px] rounded-lg bg-red-500/15 text-red-300 hover:bg-red-500/25 font-semibold transition-all border border-red-400/20 flex items-center gap-1.5">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 3l4 4M7 3l-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                            Reddet
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <button onClick={() => setShowEditRequests(false)} className="mt-5 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-white/[0.06] w-full transition-all font-medium">Kapat</button>
           </div>
         </div>
       )}
