@@ -620,83 +620,84 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          <div className="mb-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 flex items-center justify-between gap-3">
+          <div className="mb-4 bg-gradient-to-br from-sky-50 to-white border border-sky-200 rounded-2xl p-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] text-slate-300 font-semibold uppercase tracking-wider">İstatistik Merkezi</p>
-              <p className="text-xs text-slate-400">Detaylı chart ve tablolar artık ayrı ekranda görüntülenir.</p>
+              <p className="text-[11px] text-blue-700 font-bold uppercase tracking-wider">İstatistik Merkezi</p>
+              <p className="text-xs text-slate-600 mt-0.5">Detaylı chart ve tablolar ayrı ekranda görüntülenir.</p>
             </div>
-            <button onClick={() => setShowStatsCenter(true)} className="px-4 py-2 rounded-xl bg-sky-500/20 border border-sky-400/30 text-sky-200 hover:bg-sky-500/30 transition-all text-sm font-medium">
+            <button onClick={() => setShowStatsCenter(true)} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all text-sm font-semibold shadow-sm">
               Görüntüle
             </button>
           </div>
 
           {showStatsCenter && (
-            <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-md flex items-start justify-center p-4" onClick={() => setShowStatsCenter(false)}>
-              <div className="w-full max-w-7xl max-h-[92vh] overflow-y-auto rounded-3xl border border-white/[0.12] bg-[#0d1117]/95 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                <div className="sticky top-0 z-10 -mx-5 -mt-5 mb-4 px-5 py-3 bg-[#0d1117]/95 border-b border-white/[0.08] flex items-center justify-between backdrop-blur">
+            <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center p-4" onClick={() => setShowStatsCenter(false)}>
+              <div className="w-full max-w-7xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="sticky top-0 z-10 -mx-5 -mt-5 mb-4 px-5 py-3 bg-white/95 border-b border-slate-200 flex items-center justify-between backdrop-blur">
                   <div>
-                    <p className="text-sm font-bold text-white">İstatistik Merkezi</p>
-                    <p className="text-[11px] text-slate-400">Proje bazlı detaylı grafikler ve operasyon kırılımları</p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">TEMSA · PLM</p>
+                    <p className="text-lg font-bold text-slate-900">İstatistik Merkezi</p>
+                    <p className="text-[11px] text-slate-500">Proje bazlı detaylı grafikler ve operasyon kırılımları</p>
                   </div>
-                  <button onClick={() => setShowStatsCenter(false)} className="px-3 py-1.5 rounded-lg text-xs border border-white/[0.15] text-slate-300 hover:bg-white/[0.07]">
+                  <button onClick={() => setShowStatsCenter(false)} className="px-3 py-1.5 rounded-lg text-xs border border-slate-300 text-slate-600 hover:bg-slate-50 font-semibold">
                     Kapat
                   </button>
                 </div>
 
           {/* Stat Cards */}
           <div className="grid grid-cols-5 gap-3 mb-4">
-            <StatCard label="Toplam Satır" value={totalRows} color="text-white" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
-            <StatCard label="İncelenmesi Gereken" value={needsReview} color="text-amber-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" /><path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>} />
-            <StatCard label="Değiştirilmiş"  value={modified} color="text-purple-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
-            <StatCard label="Tamamlanan" value={resolved} color="text-emerald-300" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 backdrop-blur-sm">
+            <StatCard label="Toplam Satır" value={totalRows} color="text-slate-900" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
+            <StatCard label="İncelenmesi Gereken" value={needsReview} color="text-amber-600" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" /><path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>} />
+            <StatCard label="Değiştirilmiş"  value={modified} color="text-violet-600" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} />
+            <StatCard label="Tamamlanan" value={resolved} color="text-emerald-600" icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
+            <div className="bg-gradient-to-br from-sky-50 to-white border border-sky-200 rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[11px] text-slate-300 font-semibold uppercase tracking-wide">İlerleme</p>
-                <span className={`text-lg font-bold ${progress === 100 ? 'text-emerald-300' : 'text-white'}`}>%{progress}</span>
+                <p className="text-[11px] text-blue-700 font-bold uppercase tracking-wide">İlerleme</p>
+                <span className={`text-lg font-bold ${progress === 100 ? 'text-emerald-600' : 'text-blue-700'}`}>%{progress}</span>
               </div>
-              <div className="h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-400'}`} style={{ width: progress + '%' }} />
+              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-blue-500 via-blue-400 to-sky-400'}`} style={{ width: progress + '%' }} />
               </div>
             </div>
           </div>
 
           {/* GRAFIK + TABLOLU ISTATISTIK PANELI */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
-              <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider mb-3">Level Dağılımı (Excel Renk Mantığı)</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <p className="text-[11px] text-blue-700 font-bold uppercase tracking-wider mb-3">Level Dağılımı (Excel Renk Mantığı)</p>
               <HorizontalBarChart rows={levelDistribution} />
             </div>
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
-              <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider mb-3">Kalem Tipi Dağılımı</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <p className="text-[11px] text-blue-700 font-bold uppercase tracking-wider mb-3">Kalem Tipi Dağılımı</p>
               <HorizontalBarChart rows={kalemDistribution} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl p-3 overflow-hidden">
               <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Level Bazlı F ve Sipariş Özeti</p>
+                <p className="text-[11px] text-blue-700 font-bold uppercase tracking-wider">Level Bazlı F ve Sipariş Özeti</p>
                 <span className="text-[10px] text-slate-500">L2/L3 odaklı operasyon</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-[11px]">
                   <thead>
-                    <tr className="text-slate-400 border-b border-white/[0.08]">
-                      <th className="text-left py-2 px-2">Level</th>
-                      <th className="text-right py-2 px-2">Toplam</th>
-                      <th className="text-right py-2 px-2">F Kalem</th>
-                      <th className="text-right py-2 px-2">Sipariş EVET</th>
-                      <th className="text-right py-2 px-2">Sipariş HAYIR</th>
+                    <tr className="text-slate-500 border-b border-slate-200 bg-slate-50">
+                      <th className="text-left py-2 px-2 font-semibold">Level</th>
+                      <th className="text-right py-2 px-2 font-semibold">Toplam</th>
+                      <th className="text-right py-2 px-2 font-semibold">F Kalem</th>
+                      <th className="text-right py-2 px-2 font-semibold">Sipariş EVET</th>
+                      <th className="text-right py-2 px-2 font-semibold">Sipariş HAYIR</th>
                     </tr>
                   </thead>
                   <tbody>
                     {levelFStats.map((r: any) => (
-                      <tr key={r.level} className="border-b border-white/[0.05] hover:bg-white/[0.03]">
-                        <td className="py-2 px-2 font-semibold" style={{ color: LEVEL_EXPORT_COLORS[r.level] || '#cbd5e1' }}>Level {r.level}</td>
-                        <td className="py-2 px-2 text-right text-white font-mono">{r.total.toLocaleString('tr-TR')}</td>
-                        <td className="py-2 px-2 text-right text-blue-200 font-mono">{r.f.toLocaleString('tr-TR')}</td>
-                        <td className="py-2 px-2 text-right text-emerald-200 font-mono">{r.siparisEvet.toLocaleString('tr-TR')}</td>
-                        <td className="py-2 px-2 text-right text-red-200 font-mono">{r.siparisHayir.toLocaleString('tr-TR')}</td>
+                      <tr key={r.level} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-2 px-2 font-semibold" style={{ color: LEVEL_EXPORT_COLORS[r.level] || '#334155' }}>Level {r.level}</td>
+                        <td className="py-2 px-2 text-right text-slate-900 font-mono">{r.total.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-blue-700 font-mono">{r.f.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-emerald-700 font-mono">{r.siparisEvet.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-rose-600 font-mono">{r.siparisHayir.toLocaleString('tr-TR')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -704,32 +705,32 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl p-3 overflow-hidden">
               <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Uzmanlık Bazlı Kritik Göstergeler</p>
+                <p className="text-[11px] text-blue-700 font-bold uppercase tracking-wider">Uzmanlık Bazlı Kritik Göstergeler</p>
                 <span className="text-[10px] text-slate-500">L2-F, L3-F, L2 Sipariş</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-[11px]">
                   <thead>
-                    <tr className="text-slate-400 border-b border-white/[0.08]">
-                      <th className="text-left py-2 px-2">Uzmanlık</th>
-                      <th className="text-right py-2 px-2">L2 F</th>
-                      <th className="text-right py-2 px-2">L3 F</th>
-                      <th className="text-right py-2 px-2">L2 EVET</th>
-                      <th className="text-right py-2 px-2">L2 HAYIR</th>
-                      <th className="text-right py-2 px-2">Toplam</th>
+                    <tr className="text-slate-500 border-b border-slate-200 bg-slate-50">
+                      <th className="text-left py-2 px-2 font-semibold">Uzmanlık</th>
+                      <th className="text-right py-2 px-2 font-semibold">L2 F</th>
+                      <th className="text-right py-2 px-2 font-semibold">L3 F</th>
+                      <th className="text-right py-2 px-2 font-semibold">L2 EVET</th>
+                      <th className="text-right py-2 px-2 font-semibold">L2 HAYIR</th>
+                      <th className="text-right py-2 px-2 font-semibold">Toplam</th>
                     </tr>
                   </thead>
                   <tbody>
                     {uzmanlikDetailedRows.map((r: any) => (
-                      <tr key={r.uzmanlik} className="border-b border-white/[0.05] hover:bg-white/[0.03]">
-                        <td className="py-2 px-2 text-slate-100 font-semibold">{r.uzmanlik}</td>
-                        <td className="py-2 px-2 text-right text-blue-200 font-mono">{r.l2f.toLocaleString('tr-TR')}</td>
-                        <td className="py-2 px-2 text-right text-indigo-200 font-mono">{r.l3f.toLocaleString('tr-TR')}</td>
-                        <td className="py-2 px-2 text-right text-emerald-200 font-mono">{r.l2SipEvet.toLocaleString('tr-TR')}</td>
-                        <td className="py-2 px-2 text-right text-red-200 font-mono">{r.l2SipHayir.toLocaleString('tr-TR')}</td>
-                        <td className="py-2 px-2 text-right text-white font-mono font-semibold">{r.total.toLocaleString('tr-TR')}</td>
+                      <tr key={r.uzmanlik} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-2 px-2 text-slate-800 font-semibold">{r.uzmanlik}</td>
+                        <td className="py-2 px-2 text-right text-blue-700 font-mono">{r.l2f.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-indigo-700 font-mono">{r.l3f.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-emerald-700 font-mono">{r.l2SipEvet.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-rose-600 font-mono">{r.l2SipHayir.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-slate-900 font-mono font-bold">{r.total.toLocaleString('tr-TR')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -740,21 +741,20 @@ export default function ProjectDetailPage() {
 
           {/* UZMANLIK BREAKDOWN */}
           {stats?.byUzmanlik && stats.byUzmanlik.length > 0 && (
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 mb-3">
+            <div className="bg-white border border-slate-200 rounded-xl p-3 mb-3">
               <div className="flex items-center gap-3 mb-2.5">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-slate-400"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /><circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1" opacity="0.3" /></svg>
-                <span className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Uzmanlık Dağılımı</span>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-blue-600"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /><circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1" opacity="0.3" /></svg>
+                <span className="text-[11px] text-blue-700 font-bold uppercase tracking-wider">Uzmanlık Dağılımı</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 {stats.byUzmanlik.map((u: any) => {
-                  const uzClr = UZ_CLR[u.uzmanlik] || { bg: 'bg-slate-500/15', border: 'border-slate-400/20', text: 'text-slate-300', dot: 'bg-slate-400' };
                   const active = filterUzmanlik === u.uzmanlik;
                   return (
                     <button key={u.uzmanlik} onClick={() => { setFilterUzmanlik(active ? '' : u.uzmanlik); setPage(0); }}
-                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border ${active ? uzClr.bg + ' ' + uzClr.text + ' ' + uzClr.border + ' ring-1 ring-white/10 shadow-lg' : 'bg-white/[0.03] text-slate-300 border-white/[0.06] hover:bg-white/[0.06] hover:text-white hover:border-white/[0.12]'}`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${active ? uzClr.dot : 'bg-slate-500'}`} />
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all border ${active ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
+                      <span className={`w-2 h-2 rounded-full ${active ? 'bg-white' : 'bg-blue-500'}`} />
                       <span>{u.uzmanlik}</span>
-                      <span className="text-[10px] opacity-60 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded-md">{u.count.toLocaleString('tr-TR')}</span>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${active ? 'bg-white/20' : 'bg-slate-100 text-slate-600'}`}>{u.count.toLocaleString('tr-TR')}</span>
                     </button>
                   );
                 })}
@@ -765,22 +765,22 @@ export default function ProjectDetailPage() {
           {/* SIPARIS & KALEM TIPI BREAKDOWNS */}
           <div className="grid grid-cols-2 gap-3 mb-3">
             {stats?.bySiparis && stats.bySiparis.length > 0 && (
-              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3">
+              <div className="bg-white border border-slate-200 rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-2.5">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-slate-400"><path d="M1 3h10M1 6h7M1 9h9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
-                  <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Sipariş Durumu</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-blue-600"><path d="M1 3h10M1 6h7M1 9h9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                  <span className="text-[10px] text-blue-700 font-bold uppercase tracking-wider">Sipariş Durumu</span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {stats.bySiparis.map((s: any) => {
-                    const clr: Record<string, string> = { EVET: 'emerald', HAYIR: 'red', MONTAJ: 'violet', ['KONTROL EDİLECEK']: 'amber', NA: 'slate' };
+                    const clr: Record<string, string> = { EVET: 'emerald', HAYIR: 'rose', MONTAJ: 'violet', ['KONTROL EDİLECEK']: 'amber', NA: 'slate' };
                     const c = clr[s.siparis] || 'slate';
                     const active = filterSiparis === s.siparis;
                     return (
                       <button key={s.siparis} onClick={() => { setFilterSiparis(active ? '' : s.siparis); setPage(0); }}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${active ? `bg-${c}-500/20 text-${c}-200 border border-${c}-400/30 shadow-sm` : 'bg-white/[0.03] text-slate-300 border border-white/[0.05] hover:bg-white/[0.06] hover:text-white'}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full bg-${c}-400`} />
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${active ? `bg-${c}-100 text-${c}-800 border border-${c}-300 shadow-sm` : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full bg-${c}-500`} />
                         {s.siparis}
-                        <span className="text-[9px] opacity-50 font-mono">{s.count.toLocaleString('tr-TR')}</span>
+                        <span className="text-[9px] opacity-60 font-mono">{s.count.toLocaleString('tr-TR')}</span>
                       </button>
                     );
                   })}
@@ -788,20 +788,19 @@ export default function ProjectDetailPage() {
               </div>
             )}
             {stats?.byKalemTipi && stats.byKalemTipi.length > 0 && (
-              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3">
+              <div className="bg-white border border-slate-200 rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-2.5">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-slate-400"><rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="7" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="1" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /></svg>
-                  <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Kalem Tipi Dağılımı</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-blue-600"><rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="7" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="1" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /><rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1" /></svg>
+                  <span className="text-[10px] text-blue-700 font-bold uppercase tracking-wider">Kalem Tipi Dağılımı</span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {stats.byKalemTipi.map((k: any) => {
-                    const kClr = KALEM_CLR[k.kalemTipi] || 'bg-slate-700/40 text-slate-300 border-slate-600/30';
                     const active = filterKalemTipi === k.kalemTipi;
                     return (
                       <button key={k.kalemTipi} onClick={() => { setFilterKalemTipi(active ? '' : k.kalemTipi); setPage(0); }}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${active ? kClr + ' ring-1 ring-white/10 shadow-sm' : 'bg-white/[0.03] text-slate-300 border-white/[0.05] hover:bg-white/[0.06] hover:text-white'}`}>
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${active ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}>
                         {k.kalemTipi}
-                        <span className="text-[9px] opacity-50 font-mono">{k.count.toLocaleString('tr-TR')}</span>
+                        <span className={`text-[9px] font-mono ${active ? 'opacity-80' : 'opacity-60'}`}>{k.count.toLocaleString('tr-TR')}</span>
                       </button>
                     );
                   })}
@@ -1442,10 +1441,10 @@ export default function ProjectDetailPage() {
 
 function StatCard({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
   return (
-    <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 backdrop-blur-sm hover:bg-white/[0.06] transition-all group">
+    <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all group">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-slate-400 group-hover:text-slate-300 transition-colors">{icon}</span>
-        <p className="text-[11px] text-slate-300 font-semibold uppercase tracking-wide">{label}</p>
+        <span className="text-blue-600 group-hover:text-blue-700 transition-colors">{icon}</span>
+        <p className="text-[11px] text-slate-600 font-bold uppercase tracking-wide">{label}</p>
       </div>
       <p className={`text-2xl font-bold ${color}`}>{(value || 0).toLocaleString('tr-TR')}</p>
     </div>
@@ -1464,10 +1463,10 @@ function HorizontalBarChart({ rows }: { rows: { label: string; value: number; co
         return (
           <div key={r.label}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-slate-300">{r.label}</span>
-              <span className="text-[11px] text-white font-mono">{r.value.toLocaleString('tr-TR')}</span>
+              <span className="text-[11px] text-slate-700 font-semibold">{r.label}</span>
+              <span className="text-[11px] text-slate-900 font-mono font-bold">{r.value.toLocaleString('tr-TR')}</span>
             </div>
-            <div className="h-2.5 rounded-full bg-white/[0.07] overflow-hidden">
+            <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
               <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: r.color }} />
             </div>
           </div>

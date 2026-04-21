@@ -116,11 +116,11 @@ export default function DashboardPage() {
   /* Live operation flow events derived from data */
   const flowEvents = useMemo(() => {
     const ev: { color: string; text: string; time: string }[] = [];
-    if (recentProjects[0]) ev.push({ color: '#1e3a8a', text: `${recentProjects[0].name} BOM ağacı PLM'den alındı`, time: '2 dk' });
-    if (stats.doneTasks > 0) ev.push({ color: '#0f766e', text: `${stats.doneTasks.toLocaleString('tr-TR')} görev SAP'ye aktarıldı`, time: '5 dk' });
-    if (recentProjects[1]) ev.push({ color: '#1e3a8a', text: `${recentProjects[1].name} kural motoru doğrulaması tamamlandı`, time: '12 dk' });
-    if (stats.openTasks > 0) ev.push({ color: '#b45309', text: `${stats.openTasks} açık görev tasarımcı kuyruğunda`, time: '18 dk' });
-    if (stats.totalRows > 0) ev.push({ color: '#475569', text: `${stats.totalRows.toLocaleString('tr-TR')} kalem işlendi · veri tabanı senkron`, time: '24 dk' });
+    if (recentProjects[0]) ev.push({ color: '#3b82f6', text: `${recentProjects[0].name} BOM ağacı PLM'den alındı`, time: '2 dk' });
+    if (stats.doneTasks > 0) ev.push({ color: '#10b981', text: `${stats.doneTasks.toLocaleString('tr-TR')} görev SAP'ye aktarıldı`, time: '5 dk' });
+    if (recentProjects[1]) ev.push({ color: '#8b5cf6', text: `${recentProjects[1].name} kural motoru doğrulaması tamamlandı`, time: '12 dk' });
+    if (stats.openTasks > 0) ev.push({ color: '#f59e0b', text: `${stats.openTasks} açık görev tasarımcı kuyruğunda`, time: '18 dk' });
+    if (stats.totalRows > 0) ev.push({ color: '#06b6d4', text: `${stats.totalRows.toLocaleString('tr-TR')} kalem işlendi · veri tabanı senkron`, time: '24 dk' });
     if (ev.length === 0) ev.push({ color: '#64748b', text: 'Sistem hazır · veri akışı bekleniyor', time: 'şimdi' });
     return ev;
   }, [recentProjects, stats]);
@@ -130,7 +130,7 @@ export default function DashboardPage() {
 
       {/* ═════════════ HERO PANEL ═════════════ */}
       <section className="relative overflow-hidden rounded-2xl mb-7 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.4)]"
-        style={{ background: 'linear-gradient(120deg, #0b1729 0%, #142847 45%, #1e3a8a 100%)' }}>
+        style={{ background: 'linear-gradient(120deg, #1e3a8a 0%, #2563eb 45%, #3b82f6 100%)' }}>
 
         {/* Bus image silhouette */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -144,7 +144,9 @@ export default function DashboardPage() {
 
         {/* Soft glow accent */}
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.35), transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(125,211,252,0.45), transparent 70%)' }} />
+        <div className="absolute -bottom-32 right-1/4 w-[28rem] h-[28rem] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.35), transparent 70%)' }} />
 
         {/* TEMSA brand text watermark */}
         <div className="absolute right-8 top-6 text-right pointer-events-none">
@@ -199,15 +201,15 @@ export default function DashboardPage() {
       {/* ═════════════ KPI ROW (Çözülen Sayılar) ═════════════ */}
       <section className="grid grid-cols-4 gap-5 mb-7">
         {[
-          { label: 'Çözülen Görev',     value: stats.doneTasks,    icon: '✓', accent: '#0f766e', sub: `${stats.tasks} görevden` },
-          { label: 'İşlenen BOM Satırı', value: stats.totalRows,    icon: '≣', accent: '#1e3a8a', sub: `${stats.projects} projede` },
-          { label: 'Aktif Proje',       value: stats.projects,     icon: '◈', accent: '#7c3aed', sub: 'Üretim hattında' },
-          { label: 'Bekleyen İş',       value: stats.openTasks,    icon: '◷', accent: '#b45309', sub: 'Tasarımcı kuyruğunda' },
+          { label: 'Çözülen Görev',     value: stats.doneTasks,    icon: '✓', accent: '#10b981', tint: 'from-emerald-50 to-white', sub: `${stats.tasks} görevden` },
+          { label: 'İşlenen BOM Satırı', value: stats.totalRows,    icon: '≣', accent: '#3b82f6', tint: 'from-sky-50 to-white',     sub: `${stats.projects} projede` },
+          { label: 'Aktif Proje',       value: stats.projects,     icon: '◈', accent: '#8b5cf6', tint: 'from-violet-50 to-white',  sub: 'Üretim hattında' },
+          { label: 'Bekleyen İş',       value: stats.openTasks,    icon: '◷', accent: '#f59e0b', tint: 'from-amber-50 to-white',   sub: 'Tasarımcı kuyruğunda' },
         ].map((c, i) => (
-          <div key={i} className="group relative bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-md transition-all">
+          <div key={i} className={`group relative bg-gradient-to-br ${c.tint} rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-md transition-all`}>
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold shrink-0"
-                style={{ background: `${c.accent}12`, color: c.accent, border: `1px solid ${c.accent}33` }}>
+                style={{ background: `${c.accent}1f`, color: c.accent, border: `1px solid ${c.accent}44` }}>
                 {c.icon}
               </div>
               <div className="flex-1 min-w-0">
@@ -237,9 +239,9 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-3 gap-4 mt-6">
               {[
-                { label: 'Doğruluk',   value: 100, color: '#0f766e' },
-                { label: 'SAP Senkron', value: 100, color: '#1e3a8a' },
-                { label: 'Otomasyon',  value: 100, color: '#7c3aed' },
+                { label: 'Doğruluk',   value: 100, color: '#10b981' },
+                { label: 'SAP Senkron', value: 100, color: '#3b82f6' },
+                { label: 'Otomasyon',  value: 100, color: '#8b5cf6' },
               ].map((m, i) => (
                 <div key={i} className="rounded-lg border border-slate-200 px-4 py-3 bg-gradient-to-br from-slate-50 to-white">
                   <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-slate-500">{m.label}</p>
@@ -296,18 +298,18 @@ export default function DashboardPage() {
         </div>
 
         {/* CORE Rings × 2 */}
-        <div className="col-span-5 relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-xl border border-slate-200 p-5 flex flex-col">
-          <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-blue-200/30 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-44 h-44 rounded-full bg-emerald-200/25 blur-3xl pointer-events-none" />
+        <div className="col-span-5 relative overflow-hidden bg-gradient-to-br from-sky-50 via-white to-violet-50 rounded-xl border border-slate-200 p-5 flex flex-col">
+          <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-sky-300/30 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-44 h-44 rounded-full bg-emerald-300/25 blur-3xl pointer-events-none" />
 
           <div className="relative flex items-center justify-around gap-3 flex-1">
             {/* Core 1: System */}
             <div className="flex flex-col items-center">
               <div className="relative">
-                <div className="absolute inset-0 -m-3 rounded-full border border-blue-300/40 animate-[spin_20s_linear_infinite]"
-                  style={{ borderTopColor: 'rgba(59,130,246,0.7)' }} />
-                <div className="absolute inset-0 -m-6 rounded-full border border-blue-200/30" />
-                <Ring value={100} size={116} stroke={5} color="#1e3a8a" label="Sistem" />
+                <div className="absolute inset-0 -m-3 rounded-full border border-sky-300/50 animate-[spin_20s_linear_infinite]"
+                  style={{ borderTopColor: 'rgba(59,130,246,0.85)' }} />
+                <div className="absolute inset-0 -m-6 rounded-full border border-sky-200/40" />
+                <Ring value={100} size={116} stroke={5} color="#3b82f6" label="Sistem" />
               </div>
               <div className="relative mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-emerald-200">
                 <span className="relative flex w-1.5 h-1.5">
@@ -321,10 +323,10 @@ export default function DashboardPage() {
             {/* Core 2: Rule Engine */}
             <div className="flex flex-col items-center">
               <div className="relative">
-                <div className="absolute inset-0 -m-3 rounded-full border border-purple-300/40 animate-[spin_24s_linear_infinite_reverse]"
-                  style={{ borderTopColor: 'rgba(147,51,234,0.7)' }} />
-                <div className="absolute inset-0 -m-6 rounded-full border border-purple-200/30" />
-                <Ring value={100} size={116} stroke={5} color="#7c3aed" label="Kural Motoru" />
+                <div className="absolute inset-0 -m-3 rounded-full border border-violet-300/50 animate-[spin_24s_linear_infinite_reverse]"
+                  style={{ borderTopColor: 'rgba(139,92,246,0.85)' }} />
+                <div className="absolute inset-0 -m-6 rounded-full border border-violet-200/40" />
+                <Ring value={100} size={116} stroke={5} color="#8b5cf6" label="Kural Motoru" />
               </div>
               <div className="relative mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-emerald-200">
                 <span className="relative flex w-1.5 h-1.5">
@@ -436,7 +438,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-4 divide-x divide-slate-100">
           {TEMSA_FLEET.map((bus, i) => (
             <article key={i} className="group">
-              <div className="relative h-40 bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center p-4 overflow-hidden">
+              <div className="relative h-40 bg-gradient-to-br from-sky-50 via-white to-violet-50/50 flex items-center justify-center p-4 overflow-hidden">
                 <img src={bus.src} alt={bus.name} className="relative h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" />
               </div>
               <div className="px-5 py-4 border-t border-slate-100">
@@ -461,7 +463,7 @@ export default function DashboardPage() {
           </div>
           <ul className="grid grid-cols-2 gap-3">
             {recentTasks.slice(0, 6).map(t => {
-              const colorMap: any = { open: '#1e3a8a', in_progress: '#b45309', completed: '#0f766e', rejected: '#9f1239' };
+              const colorMap: any = { open: '#3b82f6', in_progress: '#f59e0b', completed: '#10b981', rejected: '#f43f5e' };
               const labelMap: any = { open: 'Açık', in_progress: 'Devam', completed: 'Tamam', rejected: 'Red' };
               const c = colorMap[t.status] || '#64748b';
               const lbl = labelMap[t.status] || '—';
