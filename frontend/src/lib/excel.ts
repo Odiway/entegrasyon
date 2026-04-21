@@ -458,12 +458,6 @@ const KALEM_FILLS: Record<string, string> = {
   C: 'FFFFEBEE', // light red
 };
 
-/** Sipariş durumu colours (cell) */
-const SIPARIS_FILL: Record<string, string> = {
-  'SİPARİŞ EDİLECEK': 'FFE8F5E9',
-  'SİPARİŞ EDİLMEYECEK': 'FFFCE4EC',
-};
-
 const BOM_HEADERS = [
   '#', 'Level', 'Uzmanlık', 'Montaj', 'Title',
   'MalzemeNo', 'MalzemeNo SAP',
@@ -566,17 +560,10 @@ export async function exportProjectExcel(
 
     const lvl: number = item.level ?? 0;
     const kalemTipi: string = (item.kalemTipi || '').toUpperCase();
-    const siparisVal: string = (item.siparis || '').toUpperCase().trim();
 
-    // Base fill: level or kalemTipi
-    let baseBg = KALEM_FILLS[kalemTipi] || 'FFFFFFFF';
-    let textCol = 'FF1F2937';
-
-    // Level 0-2 override with stronger colours
-    if (lvl <= 2) {
-      baseBg = LEVEL_FILLS[lvl] || baseBg;
-      textCol = 'FFFFFFFF';
-    }
+    // Excel export row coloring is level-based only.
+    const baseBg = LEVEL_FILLS[lvl] || 'FFFFFFFF';
+    const textCol = LEVEL_TEXT[lvl] || 'FF1F2937';
 
     const cells = [
       item.rowNumber, lvl, item.uzmanlik || '', item.montaj || '',
@@ -604,18 +591,6 @@ export async function exportProjectExcel(
     // Level indent in Title cell
     const titleCell = r.getCell(5);
     titleCell.alignment = { indent: Math.max(0, lvl - 1), vertical: 'middle', horizontal: 'left' };
-
-    // Sipariş colouring
-    const sipCell = r.getCell(9);
-    const sipBg = SIPARIS_FILL[siparisVal];
-    if (sipBg && lvl > 2) {
-      sipCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sipBg } };
-      sipCell.font = {
-        bold: true,
-        color: { argb: siparisVal.includes('EDİLECEK') && !siparisVal.includes('MEY') ? 'FF1A6B3A' : 'FF8B0000' },
-        size: 10,
-      };
-    }
 
     // Modified status highlight
     if (item.status === 'modified') {

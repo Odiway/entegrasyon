@@ -43,6 +43,16 @@ const UZ_CLR: Record<string, { bg: string; border: string; text: string; dot: st
   'ELEKTRİK': { bg: 'bg-yellow-500/15', border: 'border-yellow-400/25', text: 'text-yellow-200', dot: 'bg-yellow-400' },
 };
 
+const LEVEL_EXPORT_COLORS: Record<number, string> = {
+  0: '#2D3748',
+  1: '#1E3A5F',
+  2: '#1B4F72',
+  3: '#196F3D',
+  4: '#6B2D8B',
+};
+
+const CHART_BARS = ['#2E86C1', '#16A34A', '#7C3AED', '#EA580C', '#0891B2', '#DC2626', '#0EA5E9'];
+
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -428,6 +438,58 @@ export default function ProjectDetailPage() {
   const progress = totalRows > 0 ? Math.round((resolved / totalRows) * 100) : 0;
   const totalPages = Math.max(1, Math.ceil(total / 200));
 
+  const levelDistribution = useMemo(() => (stats?.byLevel || []).map((r: any) => ({
+    label: `Level ${r.level}`,
+    value: r.count,
+    color: LEVEL_EXPORT_COLORS[r.level] || '#334155',
+  })), [stats]);
+
+  const kalemDistribution = useMemo(() => (stats?.byKalemTipi || []).map((r: any, i: number) => ({
+    label: r.kalemTipi,
+    value: r.count,
+    color: CHART_BARS[i % CHART_BARS.length],
+  })), [stats]);
+
+  const levelFStats = useMemo(() => {
+    const out: Record<number, { total: number; f: number; siparisEvet: number; siparisHayir: number }> = {};
+    for (const r of (stats?.byLevelKalem || [])) {
+      const lv = Number(r.level);
+      if (!out[lv]) out[lv] = { total: 0, f: 0, siparisEvet: 0, siparisHayir: 0 };
+      out[lv].total += r.count;
+      if ((r.kalemTipi || '').toUpperCase() === 'F') out[lv].f += r.count;
+    }
+    for (const r of (stats?.byLevelSiparis || [])) {
+      const lv = Number(r.level);
+      if (!out[lv]) out[lv] = { total: 0, f: 0, siparisEvet: 0, siparisHayir: 0 };
+      const sip = (r.siparis || '').toUpperCase();
+      if (sip === 'EVET') out[lv].siparisEvet += r.count;
+      if (sip === 'HAYIR') out[lv].siparisHayir += r.count;
+    }
+    return Object.entries(out)
+      .map(([level, v]) => ({ level: Number(level), ...v }))
+      .sort((a, b) => a.level - b.level);
+  }, [stats]);
+
+  const uzmanlikDetailedRows = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const r of (stats?.byUzmanlikLevelKalem || [])) {
+      const uz = r.uzmanlik || 'Belirsiz';
+      if (!map[uz]) map[uz] = { uzmanlik: uz, l2f: 0, l3f: 0, l2SipEvet: 0, l2SipHayir: 0, total: 0 };
+      map[uz].total += r.count;
+      const kalem = (r.kalemTipi || '').toUpperCase();
+      if (kalem === 'F' && r.level === 2) map[uz].l2f += r.count;
+      if (kalem === 'F' && r.level === 3) map[uz].l3f += r.count;
+    }
+    for (const r of (stats?.byUzmanlikLevelSiparis || [])) {
+      const uz = r.uzmanlik || 'Belirsiz';
+      if (!map[uz]) map[uz] = { uzmanlik: uz, l2f: 0, l3f: 0, l2SipEvet: 0, l2SipHayir: 0, total: 0 };
+      const sip = (r.siparis || '').toUpperCase();
+      if (r.level === 2 && sip === 'EVET') map[uz].l2SipEvet += r.count;
+      if (r.level === 2 && sip === 'HAYIR') map[uz].l2SipHayir += r.count;
+    }
+    return Object.values(map).sort((a: any, b: any) => b.total - a.total);
+  }, [stats]);
+
   return (
     <div className="flex h-[calc(100vh)] overflow-hidden">
       {/* LEFT NAV PANEL */}
@@ -565,6 +627,84 @@ export default function ProjectDetailPage() {
               </div>
               <div className="h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-400'}`} style={{ width: progress + '%' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* GRAFIK + TABLOLU ISTATISTIK PANELI */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+              <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider mb-3">Level Dağılımı (Excel Renk Mantığı)</p>
+              <HorizontalBarChart rows={levelDistribution} />
+            </div>
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+              <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider mb-3">Kalem Tipi Dağılımı</p>
+              <HorizontalBarChart rows={kalemDistribution} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 overflow-hidden">
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Level Bazlı F ve Sipariş Özeti</p>
+                <span className="text-[10px] text-slate-500">L2/L3 odaklı operasyon</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px]">
+                  <thead>
+                    <tr className="text-slate-400 border-b border-white/[0.08]">
+                      <th className="text-left py-2 px-2">Level</th>
+                      <th className="text-right py-2 px-2">Toplam</th>
+                      <th className="text-right py-2 px-2">F Kalem</th>
+                      <th className="text-right py-2 px-2">Sipariş EVET</th>
+                      <th className="text-right py-2 px-2">Sipariş HAYIR</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {levelFStats.map((r: any) => (
+                      <tr key={r.level} className="border-b border-white/[0.05] hover:bg-white/[0.03]">
+                        <td className="py-2 px-2 font-semibold" style={{ color: LEVEL_EXPORT_COLORS[r.level] || '#cbd5e1' }}>Level {r.level}</td>
+                        <td className="py-2 px-2 text-right text-white font-mono">{r.total.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-blue-200 font-mono">{r.f.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-emerald-200 font-mono">{r.siparisEvet.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-red-200 font-mono">{r.siparisHayir.toLocaleString('tr-TR')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 overflow-hidden">
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Uzmanlık Bazlı Kritik Göstergeler</p>
+                <span className="text-[10px] text-slate-500">L2-F, L3-F, L2 Sipariş</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px]">
+                  <thead>
+                    <tr className="text-slate-400 border-b border-white/[0.08]">
+                      <th className="text-left py-2 px-2">Uzmanlık</th>
+                      <th className="text-right py-2 px-2">L2 F</th>
+                      <th className="text-right py-2 px-2">L3 F</th>
+                      <th className="text-right py-2 px-2">L2 EVET</th>
+                      <th className="text-right py-2 px-2">L2 HAYIR</th>
+                      <th className="text-right py-2 px-2">Toplam</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {uzmanlikDetailedRows.map((r: any) => (
+                      <tr key={r.uzmanlik} className="border-b border-white/[0.05] hover:bg-white/[0.03]">
+                        <td className="py-2 px-2 text-slate-100 font-semibold">{r.uzmanlik}</td>
+                        <td className="py-2 px-2 text-right text-blue-200 font-mono">{r.l2f.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-indigo-200 font-mono">{r.l3f.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-emerald-200 font-mono">{r.l2SipEvet.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-red-200 font-mono">{r.l2SipHayir.toLocaleString('tr-TR')}</td>
+                        <td className="py-2 px-2 text-right text-white font-mono font-semibold">{r.total.toLocaleString('tr-TR')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -1275,6 +1415,31 @@ function StatCard({ label, value, color, icon }: { label: string; value: number;
         <p className="text-[11px] text-slate-300 font-semibold uppercase tracking-wide">{label}</p>
       </div>
       <p className={`text-2xl font-bold ${color}`}>{(value || 0).toLocaleString('tr-TR')}</p>
+    </div>
+  );
+}
+
+function HorizontalBarChart({ rows }: { rows: { label: string; value: number; color: string }[] }) {
+  const max = rows.reduce((m, r) => Math.max(m, r.value), 0);
+  if (!rows.length) {
+    return <p className="text-xs text-slate-500">Grafik verisi bulunamadı</p>;
+  }
+  return (
+    <div className="space-y-2">
+      {rows.map((r) => {
+        const pct = max > 0 ? Math.max(3, Math.round((r.value / max) * 100)) : 0;
+        return (
+          <div key={r.label}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-slate-300">{r.label}</span>
+              <span className="text-[11px] text-white font-mono">{r.value.toLocaleString('tr-TR')}</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-white/[0.07] overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: r.color }} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
