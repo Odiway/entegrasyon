@@ -103,6 +103,7 @@ export default function ProjectDetailPage() {
 
   const [editRequests, setEditRequests] = useState<any[]>([]);
   const [showEditRequests, setShowEditRequests] = useState(false);
+  const [showStatsCenter, setShowStatsCenter] = useState(false);
 
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
@@ -601,6 +602,11 @@ export default function ProjectDetailPage() {
                   Ticket Aç ({selectedItems.size})
                 </button>
               )}
+              <button onClick={() => setShowStatsCenter(true)}
+                className="px-4 py-2.5 rounded-xl bg-sky-500/12 border border-sky-400/25 text-sky-300 hover:bg-sky-500/20 hover:border-sky-400/40 text-sm font-medium transition-all flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11h2V7H2v4zm4 0h2V3H6v8zm4 0h2V5h-2v6z" fill="currentColor"/></svg>
+                İstatistik Merkezi
+              </button>
               <button onClick={handleExport} disabled={exporting}
                 className="px-4 py-2.5 rounded-xl bg-emerald-500/12 border border-emerald-400/25 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-400/40 text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-40">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3 6l4 4 4-4M2 12h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -613,6 +619,29 @@ export default function ProjectDetailPage() {
               )}
             </div>
           </div>
+
+          <div className="mb-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] text-slate-300 font-semibold uppercase tracking-wider">İstatistik Merkezi</p>
+              <p className="text-xs text-slate-400">Detaylı chart ve tablolar artık ayrı ekranda görüntülenir.</p>
+            </div>
+            <button onClick={() => setShowStatsCenter(true)} className="px-4 py-2 rounded-xl bg-sky-500/20 border border-sky-400/30 text-sky-200 hover:bg-sky-500/30 transition-all text-sm font-medium">
+              Görüntüle
+            </button>
+          </div>
+
+          {showStatsCenter && (
+            <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-md flex items-start justify-center p-4" onClick={() => setShowStatsCenter(false)}>
+              <div className="w-full max-w-7xl max-h-[92vh] overflow-y-auto rounded-3xl border border-white/[0.12] bg-[#0d1117]/95 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="sticky top-0 z-10 -mx-5 -mt-5 mb-4 px-5 py-3 bg-[#0d1117]/95 border-b border-white/[0.08] flex items-center justify-between backdrop-blur">
+                  <div>
+                    <p className="text-sm font-bold text-white">İstatistik Merkezi</p>
+                    <p className="text-[11px] text-slate-400">Proje bazlı detaylı grafikler ve operasyon kırılımları</p>
+                  </div>
+                  <button onClick={() => setShowStatsCenter(false)} className="px-3 py-1.5 rounded-lg text-xs border border-white/[0.15] text-slate-300 hover:bg-white/[0.07]">
+                    Kapat
+                  </button>
+                </div>
 
           {/* Stat Cards */}
           <div className="grid grid-cols-5 gap-3 mb-4">
@@ -780,6 +809,9 @@ export default function ProjectDetailPage() {
               </div>
             )}
           </div>
+              </div>
+            </div>
+          )}
 
           {/* FILTER BAR */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-3 mb-4">
