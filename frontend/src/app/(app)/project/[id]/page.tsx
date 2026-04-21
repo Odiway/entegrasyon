@@ -423,15 +423,7 @@ export default function ProjectDetailPage() {
     setFilterPrototip2(''); setFilter('all'); setSearch(''); setPage(0);
   };
 
-  if (!project) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  const totalRows = stats?.total || project.totalRows || 0;
+  const totalRows = stats?.total || project?.totalRows || 0;
   const needsReview = stats?.needsReview || 0;
   const modified = stats?.modified || 0;
   const resolved = totalRows - needsReview;
@@ -489,6 +481,14 @@ export default function ProjectDetailPage() {
     }
     return Object.values(map).sort((a: any, b: any) => b.total - a.total);
   }, [stats]);
+
+  if (!project) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh)] overflow-hidden">
