@@ -98,7 +98,8 @@ select option {
 
 /* ===== Button Styles ===== */
 .btn-primary {
-  @apply px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all duration-300;
+  @apply px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300;
+  color: #ffffff;
   background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
@@ -280,8 +281,8 @@ select option {
 [class*="bg-pink-500/6"].text-white, [class*="bg-pink-500/7"].text-white, [class*="bg-pink-500/8"].text-white, [class*="bg-pink-500/9"].text-white,
 [class*="bg-slate-500/6"].text-white, [class*="bg-slate-500/7"].text-white, [class*="bg-slate-500/8"].text-white, [class*="bg-slate-500/9"].text-white,
 [class*="bg-slate-600/6"].text-white, [class*="bg-slate-600/7"].text-white, [class*="bg-slate-600/8"].text-white, [class*="bg-slate-600/9"].text-white,
-[class*="bg-slate-700/"].text-white, [class*="bg-slate-800/"].text-white, [class*="bg-slate-900/"].text-white,
-.btn-primary.text-white, .btn-primary { color: #ffffff !important; }
+[class*="bg-slate-700/"].text-white, [class*="bg-slate-800/"].text-white, [class*="bg-slate-900/"].text-white { color: #ffffff !important; }
+button.btn-primary, a.btn-primary, .btn-primary { color: #ffffff !important; }
 
 /* hover:text-white on transparent items would also wash out -> make hover go dark blue */
 .hover\:text-white:hover { color: #0f172a !important; }
