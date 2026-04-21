@@ -418,80 +418,545 @@ export function parseBomRows(
   return rows;
 }
 
+// ────────────────────────────────────────────────────────────
+// EXPORT HELPERS & PALETTES
+// ────────────────────────────────────────────────────────────
+
+/** Level-based background ARGB colours (BOM sheet) */
 const LEVEL_FILLS: Record<number, string> = {
-  0: 'FFD9D9D9', 1: 'FFBDD7EE', 2: 'FF9BC2E6', 3: 'FFC6EFCE',
+  0: 'FF2D3748', // very dark – assembly root
+  1: 'FF1E3A5F', // dark blue
+  2: 'FF1B4F72', // medium blue
+  3: 'FF196F3D', // dark green
+  4: 'FF6B2D8B', // purple
 };
 
-const HEADERS = [
-  '#', 'Level', 'Uzmanlık', 'Montaj', 'Title', 'MalzemeNo', 'MalzemeNo SAP',
-  'Kalem Tipi', 'Sipariş', 'Dağıtım', 'Birim', 'Quantity', 'ToplamMiktar',
-  'Durum', 'Son Güncelleme', 'Güncelleyen',
+/** Level-based text colours (BOM sheet) */
+const LEVEL_TEXT: Record<number, string> = {
+  0: 'FFFFFFFF',
+  1: 'FFFFFFFF',
+  2: 'FFFFFFFF',
+  3: 'FFFFFFFF',
+  4: 'FFFFFFFF',
+};
+
+/** Rotating palette for uzmanlık groups (stat sheet) */
+const UZMANLIK_PALETTE = [
+  'FF2E86C1', 'FF1E8449', 'FF884EA0', 'FF117A65',
+  'FFB7950B', 'FF922B21', 'FF1A5276', 'FF4D5656',
+  'FF76448A', 'FF1F618D', 'FF148F77', 'FF196F3D',
+  'FF935116', 'FF7D6608', 'FF6E2F1A', 'FF1A237E',
 ];
 
+/** Kalem tipi accent colours */
+const KALEM_FILLS: Record<string, string> = {
+  F: 'FFDFF0FF', // light blue  – montaj
+  H: 'FFFFF3CD', // light yellow – half
+  Y: 'FFE8F5E9', // light green  – yedek
+  E: 'FFFCE4EC', // light pink   – electronic
+  X: 'FFF3E5F5', // light purple
+  C: 'FFFFEBEE', // light red
+};
+
+/** Sipariş durumu colours (cell) */
+const SIPARIS_FILL: Record<string, string> = {
+  'SİPARİŞ EDİLECEK': 'FFE8F5E9',
+  'SİPARİŞ EDİLMEYECEK': 'FFFCE4EC',
+};
+
+const BOM_HEADERS = [
+  '#', 'Level', 'Uzmanlık', 'Montaj', 'Title',
+  'MalzemeNo', 'MalzemeNo SAP',
+  'Kalem Tipi', 'Sipariş', 'Dağıtım', 'Birim',
+  'Qty', 'Toplam Miktar',
+  'Durum', 'Son Güncelleme',
+];
+
+function autoWidth(ws: ExcelJS.Worksheet, minW = 10, maxW = 50) {
+  ws.columns.forEach((col) => {
+    const lengths = ((col.values as any[]) || [])
+      .filter((v) => v != null)
+      .map((v) => String(v).length);
+    col.width = lengths.length > 0 ? Math.min(maxW, Math.max(minW, ...lengths)) : minW;
+  });
+}
+
+function sectionTitle(ws: ExcelJS.Worksheet, text: string, cols: number, color = 'FF1F2937') {
+  const rowIdx = ws.rowCount + 2;
+  ws.mergeCells(rowIdx, 1, rowIdx, cols);
+  const r = ws.getRow(rowIdx);
+  r.getCell(1).value = text;
+  r.getCell(1).font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
+  r.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
+  r.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+  r.height = 22;
+  return rowIdx + 1; // next free row
+}
+
+function tableHeader(ws: ExcelJS.Worksheet, headers: string[], startRow: number, color = 'FF2C3E50') {
+  const r = ws.getRow(startRow);
+  headers.forEach((h, i) => {
+    const c = r.getCell(i + 1);
+    c.value = h;
+    c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
+    c.alignment = { horizontal: 'center', vertical: 'middle' };
+    c.border = {
+      top: { style: 'thin', color: { argb: 'FF000000' } },
+      bottom: { style: 'thin', color: { argb: 'FF000000' } },
+      left: { style: 'thin', color: { argb: 'FF000000' } },
+      right: { style: 'thin', color: { argb: 'FF000000' } },
+    };
+  });
+  ws.getRow(startRow).height = 18;
+}
+
+function dataCell(ws: ExcelJS.Worksheet, rowIdx: number, colIdx: number, value: any, opts?: {
+  bg?: string; textColor?: string; bold?: boolean; align?: ExcelJS.Alignment['horizontal'];
+}) {
+  const c = ws.getRow(rowIdx).getCell(colIdx);
+  c.value = value;
+  if (opts?.bg) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: opts.bg } };
+  c.font = { bold: opts?.bold ?? false, color: { argb: opts?.textColor ?? 'FF1F2937' }, size: 10 };
+  c.alignment = { horizontal: opts?.align ?? 'center', vertical: 'middle' };
+  c.border = {
+    top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+    bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+    left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+    right: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+  };
+  return c;
+}
+
+// ────────────────────────────────────────────────────────────
+// MAIN EXPORT FUNCTION
+// ────────────────────────────────────────────────────────────
 export async function exportProjectExcel(
   projectName: string,
   items: any[],
   changeLogs?: Map<number, any[]>,
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('BOM');
+  wb.creator = 'TEMSA PLM Entegrasyon';
+  wb.created = new Date();
+
+  // ── 1. BOM SHEET ─────────────────────────────────────────
+  const ws = wb.addWorksheet('BOM', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+  // Project name banner
+  ws.mergeCells('A1:O1');
+  const banner = ws.getRow(1);
+  banner.getCell(1).value = projectName;
+  banner.getCell(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+  banner.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D1B2A' } };
+  banner.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+  banner.height = 28;
 
   // Header row
-  ws.addRow(HEADERS);
-  const hRow = ws.getRow(1);
-  hRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-  hRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F2937' } };
-  hRow.alignment = { horizontal: 'center' };
+  const hRowIdx = 2;
+  tableHeader(ws, BOM_HEADERS, hRowIdx, 'FF1A252F');
+  ws.getRow(hRowIdx).height = 20;
 
+  // Freeze header
+  ws.views = [{ state: 'frozen', ySplit: 2 }];
+
+  let dataRow = 3;
   for (const item of items) {
-    const row = ws.addRow([
-      item.rowNumber, item.level, item.uzmanlik || '', item.montaj || '',
-      item.title, item.malzemeNo, item.malzemeNoSap || '',
-      item.kalemTipi || '', item.siparis || '', item.dagitim || '',
-      item.birim || '', item.quantity, item.toplamMiktar || '',
-      item.status || 'active',
-      item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('tr-TR') : '',
-      '', // updatedBy name filled by caller
-    ]);
+    const r = ws.getRow(dataRow);
 
-    // Level-based coloring
-    const fill = LEVEL_FILLS[item.level];
-    if (fill) {
-      row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } };
+    const lvl: number = item.level ?? 0;
+    const kalemTipi: string = (item.kalemTipi || '').toUpperCase();
+    const siparisVal: string = (item.siparis || '').toUpperCase().trim();
+
+    // Base fill: level or kalemTipi
+    let baseBg = KALEM_FILLS[kalemTipi] || 'FFFFFFFF';
+    let textCol = 'FF1F2937';
+
+    // Level 0-2 override with stronger colours
+    if (lvl <= 2) {
+      baseBg = LEVEL_FILLS[lvl] || baseBg;
+      textCol = 'FFFFFFFF';
     }
 
-    // Highlight modified items
-    if (item.status === 'modified' || item.updatedAt) {
-      row.getCell(14).font = { bold: true, color: { argb: 'FF059669' } };
-      row.getCell(15).font = { bold: true, color: { argb: 'FF2563EB' } };
+    const cells = [
+      item.rowNumber, lvl, item.uzmanlik || '', item.montaj || '',
+      item.title, item.malzemeNo || '', item.malzemeNoSap || '',
+      kalemTipi, item.siparis || '', item.dagitim || '',
+      item.birim || '',
+      typeof item.quantity === 'number' ? item.quantity : 1,
+      item.toplamMiktar != null ? item.toplamMiktar : '',
+      item.status || 'active',
+      item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('tr-TR') : '',
+    ];
+
+    cells.forEach((v, i) => {
+      const c = r.getCell(i + 1);
+      c.value = v;
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseBg } };
+      c.font = { color: { argb: textCol }, bold: lvl <= 1, size: 10 };
+      c.border = {
+        bottom: { style: 'hair', color: { argb: 'FFB0B0B0' } },
+        right: { style: 'hair', color: { argb: 'FFB0B0B0' } },
+      };
+      c.alignment = { vertical: 'middle', horizontal: i <= 1 ? 'center' : 'left' };
+    });
+
+    // Level indent in Title cell
+    const titleCell = r.getCell(5);
+    titleCell.alignment = { indent: Math.max(0, lvl - 1), vertical: 'middle', horizontal: 'left' };
+
+    // Sipariş colouring
+    const sipCell = r.getCell(9);
+    const sipBg = SIPARIS_FILL[siparisVal];
+    if (sipBg && lvl > 2) {
+      sipCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sipBg } };
+      sipCell.font = {
+        bold: true,
+        color: { argb: siparisVal.includes('EDİLECEK') && !siparisVal.includes('MEY') ? 'FF1A6B3A' : 'FF8B0000' },
+        size: 10,
+      };
+    }
+
+    // Modified status highlight
+    if (item.status === 'modified') {
+      r.getCell(14).font = { bold: true, color: { argb: 'FF059669' }, size: 10 };
+    } else if (item.status === 'flagged') {
+      r.getCell(14).font = { bold: true, color: { argb: 'FFDC2626' }, size: 10 };
+    }
+
+    r.height = 16;
+    dataRow++;
+  }
+
+  autoWidth(ws, 8, 55);
+  // Fixed widths for known columns
+  ws.getColumn(1).width = 6;  // #
+  ws.getColumn(2).width = 7;  // Level
+  ws.getColumn(8).width = 11; // Kalem Tipi
+  ws.getColumn(9).width = 22; // Sipariş
+  ws.getColumn(11).width = 8; // Birim
+  ws.getColumn(12).width = 8; // Qty
+  ws.getColumn(13).width = 14;// Toplam Miktar
+
+  // ── 2. İSTATİSTİKLER SHEET ───────────────────────────────
+  const ss = wb.addWorksheet('İstatistikler', { views: [{ showGridLines: false }] });
+
+  // Compute all stats
+  const totalItems = items.length;
+  const levelCounts: Record<number, number> = {};
+  const statusCounts: Record<string, number> = { active: 0, modified: 0, flagged: 0 };
+  const kalemTipiByLevel: Record<string, Record<string, number>> = {}; // level → kalemTipi → count
+  const siparisStats: Record<number, { edilecek: number; edilmeyecek: number; bos: number }> = {};
+  const uzmanlikStats: Record<string, {
+    total: number; byLevel: Record<number, number>;
+    edilecek: number; edilmeyecek: number;
+    byKalemTipi: Record<string, number>;
+  }> = {};
+  const montajStats: Record<string, { total: number; edilecek: number; edilmeyecek: number }> = {};
+  let needsReviewCount = 0;
+
+  for (const item of items) {
+    const lvl: number = item.level ?? 0;
+    const kt = (item.kalemTipi || '').toUpperCase() || 'Boş';
+    const sip = (item.siparis || '').toUpperCase().trim();
+    const uzm = item.uzmanlik || 'Belirsiz';
+    const montaj = item.montaj || '';
+    const status = item.status || 'active';
+
+    levelCounts[lvl] = (levelCounts[lvl] || 0) + 1;
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+    if (item.needsReview) needsReviewCount++;
+
+    // Kalem tipi × level
+    const lvlKey = String(lvl);
+    if (!kalemTipiByLevel[lvlKey]) kalemTipiByLevel[lvlKey] = {};
+    kalemTipiByLevel[lvlKey][kt] = (kalemTipiByLevel[lvlKey][kt] || 0) + 1;
+
+    // Sipariş stats per level (only for items that have sipariş field)
+    if (!siparisStats[lvl]) siparisStats[lvl] = { edilecek: 0, edilmeyecek: 0, bos: 0 };
+    if (sip.includes('EDİLECEK') && !sip.includes('MEY')) siparisStats[lvl].edilecek++;
+    else if (sip.includes('EDİLMEYECEK')) siparisStats[lvl].edilmeyecek++;
+    else siparisStats[lvl].bos++;
+
+    // Uzmanlık stats
+    if (!uzmanlikStats[uzm]) {
+      uzmanlikStats[uzm] = { total: 0, byLevel: {}, edilecek: 0, edilmeyecek: 0, byKalemTipi: {} };
+    }
+    uzmanlikStats[uzm].total++;
+    uzmanlikStats[uzm].byLevel[lvl] = (uzmanlikStats[uzm].byLevel[lvl] || 0) + 1;
+    if (sip.includes('EDİLECEK') && !sip.includes('MEY')) uzmanlikStats[uzm].edilecek++;
+    else if (sip.includes('EDİLMEYECEK')) uzmanlikStats[uzm].edilmeyecek++;
+    uzmanlikStats[uzm].byKalemTipi[kt] = (uzmanlikStats[uzm].byKalemTipi[kt] || 0) + 1;
+
+    // Montaj (level 1-2 items that have a montaj code)
+    if (montaj && lvl <= 2) {
+      if (!montajStats[montaj]) montajStats[montaj] = { total: 0, edilecek: 0, edilmeyecek: 0 };
+      montajStats[montaj].total++;
     }
   }
 
-  // Auto-width columns
-  ws.columns.forEach((col) => {
-    const lengths = (col.values as any[] || [])
-      .filter((v) => v != null)
-      .map((v) => String(v).length);
-    col.width = lengths.length > 0 ? Math.max(12, ...lengths) : 12;
+  // Also count montaj children sipariş
+  for (const item of items) {
+    const montaj = item.montaj || '';
+    const sip = (item.siparis || '').toUpperCase().trim();
+    if (montaj && montajStats[montaj]) {
+      if (sip.includes('EDİLECEK') && !sip.includes('MEY')) montajStats[montaj].edilecek++;
+      else if (sip.includes('EDİLMEYECEK')) montajStats[montaj].edilmeyecek++;
+    }
+  }
+
+  const allLevels = [...new Set(items.map(i => i.level ?? 0))].sort((a, b) => a - b);
+  const allKalemTipis = [...new Set(items.map(i => (i.kalemTipi || '').toUpperCase() || 'Boş'))].sort();
+  const uzmanlikList = Object.entries(uzmanlikStats).sort((a, b) => b[1].total - a[1].total);
+  const montajList = Object.entries(montajStats).sort((a, b) => b[1].total - a[1].total);
+
+  // ── SECTION 1: PROJE BAŞLIĞI ──────────────────────────────
+  ss.mergeCells('A1:L1');
+  const ssBanner = ss.getRow(1);
+  ssBanner.getCell(1).value = `📊 ${projectName} — Proje İstatistikleri`;
+  ssBanner.getCell(1).font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+  ssBanner.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D1B2A' } };
+  ssBanner.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+  ssBanner.height = 36;
+
+  ss.mergeCells('A2:L2');
+  const dateRow = ss.getRow(2);
+  dateRow.getCell(1).value = `Oluşturulma: ${new Date().toLocaleString('tr-TR')}  |  Toplam Kalem: ${totalItems}`;
+  dateRow.getCell(1).font = { size: 10, color: { argb: 'FF555555' }, italic: true };
+  dateRow.getCell(1).alignment = { horizontal: 'center' };
+  dateRow.height = 16;
+
+  let nextRow = 4;
+
+  // ── SECTION 2: GENEL ÖZET ─────────────────────────────────
+  nextRow = sectionTitle(ss, '  GENEL ÖZET', 6, 'FF1A252F');
+
+  const summaryHeaders = ['Metrik', 'Değer', '', 'Metrik', 'Değer', ''];
+  tableHeader(ss, summaryHeaders, nextRow, 'FF2C3E50');
+  nextRow++;
+
+  const summaryLeft: [string, any][] = [
+    ['Toplam Kalem', totalItems],
+    ['Aktif Kalem', statusCounts['active'] || 0],
+    ['Güncellenmiş Kalem', statusCounts['modified'] || 0],
+    ['İşaretli (Flagged)', statusCounts['flagged'] || 0],
+    ['İnceleme Bekleyen', needsReviewCount],
+  ];
+
+  const levelKeys = Object.keys(levelCounts).map(Number).sort((a, b) => a - b);
+  const summaryRight: [string, any][] = levelKeys.map(l => [`Level ${l} Kalem Sayısı`, levelCounts[l]]);
+  summaryRight.push(['Farklı Uzmanlık Grubu', uzmanlikList.length]);
+  summaryRight.push(['Farklı Kalem Tipi', allKalemTipis.length]);
+
+  const summaryRows = Math.max(summaryLeft.length, summaryRight.length);
+  for (let i = 0; i < summaryRows; i++) {
+    const even = i % 2 === 0;
+    const rowBg = even ? 'FFF5F5F5' : 'FFFFFFFF';
+    if (summaryLeft[i]) {
+      dataCell(ss, nextRow, 1, summaryLeft[i][0], { bg: rowBg, align: 'left', bold: false });
+      dataCell(ss, nextRow, 2, summaryLeft[i][1], { bg: 'FFE8F5E9', bold: true, textColor: 'FF1A6B3A' });
+    }
+    if (summaryRight[i]) {
+      dataCell(ss, nextRow, 4, summaryRight[i][0], { bg: rowBg, align: 'left', bold: false });
+      dataCell(ss, nextRow, 5, summaryRight[i][1], { bg: 'FFDBEAFE', bold: true, textColor: 'FF1D4ED8' });
+    }
+    ss.getRow(nextRow).height = 17;
+    nextRow++;
+  }
+  nextRow += 2;
+
+  // ── SECTION 3: UZMANILIK BAZLI ANALİZ ─────────────────────
+  nextRow = sectionTitle(ss, '  UZMANLIK BAZLI ANALİZ', 10, 'FF1B4F72');
+
+  const uzm_cols = [
+    'Uzmanlık', 'Toplam', ...levelKeys.map(l => `L${l}`),
+    'Sipariş Edilecek', 'Sipariş Edilmeyecek', 'F (Montaj)', 'H', 'Diğer KT',
+  ];
+  tableHeader(ss, uzm_cols, nextRow, 'FF1B4F72');
+  nextRow++;
+
+  uzmanlikList.forEach(([uzm, stat], idx) => {
+    const palBg = UZMANLIK_PALETTE[idx % UZMANLIK_PALETTE.length];
+    const lightBg = 'FFF8F9FA';
+    const even = idx % 2 === 0;
+    const rowBg = even ? 'FFF0F4FF' : 'FFFFFFFF';
+
+    dataCell(ss, nextRow, 1, uzm, { bg: palBg, textColor: 'FFFFFFFF', bold: true, align: 'left' });
+    dataCell(ss, nextRow, 2, stat.total, { bg: rowBg, bold: true });
+
+    levelKeys.forEach((l, i) => {
+      dataCell(ss, nextRow, 3 + i, stat.byLevel[l] || 0, { bg: rowBg });
+    });
+
+    const colOffset = 3 + levelKeys.length;
+    dataCell(ss, nextRow, colOffset, stat.edilecek, { bg: 'FFE8F5E9', textColor: 'FF1A6B3A', bold: stat.edilecek > 0 });
+    dataCell(ss, nextRow, colOffset + 1, stat.edilmeyecek, { bg: 'FFFCE4EC', textColor: 'FF8B0000', bold: stat.edilmeyecek > 0 });
+    dataCell(ss, nextRow, colOffset + 2, stat.byKalemTipi['F'] || 0, { bg: 'FFDFF0FF', textColor: 'FF1D4ED8' });
+    dataCell(ss, nextRow, colOffset + 3, stat.byKalemTipi['H'] || 0, { bg: 'FFFFF3CD', textColor: 'FF92400E' });
+    const digerKT = stat.total - (stat.byKalemTipi['F'] || 0) - (stat.byKalemTipi['H'] || 0);
+    dataCell(ss, nextRow, colOffset + 4, digerKT, { bg: lightBg });
+
+    ss.getRow(nextRow).height = 17;
+    nextRow++;
+  });
+  nextRow += 2;
+
+  // ── SECTION 4: LEVEL × KALEM TİPİ MATRİSİ ───────────────
+  nextRow = sectionTitle(ss, '  LEVEL × KALEM TİPİ MATRİSİ', allKalemTipis.length + 3, 'FF196F3D');
+
+  const ktHeaders = ['Level', 'Toplam Level', ...allKalemTipis, 'Diğer'];
+  tableHeader(ss, ktHeaders, nextRow, 'FF196F3D');
+  nextRow++;
+
+  for (const lvl of allLevels) {
+    const lvlData = kalemTipiByLevel[String(lvl)] || {};
+    const lvlTotal = levelCounts[lvl] || 0;
+    const even = allLevels.indexOf(lvl) % 2 === 0;
+    const rowBg = even ? 'FFF0FFF4' : 'FFFFFFFF';
+
+    dataCell(ss, nextRow, 1, `Level ${lvl}`, { bg: LEVEL_FILLS[lvl] || 'FF666666', textColor: 'FFFFFFFF', bold: true, align: 'center' });
+    dataCell(ss, nextRow, 2, lvlTotal, { bg: rowBg, bold: true });
+
+    let knownSum = 0;
+    allKalemTipis.forEach((kt, i) => {
+      const cnt = lvlData[kt] || 0;
+      knownSum += cnt;
+      const ktBg = cnt > 0 ? (KALEM_FILLS[kt] || rowBg) : rowBg;
+      dataCell(ss, nextRow, 3 + i, cnt > 0 ? cnt : '–', { bg: ktBg, bold: cnt > 0 });
+    });
+
+    dataCell(ss, nextRow, 3 + allKalemTipis.length, lvlTotal - knownSum || '–', { bg: rowBg });
+    ss.getRow(nextRow).height = 17;
+    nextRow++;
+  }
+  nextRow += 2;
+
+  // ── SECTION 5: SİPARİŞ DURUMU LEVEL BAZLI ─────────────────
+  nextRow = sectionTitle(ss, '  SİPARİŞ DURUMU — LEVEL BAZLI', 6, 'FF884EA0');
+
+  tableHeader(ss, ['Level', 'Sipariş Edilecek', 'Sipariş Edilmeyecek', 'Belirtilmemiş', 'Toplam', 'Sipariş %'], nextRow, 'FF884EA0');
+  nextRow++;
+
+  for (const lvl of allLevels) {
+    const s = siparisStats[lvl] || { edilecek: 0, edilmeyecek: 0, bos: 0 };
+    const total = s.edilecek + s.edilmeyecek + s.bos;
+    const pct = total > 0 ? Math.round((s.edilecek / total) * 100) : 0;
+    const even = allLevels.indexOf(lvl) % 2 === 0;
+    const rowBg = even ? 'FFF9F0FF' : 'FFFFFFFF';
+
+    dataCell(ss, nextRow, 1, `Level ${lvl}`, { bg: LEVEL_FILLS[lvl] || 'FF666666', textColor: 'FFFFFFFF', bold: true, align: 'center' });
+    dataCell(ss, nextRow, 2, s.edilecek, { bg: s.edilecek > 0 ? 'FFE8F5E9' : rowBg, textColor: 'FF1A6B3A', bold: s.edilecek > 0 });
+    dataCell(ss, nextRow, 3, s.edilmeyecek, { bg: s.edilmeyecek > 0 ? 'FFFCE4EC' : rowBg, textColor: 'FF8B0000', bold: s.edilmeyecek > 0 });
+    dataCell(ss, nextRow, 4, s.bos || '–', { bg: rowBg, textColor: 'FF888888' });
+    dataCell(ss, nextRow, 5, total, { bg: rowBg, bold: true });
+    dataCell(ss, nextRow, 6, `%${pct}`, { bg: pct > 50 ? 'FFE8F5E9' : pct > 0 ? 'FFFFF3CD' : rowBg, bold: true, textColor: pct > 50 ? 'FF1A6B3A' : 'FF92400E' });
+
+    ss.getRow(nextRow).height = 17;
+    nextRow++;
+  }
+  nextRow += 2;
+
+  // ── SECTION 6: MONTAJ BAZLI ÖZET ─────────────────────────
+  if (montajList.length > 0) {
+    nextRow = sectionTitle(ss, '  MONTAJ BAZLI ÖZET (Level ≤ 2)', 5, 'FF117A65');
+
+    tableHeader(ss, ['Montaj No', 'Kayıtlı Alt Kalem', 'Sipariş Edilecek', 'Sipariş Edilmeyecek', 'Oran %'], nextRow, 'FF117A65');
+    nextRow++;
+
+    montajList.forEach(([montaj, stat], idx) => {
+      const total = stat.edilecek + stat.edilmeyecek;
+      const pct = total > 0 ? Math.round((stat.edilecek / total) * 100) : 0;
+      const rowBg = idx % 2 === 0 ? 'FFF0FDFA' : 'FFFFFFFF';
+
+      dataCell(ss, nextRow, 1, montaj, { bg: 'FF0E6655', textColor: 'FFFFFFFF', bold: true, align: 'left' });
+      dataCell(ss, nextRow, 2, stat.total, { bg: rowBg, bold: true });
+      dataCell(ss, nextRow, 3, stat.edilecek, { bg: stat.edilecek > 0 ? 'FFE8F5E9' : rowBg, textColor: 'FF1A6B3A' });
+      dataCell(ss, nextRow, 4, stat.edilmeyecek, { bg: stat.edilmeyecek > 0 ? 'FFFCE4EC' : rowBg, textColor: 'FF8B0000' });
+      dataCell(ss, nextRow, 5, total > 0 ? `%${pct}` : '–', { bg: rowBg, bold: true });
+
+      ss.getRow(nextRow).height = 17;
+      nextRow++;
+    });
+    nextRow += 2;
+  }
+
+  // ── SECTION 7: UZMANILIK × LEVEL DETAYİ (SİPARİŞ) ────────
+  nextRow = sectionTitle(ss, '  UZMANLIK × LEVEL DETAYLI SİPARİŞ ANALİZİ', allLevels.length * 2 + 2, 'FFB7950B');
+
+  const detailHeaders = ['Uzmanlık', ...allLevels.flatMap(l => [`L${l} Sipariş Edilecek`, `L${l} Edilmeyecek`])];
+  tableHeader(ss, detailHeaders, nextRow, 'FF9B7700');
+  nextRow++;
+
+  // Build detailed per-uzmanlik per-level sipariş stats
+  const uzLevelSip: Record<string, Record<number, { e: number; m: number }>> = {};
+  for (const item of items) {
+    const uzm = item.uzmanlik || 'Belirsiz';
+    const lvl: number = item.level ?? 0;
+    const sip = (item.siparis || '').toUpperCase().trim();
+    if (!uzLevelSip[uzm]) uzLevelSip[uzm] = {};
+    if (!uzLevelSip[uzm][lvl]) uzLevelSip[uzm][lvl] = { e: 0, m: 0 };
+    if (sip.includes('EDİLECEK') && !sip.includes('MEY')) uzLevelSip[uzm][lvl].e++;
+    else if (sip.includes('EDİLMEYECEK')) uzLevelSip[uzm][lvl].m++;
+  }
+
+  uzmanlikList.forEach(([uzm], idx) => {
+    const palBg = UZMANLIK_PALETTE[idx % UZMANLIK_PALETTE.length];
+    const rowBg = idx % 2 === 0 ? 'FFFFFBF0' : 'FFFFFFFF';
+
+    dataCell(ss, nextRow, 1, uzm, { bg: palBg, textColor: 'FFFFFFFF', bold: true, align: 'left' });
+
+    allLevels.forEach((l, i) => {
+      const stat = uzLevelSip[uzm]?.[l] || { e: 0, m: 0 };
+      dataCell(ss, nextRow, 2 + i * 2, stat.e > 0 ? stat.e : '–', { bg: stat.e > 0 ? 'FFE8F5E9' : rowBg, textColor: 'FF1A6B3A', bold: stat.e > 0 });
+      dataCell(ss, nextRow, 3 + i * 2, stat.m > 0 ? stat.m : '–', { bg: stat.m > 0 ? 'FFFCE4EC' : rowBg, textColor: 'FF8B0000', bold: stat.m > 0 });
+    });
+
+    ss.getRow(nextRow).height = 17;
+    nextRow++;
   });
 
-  // Change history sheet
-  if (changeLogs && changeLogs.size > 0) {
-    const hs = wb.addWorksheet('Değişiklik Geçmişi');
-    hs.addRow(['Satır #', 'Alan', 'Eski Değer', 'Yeni Değer', 'Değiştiren', 'Tarih']);
-    const hr = hs.getRow(1);
-    hr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    hr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } };
+  autoWidth(ss, 12, 30);
+  ss.getColumn(1).width = 24;
 
+  // ── 3. DEĞİŞİKLİK GEÇMİŞİ SHEET ─────────────────────────
+  if (changeLogs && changeLogs.size > 0) {
+    const hs = wb.addWorksheet('Değişiklik Geçmişi', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+    hs.mergeCells('A1:F1');
+    const hsBanner = hs.getRow(1);
+    hsBanner.getCell(1).value = `${projectName} — Değişiklik Geçmişi`;
+    hsBanner.getCell(1).font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
+    hsBanner.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4C1D95' } };
+    hsBanner.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    hsBanner.height = 26;
+
+    tableHeader(hs, ['Satır #', 'Alan', 'Eski Değer', 'Yeni Değer', 'Değiştiren', 'Tarih'], 2, 'FF5B21B6');
+    hs.views = [{ state: 'frozen', ySplit: 2 }];
+
+    let hsRow = 3;
     for (const [bomItemId, logs] of changeLogs) {
       for (const log of logs) {
-        hs.addRow([
+        const r = hs.getRow(hsRow);
+        const even = hsRow % 2 === 0;
+        const bg = even ? 'FFF5F3FF' : 'FFFFFFFF';
+        [
           log.bomItem?.rowNumber || bomItemId,
-          log.fieldName, log.oldValue || '', log.newValue || '',
-          log.changedBy?.fullName || '', new Date(log.changedAt).toLocaleDateString('tr-TR'),
-        ]);
+          log.fieldName,
+          log.oldValue || '',
+          log.newValue || '',
+          log.changedBy?.fullName || '',
+          new Date(log.changedAt).toLocaleDateString('tr-TR'),
+        ].forEach((v, i) => {
+          dataCell(hs, hsRow, i + 1, v, { bg, align: i === 0 ? 'center' : 'left' });
+        });
+        // Highlight old → new cells
+        r.getCell(3).font = { color: { argb: 'FF8B0000' }, size: 10, strikethrough: true };
+        r.getCell(4).font = { color: { argb: 'FF1A6B3A' }, size: 10, bold: true };
+        r.height = 16;
+        hsRow++;
       }
     }
+    autoWidth(hs, 10, 40);
   }
 
   return Buffer.from(await wb.xlsx.writeBuffer());
