@@ -241,3 +241,129 @@ select option {
 .border-white\/\[0\.1\],
 .border-white\/\[0\.12\],
 .border-white\/\[0\.15\] { border-color: rgba(30, 64, 175, 0.16) !important; }
+
+/* ============================================================ */
+/* WORLD-CLASS LIGHT THEME — UNIVERSAL READABILITY ENFORCEMENT  */
+/* ============================================================ */
+
+/* 1) text-white is invisible on light surfaces -> default to dark slate.
+      We re-enable real white only when paired with a STRONG colored background. */
+.text-white { color: #0f172a !important; }
+
+/* Re-apply true white on solid colored backgrounds (badges, buttons, toasts) */
+.bg-emerald-500.text-white, .bg-emerald-600.text-white, .bg-emerald-700.text-white,
+.bg-red-500.text-white, .bg-red-600.text-white, .bg-red-700.text-white,
+.bg-rose-500.text-white, .bg-rose-600.text-white,
+.bg-blue-500.text-white, .bg-blue-600.text-white, .bg-blue-700.text-white,
+.bg-sky-500.text-white, .bg-sky-600.text-white,
+.bg-indigo-500.text-white, .bg-indigo-600.text-white, .bg-indigo-700.text-white,
+.bg-violet-500.text-white, .bg-violet-600.text-white,
+.bg-purple-500.text-white, .bg-purple-600.text-white, .bg-purple-700.text-white,
+.bg-pink-500.text-white, .bg-pink-600.text-white,
+.bg-amber-500.text-white, .bg-amber-600.text-white,
+.bg-orange-500.text-white, .bg-orange-600.text-white,
+.bg-cyan-500.text-white, .bg-cyan-600.text-white,
+.bg-teal-500.text-white, .bg-teal-600.text-white,
+.bg-slate-500.text-white, .bg-slate-600.text-white, .bg-slate-700.text-white, .bg-slate-800.text-white, .bg-slate-900.text-white,
+.bg-zinc-700.text-white, .bg-zinc-800.text-white, .bg-zinc-900.text-white,
+.bg-gray-700.text-white, .bg-gray-800.text-white, .bg-gray-900.text-white,
+[class*="bg-emerald-500/6"].text-white, [class*="bg-emerald-500/7"].text-white, [class*="bg-emerald-500/8"].text-white, [class*="bg-emerald-500/9"].text-white,
+[class*="bg-red-500/6"].text-white, [class*="bg-red-500/7"].text-white, [class*="bg-red-500/8"].text-white, [class*="bg-red-500/9"].text-white,
+[class*="bg-blue-500/6"].text-white, [class*="bg-blue-500/7"].text-white, [class*="bg-blue-500/8"].text-white, [class*="bg-blue-500/9"].text-white,
+[class*="bg-sky-500/6"].text-white, [class*="bg-sky-500/7"].text-white, [class*="bg-sky-500/8"].text-white, [class*="bg-sky-500/9"].text-white,
+[class*="bg-indigo-500/6"].text-white, [class*="bg-indigo-500/7"].text-white, [class*="bg-indigo-500/8"].text-white, [class*="bg-indigo-500/9"].text-white,
+[class*="bg-purple-500/6"].text-white, [class*="bg-purple-500/7"].text-white, [class*="bg-purple-500/8"].text-white, [class*="bg-purple-500/9"].text-white,
+[class*="bg-violet-500/6"].text-white, [class*="bg-violet-500/7"].text-white, [class*="bg-violet-500/8"].text-white, [class*="bg-violet-500/9"].text-white,
+[class*="bg-amber-500/6"].text-white, [class*="bg-amber-500/7"].text-white, [class*="bg-amber-500/8"].text-white, [class*="bg-amber-500/9"].text-white,
+[class*="bg-orange-500/6"].text-white, [class*="bg-orange-500/7"].text-white, [class*="bg-orange-500/8"].text-white, [class*="bg-orange-500/9"].text-white,
+[class*="bg-cyan-500/6"].text-white, [class*="bg-cyan-500/7"].text-white, [class*="bg-cyan-500/8"].text-white, [class*="bg-cyan-500/9"].text-white,
+[class*="bg-pink-500/6"].text-white, [class*="bg-pink-500/7"].text-white, [class*="bg-pink-500/8"].text-white, [class*="bg-pink-500/9"].text-white,
+[class*="bg-slate-500/6"].text-white, [class*="bg-slate-500/7"].text-white, [class*="bg-slate-500/8"].text-white, [class*="bg-slate-500/9"].text-white,
+[class*="bg-slate-600/6"].text-white, [class*="bg-slate-600/7"].text-white, [class*="bg-slate-600/8"].text-white, [class*="bg-slate-600/9"].text-white,
+[class*="bg-slate-700/"].text-white, [class*="bg-slate-800/"].text-white, [class*="bg-slate-900/"].text-white,
+.btn-primary.text-white, .btn-primary { color: #ffffff !important; }
+
+/* hover:text-white on transparent items would also wash out -> make hover go dark blue */
+.hover\:text-white:hover { color: #0f172a !important; }
+/* But preserve hover white inside truly dark backgrounds (rare) */
+[class*="bg-slate-700"] .hover\:text-white:hover,
+[class*="bg-slate-800"] .hover\:text-white:hover,
+[class*="bg-slate-900"] .hover\:text-white:hover { color: #ffffff !important; }
+
+/* 2) Faint pale color utilities (50/100) -> readable dark equivalents */
+.text-slate-50, .text-slate-100 { color: #1e293b !important; }
+.text-emerald-50, .text-emerald-100 { color: #047857 !important; }
+.text-green-50, .text-green-100, .text-green-200, .text-green-300, .text-green-400 { color: #047857 !important; }
+.text-red-50, .text-red-100 { color: #b91c1c !important; }
+.text-rose-50, .text-rose-100, .text-rose-200, .text-rose-300, .text-rose-400 { color: #be123c !important; }
+.text-blue-50, .text-blue-100 { color: #1d4ed8 !important; }
+.text-sky-50, .text-sky-100, .text-sky-200, .text-sky-300, .text-sky-400 { color: #0369a1 !important; }
+.text-indigo-50, .text-indigo-100 { color: #4338ca !important; }
+.text-violet-50, .text-violet-100, .text-violet-200, .text-violet-300, .text-violet-400 { color: #6d28d9 !important; }
+.text-purple-50, .text-purple-100 { color: #7e22ce !important; }
+.text-pink-50, .text-pink-100, .text-pink-200, .text-pink-300, .text-pink-400 { color: #be185d !important; }
+.text-cyan-50, .text-cyan-100 { color: #0e7490 !important; }
+.text-teal-50, .text-teal-100, .text-teal-200, .text-teal-300, .text-teal-400 { color: #0f766e !important; }
+.text-amber-50, .text-amber-100 { color: #b45309 !important; }
+.text-orange-50, .text-orange-100 { color: #c2410c !important; }
+.text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400 { color: #a16207 !important; }
+.text-fuchsia-100, .text-fuchsia-200, .text-fuchsia-300, .text-fuchsia-400 { color: #a21caf !important; }
+.text-lime-100, .text-lime-200, .text-lime-300, .text-lime-400 { color: #4d7c0f !important; }
+
+/* 3) Opacity-suffixed text colors that render too faint */
+[class*="text-blue-400/"], [class*="text-blue-300/"], [class*="text-blue-200/"] { color: #1d4ed8 !important; opacity: 1 !important; }
+[class*="text-emerald-400/"], [class*="text-emerald-300/"] { color: #047857 !important; opacity: 1 !important; }
+[class*="text-red-400/"], [class*="text-red-300/"] { color: #b91c1c !important; opacity: 1 !important; }
+[class*="text-amber-400/"], [class*="text-amber-300/"] { color: #b45309 !important; opacity: 1 !important; }
+[class*="text-purple-400/"], [class*="text-purple-300/"] { color: #7e22ce !important; opacity: 1 !important; }
+[class*="text-cyan-400/"], [class*="text-cyan-300/"] { color: #0e7490 !important; opacity: 1 !important; }
+[class*="text-orange-400/"], [class*="text-orange-300/"] { color: #c2410c !important; opacity: 1 !important; }
+[class*="text-indigo-400/"], [class*="text-indigo-300/"] { color: #4338ca !important; opacity: 1 !important; }
+[class*="text-slate-400/"], [class*="text-slate-300/"], [class*="text-slate-500/"] { color: #334155 !important; opacity: 1 !important; }
+
+/* 4) Generic muted utilities used across pages */
+.text-slate-700, .text-slate-800, .text-slate-900 { color: #0f172a !important; }
+.placeholder-slate-400::placeholder, .placeholder-slate-500::placeholder { color: #64748b !important; opacity: 1 !important; }
+
+/* 5) Preserve light text inside elements that have a CONFIRMED dark background */
+[class*="bg-slate-700"] .text-slate-100, [class*="bg-slate-800"] .text-slate-100, [class*="bg-slate-900"] .text-slate-100,
+[class*="bg-slate-700"] .text-slate-200, [class*="bg-slate-800"] .text-slate-200, [class*="bg-slate-900"] .text-slate-200,
+[class*="bg-slate-700"] .text-slate-300, [class*="bg-slate-800"] .text-slate-300, [class*="bg-slate-900"] .text-slate-300,
+[class*="bg-slate-700"] .text-white, [class*="bg-slate-800"] .text-white, [class*="bg-slate-900"] .text-white,
+[class*="bg-zinc-800"] .text-white, [class*="bg-zinc-900"] .text-white,
+[class*="bg-gray-800"] .text-white, [class*="bg-gray-900"] .text-white { color: #ffffff !important; }
+
+/* 6) Strengthen pastel chip backgrounds for higher contrast with dark text */
+[class*="bg-emerald-500/2"] { background-color: rgba(16,185,129,0.22) !important; }
+[class*="bg-blue-500/2"] { background-color: rgba(59,130,246,0.20) !important; }
+[class*="bg-indigo-500/2"] { background-color: rgba(99,102,241,0.20) !important; }
+[class*="bg-purple-500/2"] { background-color: rgba(168,85,247,0.20) !important; }
+[class*="bg-violet-500/2"] { background-color: rgba(139,92,246,0.20) !important; }
+[class*="bg-cyan-500/2"] { background-color: rgba(6,182,212,0.22) !important; }
+[class*="bg-amber-500/2"] { background-color: rgba(245,158,11,0.22) !important; }
+[class*="bg-orange-500/2"] { background-color: rgba(249,115,22,0.22) !important; }
+[class*="bg-red-500/2"] { background-color: rgba(239,68,68,0.20) !important; }
+[class*="bg-pink-500/2"] { background-color: rgba(236,72,153,0.20) !important; }
+.bg-white\/\[0\.03\], .bg-white\/\[0\.04\], .bg-white\/\[0\.05\], .bg-white\/\[0\.06\], .bg-white\/\[0\.08\], .bg-white\/\[0\.1\] {
+  background-color: rgba(30, 64, 175, 0.06) !important;
+}
+.hover\:bg-white\/\[0\.04\]:hover, .hover\:bg-white\/\[0\.06\]:hover, .hover\:bg-white\/\[0\.08\]:hover, .hover\:bg-white\/\[0\.1\]:hover {
+  background-color: rgba(30, 64, 175, 0.10) !important;
+}
+.bg-white\/\[0\.05\] { background-color: rgba(30,64,175,0.05) !important; }
+
+/* 7) Inputs that used dark theme classes */
+input.text-slate-200, input.text-slate-100, textarea.text-slate-200, textarea.text-slate-100,
+input.text-white, textarea.text-white { color: #0f172a !important; }
+input.bg-white\/\[0\.05\], input[class*="bg-white/[0.0"], textarea.bg-white\/\[0\.05\] {
+  background-color: #ffffff !important;
+  border-color: rgba(37,99,235,0.25) !important;
+}
+
+/* 8) Make page backdrops that previously sat on dark images explicit white */
+.bg-black\/40, .bg-black\/45, .bg-black\/60, .bg-black\/70 { background-color: rgba(15, 23, 42, 0.18) !important; }
+
+/* 9) Header/title elements that were invisible on white */
+h1.text-white, h2.text-white, h3.text-white, h4.text-white { color: #0f172a !important; }
+h1, h2, h3, h4 { color: #0f172a; }
+
