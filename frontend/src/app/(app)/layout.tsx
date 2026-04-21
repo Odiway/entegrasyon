@@ -1,31 +1,18 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import Sidebar from '@/components/Sidebar';
 
-const BG_BUSES = [
-  'https://www.temsa.com/tr/images/LuckyGallery/maraton_12_dis_1.jpg',
-  'https://www.temsa.com/tr/images/LuckyGallery/temsa_avenue_electron_dis_1.jpg',
-  'https://www.temsa.com/tr/images/LuckyGallery/temsa_prestij_1.jpg',
-  'https://www.temsa.com/tr/images/LuckyGallery/temsa_id_sb_plus_dis_1.jpg',
-];
-
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [bgIndex, setBgIndex] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
     }
   }, [user, loading, router]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setBgIndex(p => (p + 1) % BG_BUSES.length), 12000);
-    return () => clearInterval(timer);
-  }, []);
 
   if (loading) {
     return (
@@ -39,24 +26,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen relative bg-gradient-to-br from-blue-50 via-white to-sky-50">
-      {/* TEMSA Bus Background Slideshow */}
+      {/* Clean base background for maximum readability */}
       <div className="fixed inset-0 z-0">
-        {BG_BUSES.map((src, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 transition-opacity duration-[3000ms] ease-in-out"
-            style={{ opacity: bgIndex === i ? 1 : 0 }}
-          >
-            <img src={src} alt="" className="w-full h-full object-cover" />
-          </div>
-        ))}
-        {/* Bright overlay for improved content readability */}
-        <div className="absolute inset-0 bg-white/88" />
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/90 via-white/70 to-sky-50/80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-transparent to-white/85" />
-        {/* Subtle cool vignette */}
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at center, transparent 62%, rgba(186, 230, 253, 0.35) 100%)'
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-sky-50" />
+        <div className="absolute inset-0 opacity-40" style={{
+          backgroundImage: 'linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px), linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
         }} />
       </div>
 
