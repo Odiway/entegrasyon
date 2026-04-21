@@ -98,23 +98,23 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-[260px] h-screen fixed left-0 top-0 flex flex-col z-40 overflow-hidden" style={{ background: 'rgba(8, 11, 18, 0.78)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRight: '1px solid rgba(255,255,255,0.08)' }}>
+    <aside className="w-[260px] h-screen fixed left-0 top-0 flex flex-col z-40 overflow-hidden" style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(30px) saturate(140%)', WebkitBackdropFilter: 'blur(30px) saturate(140%)', borderRight: '1px solid rgba(37,99,235,0.15)' }}>
       {/* Decorative glow */}
-      <div className="absolute -top-20 -left-20 w-40 h-40 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-20 -left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Brand */}
-      <div className="relative px-5 py-6 border-b border-white/[0.06]">
+      <div className="relative px-5 py-6 border-b border-blue-100">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-600/25">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-sky-600 flex items-center justify-center shadow-lg shadow-blue-600/25">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white">
                 <path d="M2 4h16v3.5H2zM2 9h12v3.5H2zM2 14h14v3.5H2z" fill="currentColor" opacity="0.9" />
               </svg>
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0f1420]" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white tracking-tight">TEMSA</h1>
+            <h1 className="text-sm font-bold text-slate-800 tracking-tight">TEMSA</h1>
             <p className="text-[10px] text-slate-500 font-medium tracking-wide">PLM Entegrasyon</p>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-        <p className="px-3 mb-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Menü</p>
+        <p className="px-3 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Menü</p>
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
           return (
@@ -131,21 +131,21 @@ export default function Sidebar() {
               href={item.href}
               className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600/20 to-blue-500/10 text-blue-400 shadow-sm shadow-blue-500/10'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  ? 'bg-gradient-to-r from-blue-100 to-sky-100 text-blue-700 shadow-sm shadow-blue-500/10'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-blue-50'
               }`}
             >
-              <span className={`transition-colors duration-200 ${isActive ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-300'}`}>{item.icon}</span>
+              <span className={`transition-colors duration-200 ${isActive ? 'text-blue-700' : 'text-slate-500 group-hover:text-slate-700'}`}>{item.icon}</span>
               {item.label}
-              {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50" />}
+              {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600 shadow-sm shadow-blue-500/50" />}
             </Link>
           );
         })}
 
         {user?.role === 'admin' && (
           <>
-            <div className="my-4 mx-3 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-            <p className="px-3 mb-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Yönetim</p>
+            <div className="my-4 mx-3 h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
+            <p className="px-3 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Yönetim</p>
             {ADMIN_NAV.map((item) => {
               const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
               return (
@@ -154,13 +154,13 @@ export default function Sidebar() {
                   href={item.href}
                   className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600/20 to-blue-500/10 text-blue-400 shadow-sm shadow-blue-500/10'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                      ? 'bg-gradient-to-r from-blue-100 to-sky-100 text-blue-700 shadow-sm shadow-blue-500/10'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-blue-50'
                   }`}
                 >
-                  <span className={`transition-colors duration-200 ${isActive ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-300'}`}>{item.icon}</span>
+                  <span className={`transition-colors duration-200 ${isActive ? 'text-blue-700' : 'text-slate-500 group-hover:text-slate-700'}`}>{item.icon}</span>
                   {item.label}
-                  {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50" />}
+                  {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600 shadow-sm shadow-blue-500/50" />}
                 </Link>
               );
             })}
@@ -169,10 +169,10 @@ export default function Sidebar() {
       </nav>
 
       {/* Notification bell */}
-      <div ref={notifRef} className="relative px-3 py-2 border-t border-white/[0.04]">
+      <div ref={notifRef} className="relative px-3 py-2 border-t border-blue-100">
         <button onClick={() => setShowNotifs(p => !p)}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
-            showNotifs ? 'bg-gradient-to-r from-amber-600/20 to-amber-500/10 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+            showNotifs ? 'bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700' : 'text-slate-600 hover:text-slate-900 hover:bg-blue-50'
           }`}>
           <span className="relative">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -192,10 +192,10 @@ export default function Sidebar() {
         </button>
 
         {showNotifs && (
-          <div className="absolute bottom-full left-3 right-3 mb-2 rounded-2xl overflow-hidden shadow-2xl shadow-black/50 z-50"
-            style={{ background: 'rgba(12, 16, 24, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-              <h4 className="text-xs font-semibold text-white">Bildirimler</h4>
+          <div className="absolute bottom-full left-3 right-3 mb-2 rounded-2xl overflow-hidden shadow-2xl z-50"
+            style={{ background: 'rgba(255, 255, 255, 0.97)', backdropFilter: 'blur(14px)', border: '1px solid rgba(37,99,235,0.16)' }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-blue-100">
+              <h4 className="text-xs font-semibold text-slate-800">Bildirimler</h4>
               {unreadCount > 0 && (
                 <button onClick={handleMarkAllRead} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
                   Tümünü okundu işaretle
@@ -204,18 +204,18 @@ export default function Sidebar() {
             </div>
             <div className="max-h-72 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-600">Bildirim yok</div>
+                <div className="py-8 text-center text-xs text-slate-500">Bildirim yok</div>
               ) : (
                 notifications.slice(0, 20).map(n => (
                   <Link key={n.id} href="/tasks" onClick={() => setShowNotifs(false)}
-                    className={`block px-4 py-3 border-b border-white/[0.03] hover:bg-white/[0.04] transition-colors ${
-                      !n.isRead ? 'bg-blue-500/[0.04]' : ''
+                    className={`block px-4 py-3 border-b border-blue-50 hover:bg-blue-50 transition-colors ${
+                      !n.isRead ? 'bg-blue-50/70' : ''
                     }`}>
                     <div className="flex items-start gap-2.5">
                       {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-400 mt-1 shrink-0 shadow shadow-blue-400/50" />}
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[11px] leading-relaxed ${!n.isRead ? 'text-slate-200' : 'text-slate-400'}`}>{n.message}</p>
-                        <p className="text-[9px] text-slate-600 mt-1">{new Date(n.createdAt).toLocaleString('tr-TR')}</p>
+                        <p className={`text-[11px] leading-relaxed ${!n.isRead ? 'text-slate-800' : 'text-slate-600'}`}>{n.message}</p>
+                        <p className="text-[9px] text-slate-500 mt-1">{new Date(n.createdAt).toLocaleString('tr-TR')}</p>
                       </div>
                     </div>
                   </Link>
@@ -227,23 +227,23 @@ export default function Sidebar() {
       </div>
 
       {/* Bus showcase */}
-      <div className="relative px-3 py-3 border-t border-white/[0.04]">
+      <div className="relative px-3 py-3 border-t border-blue-100">
         <div className="relative rounded-xl overflow-hidden h-[80px] group">
           <img
             src="https://www.temsa.com/tr/images/common/maraton-12.png"
             alt="TEMSA Maraton"
             className="w-full h-full object-contain object-center opacity-20 group-hover:opacity-40 transition-opacity duration-500 scale-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#080b12] via-transparent to-[#080b12]/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white/70" />
           <div className="absolute bottom-2 left-3 right-3">
-            <p className="text-[9px] text-slate-500 font-medium tracking-wider uppercase">TEMSA Araçları</p>
-            <p className="text-[10px] text-slate-400">140K+ araç · 70+ ülke</p>
+            <p className="text-[9px] text-slate-600 font-medium tracking-wider uppercase">TEMSA Araçları</p>
+            <p className="text-[10px] text-slate-500">140K+ araç · 70+ ülke</p>
           </div>
         </div>
       </div>
 
       {/* User */}
-      <div className="relative px-4 py-4 border-t border-white/[0.06]">
+      <div className="relative px-4 py-4 border-t border-blue-100">
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-blue-600/15">
@@ -251,7 +251,7 @@ export default function Sidebar() {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-white truncate">{user?.full_name || 'Kullanıcı'}</p>
+            <p className="text-xs font-semibold text-slate-800 truncate">{user?.full_name || 'Kullanıcı'}</p>
             <p className="text-[10px] text-slate-500 truncate">
               {user?.role === 'admin' ? 'Admin' : user?.role === 'designer' ? 'Tasarımcı' : 'Ent. Mühendisi'}
               {user?.uzmanlik ? ` · ${user.uzmanlik}` : ''}

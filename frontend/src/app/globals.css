@@ -5,19 +5,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-primary: #080b12;
-  --bg-secondary: #0f1420;
-  --bg-tertiary: #151b2b;
-  --bg-card: rgba(15, 20, 35, 0.7);
-  --border: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.12);
+  --bg-primary: #f4f8ff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef4ff;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --border: rgba(30, 64, 175, 0.14);
+  --border-hover: rgba(30, 64, 175, 0.24);
   --glow-red: rgba(239, 68, 68, 0.15);
-  --glow-blue: rgba(59, 130, 246, 0.15);
+  --glow-blue: rgba(59, 130, 246, 0.18);
 }
 
 body {
-  background: var(--bg-primary);
-  color: #f0f4f8;
+  background: linear-gradient(140deg, #eef5ff 0%, #f8fbff 40%, #ffffff 100%);
+  color: #0f172a;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -28,7 +28,7 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.015;
+  opacity: 0.008;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
 
@@ -36,8 +36,8 @@ body::before {
 
 /* Dark dropdown options for select elements */
 select option {
-  background: #0f1420;
-  color: #f0f4f8;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 ::-webkit-scrollbar {
@@ -48,61 +48,61 @@ select option {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(30, 64, 175, 0.22);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(30, 64, 175, 0.38);
 }
 
 /* ===== Glass Morphism Utilities ===== */
 .glass {
-  background: rgba(15, 20, 35, 0.45);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(30, 64, 175, 0.14);
 }
 .glass-strong {
-  background: rgba(15, 20, 35, 0.7);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(30, 64, 175, 0.18);
 }
 .glass-card {
-  background: linear-gradient(135deg, rgba(15, 20, 35, 0.55) 0%, rgba(15, 20, 35, 0.35) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 248, 255, 0.96) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(30, 64, 175, 0.14);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  background: linear-gradient(135deg, rgba(15, 20, 35, 0.65) 0%, rgba(15, 20, 35, 0.45) 100%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  border-color: rgba(37, 99, 235, 0.25);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(238, 246, 255, 0.98) 100%);
+  box-shadow: 0 12px 36px rgba(37, 99, 235, 0.12), 0 0 0 1px rgba(37, 99, 235, 0.08);
   transform: translateY(-1px);
 }
 
 /* ===== Input Styles ===== */
 .input-glass {
-  @apply w-full px-4 py-3 rounded-xl text-white placeholder-slate-500 transition-all duration-300;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  @apply w-full px-4 py-3 rounded-xl text-slate-800 placeholder-slate-400 transition-all duration-300;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(37, 99, 235, 0.18);
 }
 .input-glass:focus {
   @apply outline-none;
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08), 0 0 20px rgba(59, 130, 246, 0.05);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 0 20px rgba(37, 99, 235, 0.08);
+  background: #ffffff;
 }
 
 /* ===== Button Styles ===== */
 .btn-primary {
   @apply px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all duration-300;
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 .btn-primary:hover {
-  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 .btn-primary:active {
@@ -187,7 +187,7 @@ select option {
 
 /* ===== Gradient text ===== */
 .gradient-text {
-  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.85) 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2563eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -198,5 +198,18 @@ select option {
   @apply transition-all duration-200;
 }
 .table-row-hover:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(219, 234, 254, 0.5);
 }
+
+/* Light-mode utility alignment for legacy dark utility usage */
+.text-slate-100, .text-slate-200, .text-slate-300 { color: #334155 !important; }
+.text-slate-400, .text-slate-500, .text-slate-600 { color: #64748b !important; }
+.bg-black\/50, .bg-black\/55 { background-color: rgba(15, 23, 42, 0.24) !important; }
+.border-white\/\[0\.03\],
+.border-white\/\[0\.04\],
+.border-white\/\[0\.05\],
+.border-white\/\[0\.06\],
+.border-white\/\[0\.08\],
+.border-white\/\[0\.1\],
+.border-white\/\[0\.12\],
+.border-white\/\[0\.15\] { border-color: rgba(30, 64, 175, 0.16) !important; }

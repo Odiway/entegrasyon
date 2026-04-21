@@ -492,7 +492,7 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="light-blue-theme flex h-[calc(100vh)] overflow-hidden bg-gradient-to-br from-blue-50 via-white to-sky-50 text-slate-800">
+    <div className="flex h-[calc(100vh)] overflow-hidden bg-gradient-to-br from-blue-50 via-white to-sky-50 text-slate-800">
       {/* LEFT NAV PANEL */}
       {navOpen && (
         <div className="w-72 shrink-0 border-r border-blue-100 bg-white/90 backdrop-blur-xl flex flex-col shadow-sm">
@@ -1436,55 +1436,6 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      <style jsx global>{`
-        .light-blue-theme .bg-white\/\[0\.03\],
-        .light-blue-theme .bg-white\/\[0\.04\],
-        .light-blue-theme .bg-white\/\[0\.05\],
-        .light-blue-theme .bg-white\/\[0\.06\],
-        .light-blue-theme .bg-white\/\[0\.08\] {
-          background-color: #ffffff !important;
-        }
-
-        .light-blue-theme .border-white\/\[0\.04\],
-        .light-blue-theme .border-white\/\[0\.05\],
-        .light-blue-theme .border-white\/\[0\.06\],
-        .light-blue-theme .border-white\/\[0\.08\],
-        .light-blue-theme .border-white\/\[0\.1\],
-        .light-blue-theme .border-white\/\[0\.12\],
-        .light-blue-theme .border-white\/\[0\.15\] {
-          border-color: #dbeafe !important;
-        }
-
-        .light-blue-theme .text-slate-100,
-        .light-blue-theme .text-slate-200,
-        .light-blue-theme .text-slate-300,
-        .light-blue-theme .text-slate-400,
-        .light-blue-theme .text-slate-500 {
-          color: #334155 !important;
-        }
-
-        .light-blue-theme [class*="bg-[#0d1117]"] {
-          background-color: #ffffff !important;
-        }
-
-        .light-blue-theme [class*="bg-[#0d1117]"] .text-white {
-          color: #0f172a !important;
-        }
-
-        .light-blue-theme table thead tr {
-          background-color: #eff6ff !important;
-        }
-
-        .light-blue-theme table tbody tr:hover {
-          background-color: #f0f9ff !important;
-        }
-
-        .light-blue-theme .shadow-2xl,
-        .light-blue-theme .shadow-lg,
-        .light-blue-theme .shadow-sm {
-          box-shadow: 0 10px 30px rgba(30, 64, 175, 0.08) !important;
-        }
-      `}</style>
     </div>
   );
 }

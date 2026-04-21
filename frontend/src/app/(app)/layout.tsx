@@ -38,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative bg-gradient-to-br from-blue-50 via-white to-sky-50">
       {/* TEMSA Bus Background Slideshow */}
       <div className="fixed inset-0 z-0">
         {BG_BUSES.map((src, i) => (
@@ -50,13 +50,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <img src={src} alt="" className="w-full h-full object-cover" />
           </div>
         ))}
-        {/* Light overlay — buses clearly visible */}
-        <div className="absolute inset-0 bg-[#080b12]/[0.55]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#080b12]/70 via-[#080b12]/45 to-[#080b12]/35" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#080b12]/40 via-transparent to-[#080b12]/50" />
-        {/* Subtle vignette */}
+        {/* Bright overlay for improved content readability */}
+        <div className="absolute inset-0 bg-white/88" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/90 via-white/70 to-sky-50/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-transparent to-white/85" />
+        {/* Subtle cool vignette */}
         <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at center, transparent 60%, rgba(8,11,18,0.35) 100%)'
+          background: 'radial-gradient(ellipse at center, transparent 62%, rgba(186, 230, 253, 0.35) 100%)'
         }} />
       </div>
 
