@@ -43,6 +43,22 @@ function useNow() {
   return now;
 }
 
+/* Floating HUD chip for the data highway scene */
+function HudChip({ className, color, label, value, delay = '0s' }: { className?: string; color: string; label: string; value: string | number; delay?: string }) {
+  return (
+    <div className={`absolute rounded-xl bg-white/90 backdrop-blur border border-slate-200 shadow-[0_12px_30px_-14px_rgba(15,23,42,0.35)] px-3.5 py-2.5 chip-float ${className || ''}`} style={{ animationDelay: delay }}>
+      <div className="flex items-center gap-2">
+        <span className="relative flex w-1.5 h-1.5">
+          <span className="absolute inset-0 rounded-full animate-ping opacity-70" style={{ background: color }} />
+          <span className="relative w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+        </span>
+        <p className="text-[9px] uppercase tracking-[0.18em] font-bold text-slate-500">{label}</p>
+      </div>
+      <p className="text-sm font-bold text-slate-900 tabular-nums mt-1 leading-none">{value}</p>
+    </div>
+  );
+}
+
 /* Animated radial ring (single accent) */
 function Ring({ value, size = 132, stroke = 6, color = '#1e3a8a', label }: { value: number; size?: number; stroke?: number; color?: string; label?: string }) {
   const r = (size - stroke) / 2;
@@ -225,7 +241,8 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      {/* ═════════════ SİNYAL MATRİSİ + CORE ═════════════ */}
+      {/* ═════════════ SİNYAL MATRİSİ + CORE — kaldırıldı, yerine alt kısımda Veri Otoyolu sahnesi ═════════════ */}
+      {false && (
       <section className="grid grid-cols-12 gap-6 mb-7">
         <div className="col-span-7 relative overflow-hidden bg-white rounded-xl border border-slate-200 p-7">
           <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -341,6 +358,7 @@ export default function DashboardPage() {
           <p className="relative text-[10px] uppercase tracking-[0.2em] text-slate-500 text-center mt-3">Son senkron · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
         </div>
       </section>
+      )}
 
       {/* ═════════════ LIVE FLOW + RECENT PROJECTS ═════════════ */}
       <section className="grid grid-cols-12 gap-6 mb-7">
@@ -411,7 +429,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ═════════════ TEMSA FLEET ═════════════ */}
+      {/* ═════════════ TEMSA FLEET — kaldırıldı, yerine alt kısımda Veri Otoyolu sahnesi ═════════════ */}
+      {false && (
       <section className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="flex items-end justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
           <div>
@@ -450,6 +469,7 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Recent tasks (compact strip) */}
       {recentTasks.length > 0 && (
@@ -486,6 +506,151 @@ export default function DashboardPage() {
           </ul>
         </section>
       )}
+
+      {/* ═════════════ TEMSA · VERİ OTOYOLU (animasyonlu 3D sahne) ═════════════ */}
+      <section className="mt-7 relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-sky-50 via-white to-slate-100">
+        {/* Header */}
+        <div className="relative z-20 flex items-end justify-between px-7 pt-6 pb-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">TEMSA · Veri Otoyolu</p>
+            <h2 className="text-2xl font-bold text-slate-900 mt-1">Canlı Operasyon Hattı</h2>
+            <p className="text-xs text-slate-500 mt-1.5 max-w-md leading-relaxed">BOM verisi PLM&apos;den SAP&apos;ye otomatik akıyor · kural motoru her kalemi yolda doğruluyor.</p>
+          </div>
+          <div className="hidden md:flex items-center gap-8 text-right">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Durum</p>
+              <p className="text-sm font-bold text-emerald-700 mt-1 inline-flex items-center gap-1.5">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-70" />
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                </span>
+                Aktif
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Akış</p>
+              <p className="text-sm font-bold text-slate-900 tabular-nums mt-1">{Math.max(1, Math.round(stats.totalRows / 60)).toLocaleString('tr-TR')} kalem/dk</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Otomasyon</p>
+              <p className="text-sm font-bold text-violet-700 tabular-nums mt-1">%100</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Scene */}
+        <div className="relative h-[360px] overflow-hidden">
+          {/* Sky halos */}
+          <div className="absolute -top-16 left-1/4 w-80 h-80 rounded-full bg-sky-200/50 blur-3xl pointer-events-none" />
+          <div className="absolute top-4 right-1/5 w-64 h-64 rounded-full bg-violet-200/40 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[700px] h-64 rounded-full bg-emerald-200/25 blur-3xl pointer-events-none" />
+
+          {/* Subtle grid */}
+          <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+            style={{ backgroundImage: 'linear-gradient(#1e3a8a 1px, transparent 1px), linear-gradient(90deg, #1e3a8a 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+
+          {/* Perspective road */}
+          <div className="absolute inset-x-0 bottom-0 h-48 pointer-events-none" style={{ perspective: '700px' }}>
+            <div className="absolute inset-0"
+              style={{ transform: 'rotateX(60deg)', transformOrigin: 'bottom', background: 'linear-gradient(to bottom, #cbd5e1 0%, #e2e8f0 60%, #f1f5f9 100%)' }} />
+            <div className="absolute inset-0 overflow-hidden" style={{ transform: 'rotateX(60deg)', transformOrigin: 'bottom' }}>
+              <div className="absolute left-0 right-0 top-[48%] h-1.5 bus-lane"
+                style={{ backgroundImage: 'linear-gradient(90deg, #fbbf24 0 60px, transparent 60px 120px)', backgroundSize: '120px 100%' }} />
+              <div className="absolute left-0 right-0 top-[12%] h-[1px] bg-slate-400/50" />
+              <div className="absolute left-0 right-0 bottom-[12%] h-[1px] bg-slate-400/50" />
+            </div>
+          </div>
+
+          {/* Floating data chips */}
+          <div className="absolute inset-0 pointer-events-none">
+            <HudChip className="top-6 left-[8%]" color="#10b981" label="SAP Senkron" value="%100" />
+            <HudChip className="top-14 right-[10%]" color="#3b82f6" label="BOM Kalemleri" value={stats.totalRows.toLocaleString('tr-TR')} delay="0.6s" />
+            <HudChip className="top-[130px] left-[20%]" color="#8b5cf6" label="Kural Motoru" value="Sağlıklı" delay="1.2s" />
+            <HudChip className="top-[110px] right-[22%]" color="#f59e0b" label="Aktif Proje" value={String(stats.projects || 0)} delay="1.8s" />
+            <HudChip className="top-[60px] left-[42%]" color="#06b6d4" label="Tamamlanan" value={String(stats.doneTasks || 0)} delay="0.9s" />
+          </div>
+
+          {/* Bus driving across */}
+          <div className="absolute bottom-8 left-0 right-0 pointer-events-none">
+            <div className="bus-drive relative w-fit">
+              <div className="relative">
+                {/* Headlight beam */}
+                <div className="absolute top-1/2 -right-6 w-48 h-14 -translate-y-1/2 rounded-full opacity-80 pointer-events-none"
+                  style={{ background: 'radial-gradient(closest-side, rgba(254,240,138,0.95), rgba(254,240,138,0.15) 50%, transparent 75%)' }} />
+                {/* Speed lines */}
+                <div className="absolute top-1/2 -left-32 -translate-y-1/2 flex flex-col gap-2.5">
+                  <span className="block h-[2px] w-28 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.7))' }} />
+                  <span className="block h-[2px] w-20 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(100,116,139,0.7))', animationDelay: '0.2s' }} />
+                  <span className="block h-[2px] w-24 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.65))', animationDelay: '0.5s' }} />
+                  <span className="block h-[2px] w-16 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.65))', animationDelay: '0.8s' }} />
+                </div>
+                {/* Bus image with subtle bob */}
+                <div className="relative bus-bob">
+                  <img
+                    src="https://www.temsa.com/tr/images/common/temsa-avenue-electron.png"
+                    alt="TEMSA Avenue Electron"
+                    className="relative h-36 md:h-44 w-auto object-contain drop-shadow-[0_24px_18px_rgba(15,23,42,0.22)]"
+                  />
+                  {/* Ground shadow */}
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[78%] h-3 rounded-full bg-slate-900/25 blur-md" />
+                </div>
+                {/* Trailing data packets */}
+                <div className="absolute top-8 -left-24 flex gap-1.5 packet-trail">
+                  <span className="block w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                  <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="block w-1.5 h-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom fade */}
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-100 to-transparent pointer-events-none" />
+        </div>
+
+        {/* Footer caption */}
+        <div className="relative z-10 flex items-center justify-between px-7 py-3 border-t border-slate-200 bg-white/60 backdrop-blur">
+          <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-slate-500">PLM → Kural Motoru → SAP · Canlı aktarım</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-slate-500 tabular-nums">Son senkron · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+
+        <style jsx global>{`
+          @keyframes busDrive {
+            0%   { transform: translateX(-260px); }
+            100% { transform: translateX(calc(100vw + 80px)); }
+          }
+          @keyframes busBob {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-3px); }
+          }
+          @keyframes lane {
+            0%   { background-position: 0 0; }
+            100% { background-position: -120px 0; }
+          }
+          @keyframes speedLine {
+            0%   { transform: translateX(-30px); opacity: 0; }
+            40%  { opacity: 1; }
+            100% { transform: translateX(30px); opacity: 0; }
+          }
+          @keyframes chipFloat {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-8px); }
+          }
+          @keyframes packetTrail {
+            0%   { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(-80px); opacity: 0; }
+          }
+          .bus-drive { animation: busDrive 24s linear infinite; will-change: transform; }
+          .bus-bob   { animation: busBob 1.4s ease-in-out infinite; }
+          .bus-lane  { animation: lane 0.55s linear infinite; }
+          .bus-line  { animation: speedLine 0.9s ease-in-out infinite; }
+          .chip-float{ animation: chipFloat 4.5s ease-in-out infinite; will-change: transform; }
+          .packet-trail { animation: packetTrail 1.2s ease-out infinite; }
+          @media (prefers-reduced-motion: reduce) {
+            .bus-drive, .bus-bob, .bus-lane, .bus-line, .chip-float, .packet-trail { animation: none !important; }
+          }
+        `}</style>
+      </section>
     </div>
   );
 }
