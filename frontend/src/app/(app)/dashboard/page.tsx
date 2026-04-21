@@ -145,69 +145,78 @@ export default function DashboardPage() {
     <div className="px-8 py-6 max-w-[1480px] mx-auto animate-fade-in">
 
       {/* ═════════════ HERO PANEL ═════════════ */}
-      <section className="relative overflow-hidden rounded-2xl mb-7 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.4)]"
-        style={{ background: 'linear-gradient(120deg, #1e3a8a 0%, #2563eb 45%, #3b82f6 100%)' }}>
+      <section className="relative overflow-hidden rounded-2xl mb-7 bg-white border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_30px_-15px_rgba(15,23,42,0.12)]">
+        {/* Layered light background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-sky-50/50 pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-[30rem] h-[30rem] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(14,116,144,0.08), transparent 70%)' }} />
+        <div className="absolute -bottom-40 -left-24 w-[28rem] h-[28rem] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.06), transparent 70%)' }} />
 
-        {/* Bus image silhouette */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        {/* Subtle dot grid */}
+        <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(#0f172a 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
+
+        {/* Bus on right */}
+        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-[58%] pointer-events-none overflow-hidden">
           <img src="https://www.temsa.com/tr/images/common/maraton-12.png" alt=""
-            className="h-[110%] w-auto object-contain opacity-[0.18] mix-blend-screen" />
+            className="absolute right-[-40px] top-1/2 -translate-y-1/2 h-[130%] w-auto object-contain" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/75 to-transparent" />
         </div>
 
-        {/* Subtle grid */}
-        <div className="absolute inset-0 opacity-[0.07] pointer-events-none"
-          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        {/* Corner brand rail */}
+        <div className="absolute top-0 left-0 h-1 w-24 bg-red-600 rounded-br-md" />
+        <div className="absolute top-0 left-[98px] h-1 w-10 bg-slate-900/80" />
 
-        {/* Soft glow accent */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(125,211,252,0.45), transparent 70%)' }} />
-        <div className="absolute -bottom-32 right-1/4 w-[28rem] h-[28rem] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.35), transparent 70%)' }} />
-
-        {/* TEMSA brand text watermark */}
-        <div className="absolute right-8 top-6 text-right pointer-events-none">
-          <p className="text-[64px] leading-none font-black tracking-[0.05em] text-white/10 select-none">TEMSA</p>
-          <p className="text-[10px] uppercase tracking-[0.4em] text-white/40 -mt-2 mr-1">Lead Your Journey</p>
-        </div>
-
-        <div className="relative px-10 py-12 grid grid-cols-12 gap-6 items-end">
+        <div className="relative px-10 py-10 grid grid-cols-12 gap-6 items-center">
           <div className="col-span-7">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-sm mb-5">
               <span className="relative flex w-2 h-2">
-                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-70" />
-                <span className="relative w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-70" />
+                <span className="relative w-2 h-2 rounded-full bg-emerald-500" />
               </span>
-              <span className="text-[11px] text-white/90 font-semibold tracking-wide">Sistem Aktif — Tüm Modüller Çalışıyor</span>
+              <span className="text-[11px] text-slate-700 font-semibold tracking-wide">Sistem Aktif — Tüm Modüller Çalışıyor</span>
             </div>
-            <h1 className="text-[40px] leading-[1.05] font-bold text-white tracking-tight">
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-red-600">TEMSA · PLM Entegrasyon</p>
+            <h1 className="text-[38px] leading-[1.05] font-semibold text-slate-900 tracking-[-0.02em] mt-2">
               {greeting},{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-200 via-blue-200 to-indigo-200">
-                {user?.full_name || 'Kullanıcı'}
+              <span className="relative inline-block">
+                <span className="relative z-10">{user?.full_name || 'Kullanıcı'}</span>
+                <span className="absolute left-0 right-0 bottom-1 h-2.5 bg-red-100/80 -z-0" />
               </span>
             </h1>
-            <p className="text-sm text-white/70 mt-3 max-w-xl leading-relaxed">
-              TEMSA PLM → SAP entegrasyon platformuna hoş geldiniz. Üretim BOM verilerinizi yönetin, doğrulayın ve aktarın.
+            <p className="text-sm text-slate-600 mt-3 max-w-lg leading-relaxed">
+              PLM&apos;den gelen BOM verileri kural motorundan geçirilip SAP&apos;ye aktarılıyor. Gün içindeki tüm işleri buradan takip edin.
             </p>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-white/50 mt-4">
-              {dateLine} · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-              {user?.uzmanlik ? ` · ${user.uzmanlik}` : ''}
-            </p>
+            <div className="mt-5 flex items-center gap-5 text-[11px]">
+              <span className="inline-flex items-center gap-1.5 text-slate-500 uppercase tracking-[0.18em] font-semibold">
+                <span className="w-1 h-1 rounded-full bg-slate-400" />
+                {dateLine}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-slate-500 uppercase tracking-[0.18em] font-semibold tabular-nums">
+                <span className="w-1 h-1 rounded-full bg-slate-400" />
+                {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              {user?.uzmanlik && (
+                <span className="inline-flex items-center gap-1.5 text-slate-500 uppercase tracking-[0.18em] font-semibold">
+                  <span className="w-1 h-1 rounded-full bg-slate-400" />
+                  {user.uzmanlik}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Floating glass KPI tiles */}
+          {/* Clean KPI strip */}
           <div className="col-span-5 grid grid-cols-3 gap-3">
             {[
-              { v: stats.doneTasks, label: 'Çözülen Görev', icon: '✓', tint: 'from-emerald-400/30 to-emerald-300/0' },
-              { v: stats.projects,  label: 'BOM Projesi',  icon: '◈', tint: 'from-sky-400/30 to-sky-300/0' },
-              { v: stats.totalRows, label: 'BOM Satırı',   icon: '≣', tint: 'from-indigo-400/30 to-indigo-300/0' },
+              { v: stats.doneTasks, label: 'Çözülen Görev', accent: '#10b981' },
+              { v: stats.projects,  label: 'BOM Projesi',   accent: '#3b82f6' },
+              { v: stats.totalRows, label: 'BOM Satırı',    accent: '#dc2626' },
             ].map((k, i) => (
-              <div key={i} className="relative overflow-hidden rounded-xl bg-white/[0.07] backdrop-blur-md border border-white/15 p-4 hover:bg-white/[0.12] transition-colors">
-                <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${k.tint} blur-xl pointer-events-none`} />
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-md bg-white/10 border border-white/20 flex items-center justify-center text-white/90 text-base mb-3">{k.icon}</div>
-                  <p className="text-[22px] font-bold text-white leading-none tabular-nums"><CountUp value={k.v} /></p>
-                  <p className="text-[10px] uppercase tracking-[0.15em] text-white/60 mt-2 font-semibold">{k.label}</p>
-                </div>
+              <div key={i} className="relative bg-white rounded-xl border border-slate-200 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                <span className="absolute left-0 top-4 bottom-4 w-0.5 rounded-r-full" style={{ background: k.accent }} />
+                <p className="text-[24px] font-bold text-slate-900 leading-none tabular-nums"><CountUp value={k.v} /></p>
+                <p className="text-[10px] uppercase tracking-[0.15em] text-slate-500 mt-2 font-semibold">{k.label}</p>
               </div>
             ))}
           </div>
@@ -239,6 +248,115 @@ export default function DashboardPage() {
             <span className="absolute left-0 top-5 bottom-5 w-1 rounded-r-full" style={{ background: c.accent }} />
           </div>
         ))}
+      </section>
+
+      {/* ═════════════ TEMSA · VERİ OTOYOLU (animasyonlu 3D sahne — ortada) ═════════════ */}
+      <section className="mb-7 relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-sky-50 via-white to-slate-100">
+        {/* Header */}
+        <div className="relative z-20 flex items-end justify-between px-7 pt-6 pb-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-red-600">TEMSA · Veri Otoyolu</p>
+            <h2 className="text-2xl font-bold text-slate-900 mt-1">Canlı Operasyon Hattı</h2>
+            <p className="text-xs text-slate-500 mt-1.5 max-w-md leading-relaxed">BOM verisi PLM&apos;den SAP&apos;ye otomatik akıyor · kural motoru her kalemi yolda doğruluyor.</p>
+          </div>
+          <div className="hidden md:flex items-center gap-8 text-right">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Durum</p>
+              <p className="text-sm font-bold text-emerald-700 mt-1 inline-flex items-center gap-1.5">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-70" />
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                </span>
+                Aktif
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Akış</p>
+              <p className="text-sm font-bold text-slate-900 tabular-nums mt-1">{Math.max(1, Math.round(stats.totalRows / 60)).toLocaleString('tr-TR')} kalem/dk</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Otomasyon</p>
+              <p className="text-sm font-bold text-violet-700 tabular-nums mt-1">%100</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Scene */}
+        <div className="relative h-[360px] overflow-hidden">
+          <div className="absolute -top-16 left-1/4 w-80 h-80 rounded-full bg-sky-200/50 blur-3xl pointer-events-none" />
+          <div className="absolute top-4 right-1/5 w-64 h-64 rounded-full bg-violet-200/40 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[700px] h-64 rounded-full bg-emerald-200/25 blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+            style={{ backgroundImage: 'linear-gradient(#1e3a8a 1px, transparent 1px), linear-gradient(90deg, #1e3a8a 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+          <div className="absolute inset-x-0 bottom-0 h-48 pointer-events-none" style={{ perspective: '700px' }}>
+            <div className="absolute inset-0"
+              style={{ transform: 'rotateX(60deg)', transformOrigin: 'bottom', background: 'linear-gradient(to bottom, #cbd5e1 0%, #e2e8f0 60%, #f1f5f9 100%)' }} />
+            <div className="absolute inset-0 overflow-hidden" style={{ transform: 'rotateX(60deg)', transformOrigin: 'bottom' }}>
+              <div className="absolute left-0 right-0 top-[48%] h-1.5 bus-lane"
+                style={{ backgroundImage: 'linear-gradient(90deg, #fbbf24 0 60px, transparent 60px 120px)', backgroundSize: '120px 100%' }} />
+              <div className="absolute left-0 right-0 top-[12%] h-[1px] bg-slate-400/50" />
+              <div className="absolute left-0 right-0 bottom-[12%] h-[1px] bg-slate-400/50" />
+            </div>
+          </div>
+          <div className="absolute inset-0 pointer-events-none">
+            <HudChip className="top-6 left-[8%]" color="#10b981" label="SAP Senkron" value="%100" />
+            <HudChip className="top-14 right-[10%]" color="#3b82f6" label="BOM Kalemleri" value={stats.totalRows.toLocaleString('tr-TR')} delay="0.6s" />
+            <HudChip className="top-[130px] left-[20%]" color="#8b5cf6" label="Kural Motoru" value="Sağlıklı" delay="1.2s" />
+            <HudChip className="top-[110px] right-[22%]" color="#f59e0b" label="Aktif Proje" value={String(stats.projects || 0)} delay="1.8s" />
+            <HudChip className="top-[60px] left-[42%]" color="#06b6d4" label="Tamamlanan" value={String(stats.doneTasks || 0)} delay="0.9s" />
+          </div>
+          <div className="absolute bottom-8 left-0 right-0 pointer-events-none">
+            <div className="bus-drive relative w-fit">
+              <div className="relative">
+                <div className="absolute top-1/2 -right-6 w-48 h-14 -translate-y-1/2 rounded-full opacity-80 pointer-events-none"
+                  style={{ background: 'radial-gradient(closest-side, rgba(254,240,138,0.95), rgba(254,240,138,0.15) 50%, transparent 75%)' }} />
+                <div className="absolute top-1/2 -left-32 -translate-y-1/2 flex flex-col gap-2.5">
+                  <span className="block h-[2px] w-28 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.7))' }} />
+                  <span className="block h-[2px] w-20 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(100,116,139,0.7))', animationDelay: '0.2s' }} />
+                  <span className="block h-[2px] w-24 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.65))', animationDelay: '0.5s' }} />
+                  <span className="block h-[2px] w-16 rounded-full bus-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.65))', animationDelay: '0.8s' }} />
+                </div>
+                <div className="relative bus-bob">
+                  <img
+                    src="https://www.temsa.com/tr/images/common/temsa-avenue-electron.png"
+                    alt="TEMSA Avenue Electron"
+                    className="relative h-36 md:h-44 w-auto object-contain drop-shadow-[0_24px_18px_rgba(15,23,42,0.22)]"
+                  />
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[78%] h-3 rounded-full bg-slate-900/25 blur-md" />
+                </div>
+                <div className="absolute top-8 -left-24 flex gap-1.5 packet-trail">
+                  <span className="block w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                  <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="block w-1.5 h-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-100 to-transparent pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 flex items-center justify-between px-7 py-3 border-t border-slate-200 bg-white/60 backdrop-blur">
+          <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-slate-500">PLM → Kural Motoru → SAP · Canlı aktarım</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-slate-500 tabular-nums">Son senkron · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+
+        <style jsx global>{`
+          @keyframes busDrive { 0% { transform: translateX(-260px); } 100% { transform: translateX(calc(100vw + 80px)); } }
+          @keyframes busBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+          @keyframes lane { 0% { background-position: 0 0; } 100% { background-position: -120px 0; } }
+          @keyframes speedLine { 0% { transform: translateX(-30px); opacity: 0; } 40% { opacity: 1; } 100% { transform: translateX(30px); opacity: 0; } }
+          @keyframes chipFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+          @keyframes packetTrail { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(-80px); opacity: 0; } }
+          .bus-drive { animation: busDrive 24s linear infinite; will-change: transform; }
+          .bus-bob   { animation: busBob 1.4s ease-in-out infinite; }
+          .bus-lane  { animation: lane 0.55s linear infinite; }
+          .bus-line  { animation: speedLine 0.9s ease-in-out infinite; }
+          .chip-float{ animation: chipFloat 4.5s ease-in-out infinite; will-change: transform; }
+          .packet-trail { animation: packetTrail 1.2s ease-out infinite; }
+          @media (prefers-reduced-motion: reduce) {
+            .bus-drive, .bus-bob, .bus-lane, .bus-line, .chip-float, .packet-trail { animation: none !important; }
+          }
+        `}</style>
       </section>
 
       {/* ═════════════ SİNYAL MATRİSİ + CORE — kaldırıldı, yerine alt kısımda Veri Otoyolu sahnesi ═════════════ */}
@@ -507,7 +625,8 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* ═════════════ TEMSA · VERİ OTOYOLU (animasyonlu 3D sahne) ═════════════ */}
+      {/* Veri Otoyolu moved up — was here */}
+      {false && (
       <section className="mt-7 relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-sky-50 via-white to-slate-100">
         {/* Header */}
         <div className="relative z-20 flex items-end justify-between px-7 pt-6 pb-4">
@@ -651,6 +770,7 @@ export default function DashboardPage() {
           }
         `}</style>
       </section>
+      )}
     </div>
   );
 }
