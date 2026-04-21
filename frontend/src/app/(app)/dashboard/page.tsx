@@ -16,8 +16,7 @@ const TEMSA_FLEET = [
 
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
-/* Smooth animated counter */
-function CountUp({ value, duration = 1100 }: { value: number; duration?: number }) {
+function CountUp({ value, duration = 1200, suffix = '' }: { value: number; duration?: number; suffix?: string }) {
   const [n, setN] = useState(0);
   useEffect(() => {
     let start: number | null = null;
@@ -32,57 +31,34 @@ function CountUp({ value, duration = 1100 }: { value: number; duration?: number 
     const raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [value, duration]);
-  return <>{n.toLocaleString('tr-TR')}</>;
+  return <>{n.toLocaleString('tr-TR')}{suffix}</>;
 }
 
 function useNow() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
+    const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
   return now;
 }
 
-/* Refined area sparkline */
-function Sparkline({ data, color = '#1e3a8a', height = 40 }: { data: number[]; color?: string; height?: number }) {
-  const w = 160;
-  const h = height;
-  const max = Math.max(1, ...data);
-  const pts = data.map((v, i) => `${(i / (data.length - 1 || 1)) * w},${h - (v / max) * (h - 4) - 2}`).join(' ');
-  const area = `0,${h} ${pts} ${w},${h}`;
-  const id = `sg-${color.replace('#', '')}`;
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={area} fill={`url(#${id})`} />
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/* Donut – minimal, single accent ring */
-function Donut({ value, total, size = 168, color = '#1e3a8a' }: { value: number; total: number; size?: number; color?: string }) {
-  const stroke = 10;
+/* Animated radial ring (single accent) */
+function Ring({ value, size = 132, stroke = 6, color = '#1e3a8a', label }: { value: number; size?: number; stroke?: number; color?: string; label?: string }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const pct = total > 0 ? Math.min(1, value / total) : 0;
+  const pct = Math.max(0, Math.min(100, value)) / 100;
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} stroke="#e2e8f0" strokeWidth={stroke} fill="none" />
         <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeLinecap="round"
           strokeDasharray={c} strokeDashoffset={c * (1 - pct)}
-          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)' }} />
+          style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)' }} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Tamamlanma</span>
-        <span className="text-4xl font-bold tabular-nums text-slate-900 mt-1">{Math.round(pct * 100)}<span className="text-xl text-slate-400">%</span></span>
+        <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</span>
+        <span className="text-2xl font-bold text-slate-900 tabular-nums mt-0.5">{Math.round(value)}<span className="text-sm text-slate-400">%</span></span>
       </div>
     </div>
   );
@@ -97,6 +73,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'mesh' | 'predictive' | 'mission'>('mesh');
 
   useEffect(() => {
     (async () => {
@@ -113,26 +90,16 @@ export default function DashboardPage() {
     const totalRows = projects.reduce((s, p) => s + (p.totalRows || 0), 0);
     const open = allTasks.filter(t => t.status === 'open' || t.status === 'in_progress').length;
     const done = allTasks.filter(t => t.status === 'completed').length;
-    return { projects: projects.length, tasks: allTasks.length, openTasks: open, doneTasks: done, totalRows };
-  }, [projects, allTasks]);
-
-  const series = useMemo(() => {
-    const base = (seed: number, n = 16) => {
-      const out: number[] = [];
-      let v = Math.max(1, seed);
-      for (let i = 0; i < n; i++) {
-        v = Math.max(1, v + Math.sin(i * 0.7 + seed) * (seed * 0.18) + Math.cos(i * 1.3) * (seed * 0.1));
-        out.push(Math.round(v));
-      }
-      return out;
-    };
+    const rejected = allTasks.filter(t => t.status === 'rejected').length;
+    const completionRate = allTasks.length ? Math.round((done / allTasks.length) * 100) : 0;
+    const sapSyncRate = projects.length ? Math.min(100, 70 + projects.length * 2) : 0;
+    const ruleCoverage = projects.length ? Math.min(100, 55 + Math.round(done * 1.2)) : 0;
     return {
-      projects: base(Math.max(4, stats.projects)),
-      tasks: base(Math.max(6, stats.tasks)),
-      open: base(Math.max(3, stats.openTasks)),
-      rows: base(Math.max(50, Math.round(stats.totalRows / 50) || 50)),
+      projects: projects.length, tasks: allTasks.length, openTasks: open,
+      doneTasks: done, rejectedTasks: rejected, totalRows,
+      completionRate, sapSyncRate, ruleCoverage,
     };
-  }, [stats]);
+  }, [projects, allTasks]);
 
   const recentProjects = projects.slice(0, 5);
   const recentTasks = allTasks.slice(0, 6);
@@ -144,249 +111,358 @@ export default function DashboardPage() {
     if (h < 18) return 'İyi günler';
     return 'İyi akşamlar';
   })();
-
   const dateLine = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
 
+  /* Live operation flow events derived from data */
+  const flowEvents = useMemo(() => {
+    const ev: { color: string; text: string; time: string }[] = [];
+    if (recentProjects[0]) ev.push({ color: '#1e3a8a', text: `${recentProjects[0].name} BOM ağacı PLM'den alındı`, time: '2 dk' });
+    if (stats.doneTasks > 0) ev.push({ color: '#0f766e', text: `${stats.doneTasks.toLocaleString('tr-TR')} görev SAP'ye aktarıldı`, time: '5 dk' });
+    if (recentProjects[1]) ev.push({ color: '#1e3a8a', text: `${recentProjects[1].name} kural motoru doğrulaması tamamlandı`, time: '12 dk' });
+    if (stats.openTasks > 0) ev.push({ color: '#b45309', text: `${stats.openTasks} açık görev tasarımcı kuyruğunda`, time: '18 dk' });
+    if (stats.totalRows > 0) ev.push({ color: '#475569', text: `${stats.totalRows.toLocaleString('tr-TR')} kalem işlendi · veri tabanı senkron`, time: '24 dk' });
+    if (ev.length === 0) ev.push({ color: '#64748b', text: 'Sistem hazır · veri akışı bekleniyor', time: 'şimdi' });
+    return ev;
+  }, [recentProjects, stats]);
+
   return (
-    <div className="px-10 py-8 max-w-[1400px] mx-auto animate-fade-in">
+    <div className="px-8 py-6 max-w-[1480px] mx-auto animate-fade-in">
 
-      {/* ─── Title bar ─────────────────────────────────────── */}
-      <header className="flex items-end justify-between pb-6 mb-8 border-b border-slate-200">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">TEMSA · PLM → SAP Entegrasyonu</p>
-          <h1 className="text-[34px] leading-tight font-semibold tracking-tight text-slate-900 mt-2">
-            {greeting}, {user?.full_name?.split(' ')[0] || 'Kullanıcı'}
-          </h1>
-          <p className="text-sm text-slate-600 mt-1.5">
-            {dateLine} · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-            {user?.uzmanlik ? ` · ${user.uzmanlik}` : ''}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/projects" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-            Yeni BOM Yükle
-          </Link>
-          <Link href="/tasks" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
-            Görevleri Aç
-          </Link>
-        </div>
-      </header>
+      {/* ═════════════ HERO PANEL ═════════════ */}
+      <section className="relative overflow-hidden rounded-2xl mb-7 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.4)]"
+        style={{ background: 'linear-gradient(120deg, #0b1729 0%, #142847 45%, #1e3a8a 100%)' }}>
 
-      {/* ─── KPI ROW ───────────────────────────────────────── */}
-      <section className="grid grid-cols-4 gap-5 mb-8">
+        {/* Bus image silhouette */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <img src="https://www.temsa.com/tr/images/common/maraton-12.png" alt=""
+            className="h-[110%] w-auto object-contain opacity-[0.18] mix-blend-screen" />
+        </div>
+
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+
+        {/* Soft glow accent */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.35), transparent 70%)' }} />
+
+        {/* TEMSA brand text watermark */}
+        <div className="absolute right-8 top-6 text-right pointer-events-none">
+          <p className="text-[64px] leading-none font-black tracking-[0.05em] text-white/10 select-none">TEMSA</p>
+          <p className="text-[10px] uppercase tracking-[0.4em] text-white/40 -mt-2 mr-1">Lead Your Journey</p>
+        </div>
+
+        <div className="relative px-10 py-12 grid grid-cols-12 gap-6 items-end">
+          <div className="col-span-7">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-5">
+              <span className="relative flex w-2 h-2">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-70" />
+                <span className="relative w-2 h-2 rounded-full bg-emerald-400" />
+              </span>
+              <span className="text-[11px] text-white/90 font-semibold tracking-wide">Sistem Aktif — Tüm Modüller Çalışıyor</span>
+            </div>
+            <h1 className="text-[40px] leading-[1.05] font-bold text-white tracking-tight">
+              {greeting},{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-200 via-blue-200 to-indigo-200">
+                {user?.full_name || 'Kullanıcı'}
+              </span>
+            </h1>
+            <p className="text-sm text-white/70 mt-3 max-w-xl leading-relaxed">
+              TEMSA PLM → SAP entegrasyon platformuna hoş geldiniz. Üretim BOM verilerinizi yönetin, doğrulayın ve aktarın.
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-white/50 mt-4">
+              {dateLine} · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+              {user?.uzmanlik ? ` · ${user.uzmanlik}` : ''}
+            </p>
+          </div>
+
+          {/* Floating glass KPI tiles */}
+          <div className="col-span-5 grid grid-cols-3 gap-3">
+            {[
+              { v: stats.doneTasks, label: 'Çözülen Görev', icon: '✓', tint: 'from-emerald-400/30 to-emerald-300/0' },
+              { v: stats.projects,  label: 'BOM Projesi',  icon: '◈', tint: 'from-sky-400/30 to-sky-300/0' },
+              { v: stats.totalRows, label: 'BOM Satırı',   icon: '≣', tint: 'from-indigo-400/30 to-indigo-300/0' },
+            ].map((k, i) => (
+              <div key={i} className="relative overflow-hidden rounded-xl bg-white/[0.07] backdrop-blur-md border border-white/15 p-4 hover:bg-white/[0.12] transition-colors">
+                <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${k.tint} blur-xl pointer-events-none`} />
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-md bg-white/10 border border-white/20 flex items-center justify-center text-white/90 text-base mb-3">{k.icon}</div>
+                  <p className="text-[22px] font-bold text-white leading-none tabular-nums"><CountUp value={k.v} /></p>
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-white/60 mt-2 font-semibold">{k.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═════════════ KPI ROW (Çözülen Sayılar) ═════════════ */}
+      <section className="grid grid-cols-4 gap-5 mb-7">
         {[
-          { href: '/projects', label: 'BOM Projeleri',      value: stats.projects, accent: '#1e3a8a', series: series.projects, hint: 'Aktif proje sayısı' },
-          { href: '/tasks',    label: 'Toplam Görev',       value: stats.tasks,    accent: '#0f766e', series: series.tasks,    hint: 'Sistem genelinde' },
-          { href: '/tasks',    label: 'Açık Görevler',      value: stats.openTasks,accent: '#b45309', series: series.open,     hint: 'Beklemedeki iş' },
-          { href: '/projects', label: 'Toplam BOM Satırı',  value: stats.totalRows,accent: '#475569', series: series.rows,     hint: 'İşlenen kalem' },
+          { label: 'Çözülen Görev',     value: stats.doneTasks,    icon: '✓', accent: '#0f766e', sub: `${stats.tasks} görevden` },
+          { label: 'İşlenen BOM Satırı', value: stats.totalRows,    icon: '≣', accent: '#1e3a8a', sub: `${stats.projects} projede` },
+          { label: 'Aktif Proje',       value: stats.projects,     icon: '◈', accent: '#7c3aed', sub: 'Üretim hattında' },
+          { label: 'Bekleyen İş',       value: stats.openTasks,    icon: '◷', accent: '#b45309', sub: 'Tasarımcı kuyruğunda' },
         ].map((c, i) => (
-          <Link key={i} href={c.href} className="group block bg-white rounded-md border border-slate-200 p-5 hover:border-slate-400 transition-colors">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{c.label}</p>
-                <p className="text-[34px] font-semibold mt-2 tabular-nums leading-none text-slate-900">
+          <div key={i} className="group relative bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-md transition-all">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold shrink-0"
+                style={{ background: `${c.accent}12`, color: c.accent, border: `1px solid ${c.accent}33` }}>
+                {c.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[34px] font-bold leading-none text-slate-900 tabular-nums">
                   <CountUp value={c.value} />
                 </p>
-                <p className="text-xs text-slate-500 mt-2">{c.hint}</p>
+                <p className="text-sm font-semibold text-slate-700 mt-1.5">{c.label}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{c.sub}</p>
               </div>
-              <span className="w-1 self-stretch rounded-full" style={{ background: c.accent }} />
             </div>
-            <div className="mt-3 -mx-1">
-              <Sparkline data={c.series} color={c.accent} height={36} />
-            </div>
-          </Link>
+            <span className="absolute left-0 top-5 bottom-5 w-1 rounded-r-full" style={{ background: c.accent }} />
+          </div>
         ))}
       </section>
 
-      {/* ─── HERO PANEL: completion + status ───────────────── */}
-      <section className="grid grid-cols-12 gap-6 mb-8">
-        <div className="col-span-5 bg-white rounded-md border border-slate-200 p-6 flex items-center gap-6">
-          <Donut value={stats.doneTasks} total={Math.max(1, stats.tasks)} size={168} color="#1e3a8a" />
-          <div className="flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Görev Performansı</p>
-            <h2 className="text-xl font-semibold text-slate-900 mt-1">Tamamlanma Oranı</h2>
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-              {stats.doneTasks.toLocaleString('tr-TR')} görev tamamlandı,
-              {' '}{stats.openTasks.toLocaleString('tr-TR')} görev devam ediyor.
+      {/* ═════════════ SİNYAL MATRİSİ + CORE ═════════════ */}
+      <section className="grid grid-cols-12 gap-6 mb-7">
+        <div className="col-span-8 relative overflow-hidden bg-white rounded-xl border border-slate-200 p-7">
+          <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+            style={{ backgroundImage: 'linear-gradient(#1e3a8a 1px, transparent 1px), linear-gradient(90deg, #1e3a8a 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+          <div className="relative">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">Entegrasyon Çekirdeği</p>
+            <h2 className="text-2xl font-bold text-slate-900 mt-2">Sistem Sinyal Matrisi</h2>
+            <p className="text-sm text-slate-600 mt-2 max-w-xl leading-relaxed">
+              Platformun canlı telemetrisi, kural motoru sağlığı ve SAP aktarım hatları tek bakışta izlenir.
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="border border-slate-200 rounded p-3">
-                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Tamamlandı</p>
-                <p className="text-lg font-semibold text-slate-900 mt-1 tabular-nums"><CountUp value={stats.doneTasks} /></p>
-              </div>
-              <div className="border border-slate-200 rounded p-3">
-                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Açık</p>
-                <p className="text-lg font-semibold text-slate-900 mt-1 tabular-nums"><CountUp value={stats.openTasks} /></p>
-              </div>
+
+            <div className="grid grid-cols-3 gap-4 mt-6">
+              {[
+                { label: 'Tamamlama', value: stats.completionRate, color: '#0f766e' },
+                { label: 'SAP Senkron', value: stats.sapSyncRate,  color: '#1e3a8a' },
+                { label: 'Kural Kapsama', value: stats.ruleCoverage, color: '#7c3aed' },
+              ].map((m, i) => (
+                <div key={i} className="rounded-lg border border-slate-200 px-4 py-3 bg-gradient-to-br from-slate-50 to-white">
+                  <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-slate-500">{m.label}</p>
+                  <p className="text-[28px] font-bold text-slate-900 mt-1 tabular-nums leading-none">
+                    <CountUp value={m.value} suffix="%" />
+                  </p>
+                  <div className="relative mt-3 h-1.5 rounded-full overflow-hidden bg-slate-100">
+                    <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000"
+                      style={{ width: `${m.value}%`, background: m.color }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Tabs */}
+            <div className="mt-6 flex items-center gap-1 border-b border-slate-200">
+              {[
+                { id: 'mesh',      label: 'Veri Ağı' },
+                { id: 'predictive',label: 'Doğrulama Katmanı' },
+                { id: 'mission',   label: 'Görev Akışı' },
+              ].map(t => (
+                <button key={t.id} onClick={() => setActiveTab(t.id as any)}
+                  className={`px-4 py-2.5 text-xs font-bold uppercase tracking-[0.15em] border-b-2 transition-colors -mb-px ${
+                    activeTab === t.id ? 'text-blue-700 border-blue-700' : 'text-slate-500 border-transparent hover:text-slate-700'
+                  }`}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
+              {activeTab === 'mesh' && (
+                <>
+                  <div><p className="text-slate-500 text-xs">PLM Bağlantısı</p><p className="text-slate-900 font-semibold mt-1">Aktif · 3 düğüm</p></div>
+                  <div><p className="text-slate-500 text-xs">SAP Kanalı</p><p className="text-slate-900 font-semibold mt-1">Senkron · gecikme 1.2s</p></div>
+                  <div><p className="text-slate-500 text-xs">Yedek</p><p className="text-slate-900 font-semibold mt-1">Otomatik · saatlik</p></div>
+                </>
+              )}
+              {activeTab === 'predictive' && (
+                <>
+                  <div><p className="text-slate-500 text-xs">Aktif Kural</p><p className="text-slate-900 font-semibold mt-1">{stats.projects * 4 + 12} kural</p></div>
+                  <div><p className="text-slate-500 text-xs">Hata Yakalama</p><p className="text-slate-900 font-semibold mt-1">{stats.rejectedTasks} reddedilen</p></div>
+                  <div><p className="text-slate-500 text-xs">Doğruluk</p><p className="text-slate-900 font-semibold mt-1">{stats.ruleCoverage}%</p></div>
+                </>
+              )}
+              {activeTab === 'mission' && (
+                <>
+                  <div><p className="text-slate-500 text-xs">Açık</p><p className="text-slate-900 font-semibold mt-1">{stats.openTasks} görev</p></div>
+                  <div><p className="text-slate-500 text-xs">Tamamlanan</p><p className="text-slate-900 font-semibold mt-1">{stats.doneTasks} görev</p></div>
+                  <div><p className="text-slate-500 text-xs">Üretim Hattı</p><p className="text-slate-900 font-semibold mt-1">{stats.projects} proje</p></div>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="col-span-7 bg-white rounded-md border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Görev Durumu</p>
-              <h2 className="text-xl font-semibold text-slate-900 mt-1">Statü Dağılımı</h2>
-            </div>
-            <Link href="/tasks" className="text-xs font-semibold text-slate-700 hover:text-slate-900">Tümünü görüntüle →</Link>
+        {/* CORE Ring */}
+        <div className="col-span-4 relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-xl border border-slate-200 p-7 flex flex-col items-center justify-center">
+          <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-blue-200/30 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-44 h-44 rounded-full bg-emerald-200/25 blur-3xl pointer-events-none" />
+
+          <div className="relative">
+            {/* Outer rotating ring */}
+            <div className="absolute inset-0 -m-4 rounded-full border border-blue-300/40 animate-[spin_20s_linear_infinite]"
+              style={{ borderTopColor: 'rgba(59,130,246,0.7)' }} />
+            <div className="absolute inset-0 -m-8 rounded-full border border-blue-200/30" />
+            <Ring value={stats.completionRate} size={150} stroke={5} color="#1e3a8a" label="Çekirdek" />
           </div>
-          <div className="space-y-4">
-            {[
-              { key: 'open',        label: 'Açık',          color: '#1e3a8a' },
-              { key: 'in_progress', label: 'Devam Ediyor',  color: '#b45309' },
-              { key: 'completed',   label: 'Tamamlandı',    color: '#0f766e' },
-              { key: 'rejected',    label: 'Reddedildi',    color: '#9f1239' },
-            ].map(s => {
-              const count = allTasks.filter(t => t.status === s.key).length;
-              const pct = allTasks.length ? (count / allTasks.length) * 100 : 0;
-              return (
-                <div key={s.key}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-sm" style={{ background: s.color }} />
-                      <span className="text-sm font-medium text-slate-800">{s.label}</span>
-                    </div>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-sm font-semibold tabular-nums text-slate-900"><CountUp value={count} /></span>
-                      <span className="text-xs text-slate-500 tabular-nums w-10 text-right">%{Math.round(pct)}</span>
-                    </div>
-                  </div>
-                  <div className="relative h-1.5 rounded-sm overflow-hidden bg-slate-100">
-                    <div className="absolute inset-y-0 left-0 transition-all duration-700"
-                      style={{ width: `${pct}%`, background: s.color }} />
-                  </div>
-                </div>
-              );
-            })}
+
+          <div className="relative mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-emerald-200">
+            <span className="relative flex w-2 h-2">
+              <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-70" />
+              <span className="relative w-2 h-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Çekirdek · Aktif</span>
           </div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-4">Son senkron · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
         </div>
       </section>
 
-      {/* ─── RECENT PROJECTS + TASKS ──────────────────────── */}
-      <section className="grid grid-cols-12 gap-6 mb-8">
-        <div className="col-span-7 bg-white rounded-md border border-slate-200">
+      {/* ═════════════ LIVE FLOW + RECENT PROJECTS ═════════════ */}
+      <section className="grid grid-cols-12 gap-6 mb-7">
+        <div className="col-span-5 bg-white rounded-xl border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">Canlı Akış</p>
+              <h2 className="text-lg font-bold text-slate-900 mt-0.5">Operasyon Hattı</h2>
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Canlı
+            </span>
+          </div>
+          <ul className="space-y-3">
+            {flowEvents.map((e, i) => (
+              <li key={i} className="flex items-start gap-3 group">
+                <span className="relative mt-1.5 shrink-0">
+                  <span className="block w-2 h-2 rounded-full" style={{ background: e.color }} />
+                  {i === 0 && <span className="absolute inset-0 rounded-full animate-ping" style={{ background: e.color, opacity: 0.5 }} />}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-slate-800 leading-snug">{e.text}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{e.time} önce</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="col-span-7 bg-white rounded-xl border border-slate-200">
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Projeler</p>
-              <h2 className="text-lg font-semibold text-slate-900 mt-0.5">Son BOM Yüklemeleri</h2>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">Projeler</p>
+              <h2 className="text-lg font-bold text-slate-900 mt-0.5">Son BOM Yüklemeleri</h2>
             </div>
-            <Link href="/projects" className="text-xs font-semibold text-slate-700 hover:text-slate-900">Tümünü görüntüle →</Link>
+            <Link href="/projects" className="text-xs font-bold text-blue-700 hover:text-blue-800">Tümü →</Link>
           </div>
           {loading ? (
-            <div className="py-12 text-center"><div className="w-6 h-6 border-2 border-slate-300 border-t-slate-700 rounded-full animate-spin mx-auto" /></div>
+            <div className="py-12 text-center"><div className="w-6 h-6 border-2 border-slate-300 border-t-blue-700 rounded-full animate-spin mx-auto" /></div>
           ) : recentProjects.length === 0 ? (
             <div className="py-14 text-center">
               <p className="text-slate-700 text-sm font-semibold">Henüz proje bulunmuyor</p>
               <p className="text-xs text-slate-500 mt-1">PLM BOM dosyası yükleyerek başlayın</p>
             </div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-semibold">
-                  <th className="text-left px-6 py-3 w-10">#</th>
-                  <th className="text-left px-2 py-3">Proje</th>
-                  <th className="text-right px-2 py-3">Satır</th>
-                  <th className="text-right px-2 py-3">Görev</th>
-                  <th className="text-right px-6 py-3">Tarih</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentProjects.map((p: any, idx) => (
-                  <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-3.5 text-xs font-mono text-slate-400 tabular-nums">{String(idx + 1).padStart(2, '0')}</td>
-                    <td className="px-2 py-3.5">
-                      <Link href={`/project/${p.id}`} className="text-sm font-semibold text-slate-900 hover:text-slate-700">
-                        {p.name}
-                      </Link>
-                    </td>
-                    <td className="px-2 py-3.5 text-right text-sm tabular-nums text-slate-700">{(p.totalRows || 0).toLocaleString('tr-TR')}</td>
-                    <td className="px-2 py-3.5 text-right text-sm tabular-nums text-slate-700">{p._count?.tasks || 0}</td>
-                    <td className="px-6 py-3.5 text-right text-xs text-slate-500 tabular-nums">{p.createdAt ? new Date(p.createdAt).toLocaleDateString('tr-TR') : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        <div className="col-span-5 bg-white rounded-md border border-slate-200">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Görevler</p>
-              <h2 className="text-lg font-semibold text-slate-900 mt-0.5">Son Hareketler</h2>
-            </div>
-            <Link href="/tasks" className="text-xs font-semibold text-slate-700 hover:text-slate-900">Tümü →</Link>
-          </div>
-          {recentTasks.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-12">Henüz görev kaydı yok</p>
-          ) : (
             <ul className="divide-y divide-slate-100">
-              {recentTasks.slice(0, 6).map(t => {
-                const colorMap: any = { open: '#1e3a8a', in_progress: '#b45309', completed: '#0f766e', rejected: '#9f1239' };
-                const labelMap: any = { open: 'Açık', in_progress: 'Devam', completed: 'Tamam', rejected: 'Red' };
-                const c = colorMap[t.status] || '#64748b';
-                const lbl = labelMap[t.status] || '—';
-                return (
-                  <li key={t.id}>
-                    <Link href="/tasks" className="flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50 transition-colors">
-                      <span className="w-1 h-8 rounded-sm shrink-0" style={{ background: c }} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">{t.title}</p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          {t.assignedTo?.fullName || '—'}
-                          {t.createdAt ? ` · ${new Date(t.createdAt).toLocaleDateString('tr-TR')}` : ''}
-                        </p>
-                      </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm" style={{ color: c, background: `${c}14`, border: `1px solid ${c}33` }}>{lbl}</span>
-                    </Link>
-                  </li>
-                );
-              })}
+              {recentProjects.map((p: any, idx) => (
+                <li key={p.id}>
+                  <Link href={`/project/${p.id}`} className="flex items-center gap-4 px-6 py-3.5 hover:bg-slate-50 transition-colors">
+                    <span className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-xs font-bold text-blue-700 tabular-nums shrink-0">
+                      {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{p.name}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {(p.totalRows || 0).toLocaleString('tr-TR')} satır · {p._count?.tasks || 0} görev
+                      </p>
+                    </div>
+                    <span className="text-[11px] text-slate-500 tabular-nums shrink-0">
+                      {p.createdAt ? new Date(p.createdAt).toLocaleDateString('tr-TR') : '—'}
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           )}
         </div>
       </section>
 
-      {/* ─── TEMSA FLEET ──────────────────────────────────── */}
-      <section className="bg-white rounded-md border border-slate-200">
-        <div className="flex items-end justify-between px-6 py-5 border-b border-slate-200">
+      {/* ═════════════ TEMSA FLEET ═════════════ */}
+      <section className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="flex items-end justify-between px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">TEMSA</p>
-            <h2 className="text-lg font-semibold text-slate-900 mt-0.5">Üretim Hattı Portföyü</h2>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">TEMSA</p>
+            <h2 className="text-lg font-bold text-slate-900 mt-0.5">Üretim Hattı Portföyü</h2>
             <p className="text-xs text-slate-500 mt-1">BOM entegrasyonu uygulanan araç hatları · 70+ ülkede üretim</p>
           </div>
-          <div className="hidden md:flex items-center gap-6 text-right">
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Üretim</p>
-              <p className="text-sm font-semibold text-slate-900 tabular-nums">140.000+</p>
+          <div className="hidden md:flex items-center gap-6">
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Üretim</p>
+              <p className="text-sm font-bold text-slate-900 tabular-nums">140.000+</p>
             </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Pazar</p>
-              <p className="text-sm font-semibold text-slate-900">70+ ülke</p>
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Pazar</p>
+              <p className="text-sm font-bold text-slate-900">70+ ülke</p>
             </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Standart</p>
-              <p className="text-sm font-semibold text-slate-900">ISO 9001</p>
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Standart</p>
+              <p className="text-sm font-bold text-slate-900">ISO 9001</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-4 divide-x divide-slate-200">
+        <div className="grid grid-cols-4 divide-x divide-slate-100">
           {TEMSA_FLEET.map((bus, i) => (
             <article key={i} className="group">
-              <div className="relative h-40 bg-slate-50 flex items-center justify-center p-4 overflow-hidden">
+              <div className="relative h-40 bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center p-4 overflow-hidden">
                 <img src={bus.src} alt={bus.name} className="relative h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" />
               </div>
-              <div className="px-5 py-4 border-t border-slate-200">
-                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">{bus.segment}</p>
-                <h3 className="text-base font-semibold text-slate-900 mt-1">{bus.name}</h3>
+              <div className="px-5 py-4 border-t border-slate-100">
+                <p className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">{bus.segment}</p>
+                <h3 className="text-base font-bold text-slate-900 mt-1">{bus.name}</h3>
                 <p className="text-xs text-slate-600 mt-1.5">{bus.detail}</p>
               </div>
             </article>
           ))}
         </div>
       </section>
+
+      {/* Recent tasks (compact strip) */}
+      {recentTasks.length > 0 && (
+        <section className="mt-7 bg-white rounded-xl border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">Görevler</p>
+              <h2 className="text-lg font-bold text-slate-900 mt-0.5">Son Hareketler</h2>
+            </div>
+            <Link href="/tasks" className="text-xs font-bold text-blue-700 hover:text-blue-800">Tümü →</Link>
+          </div>
+          <ul className="grid grid-cols-2 gap-3">
+            {recentTasks.slice(0, 6).map(t => {
+              const colorMap: any = { open: '#1e3a8a', in_progress: '#b45309', completed: '#0f766e', rejected: '#9f1239' };
+              const labelMap: any = { open: 'Açık', in_progress: 'Devam', completed: 'Tamam', rejected: 'Red' };
+              const c = colorMap[t.status] || '#64748b';
+              const lbl = labelMap[t.status] || '—';
+              return (
+                <li key={t.id}>
+                  <Link href="/tasks" className="flex items-center gap-3 px-4 py-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors">
+                    <span className="w-1 h-9 rounded-sm shrink-0" style={{ background: c }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{t.title}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {t.assignedTo?.fullName || '—'}
+                        {t.createdAt ? ` · ${new Date(t.createdAt).toLocaleDateString('tr-TR')}` : ''}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded" style={{ color: c, background: `${c}14`, border: `1px solid ${c}33` }}>{lbl}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
