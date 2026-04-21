@@ -133,50 +133,46 @@ export default function LoginPage() {
       {/* Right: Login form */}
       <div className="relative z-10 w-full max-w-[460px] flex items-center justify-center p-6 lg:p-12 ml-auto">
         <div className="w-full animate-slide-up">
-          <div className="glass-strong rounded-2xl p-8 shadow-2xl shadow-black/30 relative overflow-hidden border border-white/[0.08]">
-            {/* Card top accent */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/60 to-transparent" />
+          <div className="bg-white rounded-2xl p-8 shadow-[0_20px_70px_-10px_rgba(0,0,0,0.5)] border border-slate-200 relative overflow-hidden">
+            {/* Card top red accent */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600" />
 
-            {/* Decorative bus silhouette */}
-            <div className="absolute -right-8 -bottom-4 opacity-[0.03]">
-              <svg width="200" height="80" viewBox="0 0 200 80" fill="white">
-                <rect x="10" y="20" width="180" height="45" rx="8" />
-                <rect x="15" y="25" width="25" height="20" rx="3" />
-                <rect x="45" y="25" width="25" height="20" rx="3" />
-                <rect x="75" y="25" width="25" height="20" rx="3" />
-                <rect x="105" y="25" width="25" height="20" rx="3" />
-                <rect x="135" y="25" width="25" height="20" rx="3" />
-                <circle cx="45" cy="70" r="10" />
-                <circle cx="155" cy="70" r="10" />
-              </svg>
+            {/* TEMSA brand corner */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-sm">
+                <svg width="16" height="16" viewBox="0 0 30 30" fill="none" className="text-white">
+                  <path d="M4 7h22v4H4zM4 13h16v4H4zM4 19h20v4H4z" fill="currentColor" />
+                </svg>
+              </div>
+              <span className="text-[10px] text-slate-500 tracking-[0.2em] font-semibold uppercase">Güvenli Giriş</span>
             </div>
 
-            <h2 className="text-xl font-bold text-white mb-1">
+            <h2 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
               {isRegister ? 'Hesap Oluştur' : 'Hoş Geldiniz'}
             </h2>
-            <p className="text-sm text-slate-500 mb-6">
-              {isRegister ? 'Yeni hesap oluşturun' : 'Hesabınıza giriş yapın'}
+            <p className="text-sm text-slate-600 mb-6">
+              {isRegister ? 'Yeni TEMSA hesabı oluşturun' : 'TEMSA hesabınıza giriş yapın'}
             </p>
 
             {error && (
-              <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2.5">
+              <div className="mb-5 p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2.5">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
                   <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
                   <path d="M8 5v3M8 10v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                {error}
+                <span className="font-medium">{error}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {isRegister && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-2">Ad Soyad</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Ad Soyad</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="input-glass"
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 text-sm transition-all"
                     placeholder="Oğuzhan İnandı"
                     required
                   />
@@ -184,24 +180,24 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">Email</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input-glass"
+                  className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 text-sm transition-all"
                   placeholder="email@temsa.com"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">Şifre</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Şifre</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-glass"
+                  className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 text-sm transition-all"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -211,10 +207,10 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl font-semibold text-white btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 mt-6"
+                className="w-full py-3.5 rounded-lg font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-600/20 hover:shadow-red-600/30 flex items-center justify-center gap-2 mt-6 transition-all"
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                 ) : isRegister ? (
                   'Kayıt Ol'
                 ) : (
@@ -223,17 +219,17 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 pt-6 border-t border-slate-100 text-center">
               <button
                 onClick={() => { setIsRegister(!isRegister); setError(''); }}
-                className="text-sm text-slate-500 hover:text-blue-400 transition-colors duration-200"
+                className="text-sm text-slate-600 hover:text-red-600 transition-colors duration-200 font-medium"
               >
                 {isRegister ? 'Zaten hesabınız var mı? Giriş yapın' : 'Hesabınız yok mu? Kayıt olun'}
               </button>
             </div>
           </div>
 
-          <p className="text-center text-[11px] text-slate-600 mt-6">
+          <p className="text-center text-[11px] text-white/70 mt-6 drop-shadow">
             TEMSA Digital Solutions — Entegrasyon Takımı © 2026
           </p>
         </div>

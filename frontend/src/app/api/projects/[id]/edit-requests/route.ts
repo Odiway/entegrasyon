@@ -94,7 +94,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           userId: a.id,
           type: 'edit_request',
           message: `${user.fullName} — "${label}" düzenleme talebi (#${item.rowNumber} ${item.title?.substring(0, 40)})`,
-          taskId: null,
+          // For edit_request notifications, store projectId in taskId to enable deep-link routing
+          taskId: projectId,
         })),
       });
     }

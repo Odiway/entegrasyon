@@ -206,8 +206,13 @@ export default function Sidebar() {
               {notifications.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-500">Bildirim yok</div>
               ) : (
-                notifications.slice(0, 20).map(n => (
-                  <Link key={n.id} href="/tasks" onClick={() => setShowNotifs(false)}
+                notifications.slice(0, 20).map(n => {
+                  // Route based on notification type
+                  const href = n.type === 'edit_request' && n.taskId
+                    ? `/project/${n.taskId}?view=edit-requests`
+                    : '/tasks';
+                  return (
+                  <Link key={n.id} href={href} onClick={() => setShowNotifs(false)}
                     className={`block px-4 py-3 border-b border-blue-50 hover:bg-blue-50 transition-colors ${
                       !n.isRead ? 'bg-blue-50/70' : ''
                     }`}>
@@ -219,7 +224,8 @@ export default function Sidebar() {
                       </div>
                     </div>
                   </Link>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

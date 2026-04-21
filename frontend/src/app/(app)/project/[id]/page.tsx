@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import {
   getProject, getItems, getStats, getNav, updateItem, getItemHistory,
@@ -56,6 +56,7 @@ const CHART_BARS = ['#2E86C1', '#16A34A', '#7C3AED', '#EA580C', '#0891B2', '#DC2
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const projectId = Number(id);
   const tableRef = useRef<HTMLDivElement>(null);
@@ -376,6 +377,13 @@ export default function ProjectDetailPage() {
   }, [projectId, isAdmin]);
 
   useEffect(() => { loadEditRequests(); }, [loadEditRequests]);
+
+  // Auto-open edit requests approval modal when ?view=edit-requests
+  useEffect(() => {
+    if (searchParams.get('view') === 'edit-requests') {
+      setShowEditRequests(true);
+    }
+  }, [searchParams]);
 
   const handleReviewRequest = async (reqId: number, status: 'approved' | 'rejected') => {
     try {
@@ -1177,15 +1185,15 @@ export default function ProjectDetailPage() {
 
       {/* EDIT MODAL — 3 Options (Engineer → Admin Approval) */}
       {editItem && editMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={cancelEdit}>
-          <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white mb-1">Düzenleme Talebi</h3>
-            <p className="text-xs text-slate-400 mb-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" onClick={cancelEdit}>
+          <div className="bg-white border border-slate-200 rounded-2xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500" />
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Düzenleme Talebi</h3>
+            <p className="text-xs text-slate-500 mb-2">
               #{editItem.rowNumber} · L{editItem.level} · {editItem.title}
               {editItem.montajNo ? ` · ${editItem.montajNo}` : ''}
             </p>
-            <p className="text-[10px] text-amber-300/70 mb-5 flex items-center gap-1">
+            <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mb-5 inline-flex items-center gap-1.5 font-medium">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1"/><path d="M5 3v2.5M5 7v.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/></svg>
               Admin onayı gerektirir
             </p>
@@ -1193,38 +1201,38 @@ export default function ProjectDetailPage() {
             {editMode === 'select' && (
               <div className="space-y-3">
                 <button onClick={() => setEditMode('adet')}
-                  className="w-full text-left px-5 py-4 rounded-2xl bg-blue-500/[0.08] border border-blue-400/20 hover:bg-blue-500/[0.15] hover:border-blue-400/40 transition-all group">
+                  className="w-full text-left px-5 py-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all group">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M5 9h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M5 9h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white group-hover:text-blue-200 transition-colors">Adet Yanlışlığı</p>
-                      <p className="text-[11px] text-slate-400">Doğru miktarı girin</p>
+                      <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">Adet Yanlışlığı</p>
+                      <p className="text-[11px] text-slate-600">Doğru miktarı girin</p>
                     </div>
                   </div>
                 </button>
                 <button onClick={() => setEditMode('siparis_hayir')}
-                  className="w-full text-left px-5 py-4 rounded-2xl bg-red-500/[0.08] border border-red-400/20 hover:bg-red-500/[0.15] hover:border-red-400/40 transition-all group">
+                  className="w-full text-left px-5 py-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all group">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-300 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5l8 8M13 5l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5l8 8M13 5l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white group-hover:text-red-200 transition-colors">Sipariş Edilmemeli</p>
-                      <p className="text-[11px] text-slate-400">Açıklama / yorum girin</p>
+                      <p className="text-sm font-semibold text-slate-900 group-hover:text-red-700 transition-colors">Sipariş Edilmemeli</p>
+                      <p className="text-[11px] text-slate-600">Açıklama / yorum girin</p>
                     </div>
                   </div>
                 </button>
                 <button onClick={() => setEditMode('malzeme_eksik')}
-                  className="w-full text-left px-5 py-4 rounded-2xl bg-amber-500/[0.08] border border-amber-400/20 hover:bg-amber-500/[0.15] hover:border-amber-400/40 transition-all group">
+                  className="w-full text-left px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition-all group">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-300 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5"/><path d="M9 6v4M9 12.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center text-white shrink-0 shadow-sm">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.8"/><path d="M9 6v4M9 12.5v.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white group-hover:text-amber-200 transition-colors">Malzeme Eksikliği</p>
-                      <p className="text-[11px] text-slate-400">İlgili montaja ait sipariş edilecek malzeme eksik</p>
+                      <p className="text-sm font-semibold text-slate-900 group-hover:text-amber-700 transition-colors">Malzeme Eksikliği</p>
+                      <p className="text-[11px] text-slate-600">İlgili montaja ait sipariş edilecek malzeme eksik</p>
                     </div>
                   </div>
                 </button>
@@ -1234,61 +1242,61 @@ export default function ProjectDetailPage() {
             {editMode === 'adet' && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Mevcut Miktar</label>
-                  <div className="px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-300 text-sm font-mono">{editItem.quantity ?? '—'}</div>
+                  <label className="text-[11px] text-slate-700 font-semibold block mb-1.5">Mevcut Miktar</label>
+                  <div className="px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-sm font-mono">{editItem.quantity ?? '—'}</div>
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Doğru Miktar</label>
+                  <label className="text-[11px] text-slate-700 font-semibold block mb-1.5">Doğru Miktar</label>
                   <input type="number" step="any" value={editValue} onChange={e => setEditValue(e.target.value)} autoFocus
-                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-blue-400/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-400/60 text-sm" placeholder="Doğru miktarı girin" />
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-blue-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm" placeholder="Doğru miktarı girin" />
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama <span className="text-red-400">*</span></label>
+                  <label className="text-[11px] text-slate-700 font-semibold block mb-1.5">Açıklama <span className="text-red-600">*</span></label>
                   <textarea value={editComment} onChange={e => setEditComment(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-blue-400/40 text-sm h-20 resize-none" placeholder="Neden adet değişikliği gerekiyor?" />
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm h-20 resize-none" placeholder="Neden adet değişikliği gerekiyor?" />
                 </div>
                 <div className="flex gap-3 justify-end pt-2">
-                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
+                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-all font-medium">Geri</button>
                   <button onClick={handleEditSubmit} disabled={!editValue || !editComment}
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-blue-500/80 text-white hover:bg-blue-500 disabled:opacity-40 transition-all">Talep Gönder</button>
+                    className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">Talep Gönder</button>
                 </div>
               </div>
             )}
 
             {editMode === 'siparis_hayir' && (
               <div className="space-y-4">
-                <div className="px-4 py-3 rounded-xl bg-red-500/[0.08] border border-red-400/15">
-                  <p className="text-xs text-red-200 font-medium">Bu kalem "Sipariş Edilmemeli" olarak işaretlenecek</p>
-                  <p className="text-[10px] text-red-300/60 mt-0.5">Sipariş durumu HAYIR olarak güncellenecek</p>
+                <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200">
+                  <p className="text-xs text-red-800 font-semibold">Bu kalem "Sipariş Edilmemeli" olarak işaretlenecek</p>
+                  <p className="text-[10px] text-red-600 mt-0.5">Sipariş durumu HAYIR olarak güncellenecek</p>
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama <span className="text-red-400">*</span></label>
+                  <label className="text-[11px] text-slate-700 font-semibold block mb-1.5">Açıklama <span className="text-red-600">*</span></label>
                   <textarea value={editComment} onChange={e => setEditComment(e.target.value)} autoFocus
-                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-red-400/40 text-sm h-24 resize-none" placeholder="Neden sipariş edilmemeli? Detaylı açıklama yazın" />
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 text-sm h-24 resize-none" placeholder="Neden sipariş edilmemeli? Detaylı açıklama yazın" />
                 </div>
                 <div className="flex gap-3 justify-end pt-2">
-                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
+                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-all font-medium">Geri</button>
                   <button onClick={handleEditSubmit} disabled={!editComment}
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-red-500/80 text-white hover:bg-red-500 disabled:opacity-40 transition-all">Talep Gönder</button>
+                    className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">Talep Gönder</button>
                 </div>
               </div>
             )}
 
             {editMode === 'malzeme_eksik' && (
               <div className="space-y-4">
-                <div className="px-4 py-3 rounded-xl bg-amber-500/[0.08] border border-amber-400/15">
-                  <p className="text-xs text-amber-200 font-medium">İlgili montaja ait sipariş edilecek malzeme eksikliği</p>
-                  <p className="text-[10px] text-amber-300/60 mt-0.5">Kalem inceleme gerektiren olarak işaretlenecek</p>
+                <div className="px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-xs text-amber-800 font-semibold">İlgili montaja ait sipariş edilecek malzeme eksikliği</p>
+                  <p className="text-[10px] text-amber-700 mt-0.5">Kalem inceleme gerektiren olarak işaretlenecek</p>
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 font-medium block mb-1.5">Açıklama <span className="text-red-400">*</span></label>
+                  <label className="text-[11px] text-slate-700 font-semibold block mb-1.5">Açıklama <span className="text-red-600">*</span></label>
                   <textarea value={editComment} onChange={e => setEditComment(e.target.value)} autoFocus
-                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/40 text-sm h-24 resize-none" placeholder="Eksik malzeme detaylarını yazın" />
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 text-sm h-24 resize-none" placeholder="Eksik malzeme detaylarını yazın" />
                 </div>
                 <div className="flex gap-3 justify-end pt-2">
-                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">Geri</button>
+                  <button onClick={() => setEditMode('select')} className="px-4 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-all font-medium">Geri</button>
                   <button onClick={handleEditSubmit} disabled={!editComment}
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-amber-500/80 text-white hover:bg-amber-500 disabled:opacity-40 transition-all">Talep Gönder</button>
+                    className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">Talep Gönder</button>
                 </div>
               </div>
             )}
@@ -1298,31 +1306,31 @@ export default function ProjectDetailPage() {
 
       {/* TASK MODAL */}
       {showTaskModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={() => setShowTaskModal(false)}>
-          <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white mb-1">Ticket Oluştur</h3>
-            <p className="text-xs text-slate-400 mb-6">{selectedItems.size} kalem seçili</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" onClick={() => setShowTaskModal(false)}>
+          <div className="bg-white border border-slate-200 rounded-2xl p-7 w-full max-w-md shadow-2xl animate-slide-up relative overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-violet-600 to-violet-500" />
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Ticket Oluştur</h3>
+            <p className="text-xs text-slate-500 mb-6">{selectedItems.size} kalem seçili</p>
             <div className="space-y-4">
               <input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Ticket başlığı"
-                className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-purple-400/40 text-sm" />
+                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 text-sm" />
               <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} placeholder="Açıklama (opsiyonel)"
-                className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white placeholder-slate-500 focus:outline-none focus:border-purple-400/40 text-sm h-24 resize-none" />
+                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 text-sm h-24 resize-none" />
               <div className="grid grid-cols-2 gap-3">
-                <div className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 text-sm flex items-center gap-2">
+                <div className="px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-sm flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1a6 6 0 100 12A6 6 0 007 1z" stroke="currentColor" strokeWidth="1.2"/><path d="M5 7h4M7 5v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
                   Admin'e atanacak
                 </div>
                 <select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}
-                  className="px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-slate-200 focus:outline-none text-sm">
+                  className="px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 text-sm">
                   <option value="low">Düşük</option><option value="medium">Orta</option><option value="high">Yüksek</option><option value="critical">Kritik</option>
                 </select>
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowTaskModal(false)} className="px-5 py-2.5 rounded-xl text-sm text-slate-400 hover:bg-white/[0.06] transition-all">İptal</button>
+              <button onClick={() => setShowTaskModal(false)} className="px-5 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-all font-medium">İptal</button>
               <button onClick={handleCreateTask} disabled={!taskTitle || taskCreating}
-                className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-purple-500/80 text-white hover:bg-purple-500 disabled:opacity-40 transition-all">
+                className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
                 {taskCreating ? 'Oluşturuluyor...' : 'Ticket Oluştur'}
               </button>
             </div>
@@ -1332,63 +1340,69 @@ export default function ProjectDetailPage() {
 
       {/* EDIT REQUESTS APPROVAL MODAL (Admin) */}
       {showEditRequests && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={() => setShowEditRequests(false)}>
-          <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white mb-1">Onay Bekleyen Düzenleme Talepleri</h3>
-            <p className="text-xs text-slate-400 mb-5">{editRequests.length} talep bekliyor</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" onClick={() => setShowEditRequests(false)}>
+          <div className="bg-white border border-slate-200 rounded-2xl p-7 w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl animate-slide-up relative" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500" />
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Onay Bekleyen Düzenleme Talepleri</h3>
+            <p className="text-xs text-slate-500 mb-5">{editRequests.length} talep bekliyor</p>
             {editRequests.length === 0 ? (
-              <p className="text-sm text-slate-400 py-8 text-center">Bekleyen talep yok</p>
+              <div className="py-12 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-emerald-600"><path d="M4 10.5l4 4 8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <p className="text-sm text-slate-600 font-medium">Bekleyen talep yok</p>
+                <p className="text-xs text-slate-500 mt-1">Tüm talepler incelendi</p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {editRequests.map((req: any) => {
-                  const typeLabels: Record<string, { label: string; color: string; icon: string }> = {
-                    adet: { label: 'Adet Yanlışlığı', color: 'blue', icon: '±' },
-                    siparis_hayir: { label: 'Sipariş Edilmemeli', color: 'red', icon: '✕' },
-                    malzeme_eksik: { label: 'Malzeme Eksikliği', color: 'amber', icon: '!' },
+                  const typeStyles: Record<string, { label: string; bg: string; border: string; iconBg: string; textColor: string; icon: string }> = {
+                    adet: { label: 'Adet Yanlışlığı', bg: 'bg-blue-50', border: 'border-blue-200', iconBg: 'bg-blue-600', textColor: 'text-blue-700', icon: '±' },
+                    siparis_hayir: { label: 'Sipariş Edilmemeli', bg: 'bg-red-50', border: 'border-red-200', iconBg: 'bg-red-600', textColor: 'text-red-700', icon: '✕' },
+                    malzeme_eksik: { label: 'Malzeme Eksikliği', bg: 'bg-amber-50', border: 'border-amber-200', iconBg: 'bg-amber-500', textColor: 'text-amber-700', icon: '!' },
                   };
-                  const t = typeLabels[req.editType] || { label: req.editType, color: 'slate', icon: '?' };
+                  const t = typeStyles[req.editType] || { label: req.editType, bg: 'bg-slate-50', border: 'border-slate-200', iconBg: 'bg-slate-500', textColor: 'text-slate-700', icon: '?' };
                   return (
-                    <div key={req.id} className={`bg-white/[0.04] border border-${t.color}-400/20 rounded-xl p-4`}>
+                    <div key={req.id} className={`${t.bg} border ${t.border} rounded-xl p-4`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg bg-${t.color}-500/20 text-${t.color}-300 text-[10px] font-bold`}>{t.icon}</span>
-                            <span className={`text-xs font-semibold text-${t.color}-200`}>{t.label}</span>
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md ${t.iconBg} text-white text-[10px] font-bold shadow-sm`}>{t.icon}</span>
+                            <span className={`text-xs font-bold ${t.textColor}`}>{t.label}</span>
                             <span className="text-[10px] text-slate-500">{new Date(req.createdAt).toLocaleString('tr-TR')}</span>
                           </div>
                           {req.bomItem && (
-                            <p className="text-[11px] text-slate-300 mb-1.5">
-                              #{req.bomItem.rowNumber} · L{req.bomItem.level} · <span className="text-white font-medium">{req.bomItem.title}</span>
+                            <p className="text-[11px] text-slate-700 mb-1.5">
+                              #{req.bomItem.rowNumber} · L{req.bomItem.level} · <span className="text-slate-900 font-semibold">{req.bomItem.title}</span>
                               {req.bomItem.montajNo ? ` · ${req.bomItem.montajNo}` : ''}
                             </p>
                           )}
                           {req.editType === 'adet' && (
                             <div className="flex items-center gap-2 text-xs mb-1.5">
-                              <span className="text-red-300/70 line-through">{req.oldValue || '—'}</span>
-                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 5h4M5.5 3l2 2-2 2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
-                              <span className="text-emerald-200 font-medium">{req.newValue || '—'}</span>
+                              <span className="text-red-600 line-through font-mono">{req.oldValue || '—'}</span>
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-slate-500"><path d="M3 5h4M5.5 3l2 2-2 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                              <span className="text-emerald-700 font-bold font-mono">{req.newValue || '—'}</span>
                             </div>
                           )}
                           {req.comment && (
-                            <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 mt-1.5">
-                              <p className="text-[10px] text-slate-400 font-medium mb-0.5">Açıklama:</p>
-                              <p className="text-[11px] text-slate-200">{req.comment}</p>
+                            <div className="bg-white border border-slate-200 rounded-lg px-3 py-2 mt-1.5">
+                              <p className="text-[10px] text-slate-500 font-semibold mb-0.5">Açıklama:</p>
+                              <p className="text-[11px] text-slate-800">{req.comment}</p>
                             </div>
                           )}
                           <p className="text-[10px] text-slate-500 mt-1.5">
-                            Talep eden: <span className="text-slate-300">{req.requestedByUser?.fullName || '—'}</span>
+                            Talep eden: <span className="text-slate-800 font-medium">{req.requestedByUser?.fullName || '—'}</span>
                           </p>
                         </div>
                         <div className="flex flex-col gap-1.5 shrink-0">
                           <button onClick={() => handleReviewRequest(req.id, 'approved')}
-                            className="px-4 py-2 text-[11px] rounded-lg bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 font-semibold transition-all border border-emerald-400/25 flex items-center gap-1.5">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            className="px-4 py-2 text-[11px] rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 font-semibold transition-all shadow-sm flex items-center gap-1.5">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             Onayla
                           </button>
                           <button onClick={() => handleReviewRequest(req.id, 'rejected')}
-                            className="px-4 py-2 text-[11px] rounded-lg bg-red-500/15 text-red-300 hover:bg-red-500/25 font-semibold transition-all border border-red-400/20 flex items-center gap-1.5">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 3l4 4M7 3l-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                            className="px-4 py-2 text-[11px] rounded-lg bg-white text-red-700 hover:bg-red-50 font-semibold transition-all border border-red-300 flex items-center gap-1.5">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 3l4 4M7 3l-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                             Reddet
                           </button>
                         </div>
@@ -1398,39 +1412,39 @@ export default function ProjectDetailPage() {
                 })}
               </div>
             )}
-            <button onClick={() => setShowEditRequests(false)} className="mt-5 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-white/[0.06] w-full transition-all font-medium">Kapat</button>
+            <button onClick={() => setShowEditRequests(false)} className="mt-5 px-4 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-100 w-full transition-all font-semibold border border-slate-200">Kapat</button>
           </div>
         </div>
       )}
 
       {/* HISTORY MODAL */}
       {historyItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg" onClick={() => setHistoryItem(null)}>
-          <div className="bg-[#0d1117]/95 border border-white/[0.1] rounded-3xl p-7 w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-2xl animate-slide-up relative backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-            <h3 className="text-xl font-bold text-white mb-1">Değişiklik Geçmişi</h3>
-            <p className="text-xs text-slate-400 mb-5">#{historyItem.rowNumber} &middot; {historyItem.title}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" onClick={() => setHistoryItem(null)}>
+          <div className="bg-white border border-slate-200 rounded-2xl p-7 w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-2xl animate-slide-up relative" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-violet-600 to-violet-500" />
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Değişiklik Geçmişi</h3>
+            <p className="text-xs text-slate-500 mb-5">#{historyItem.rowNumber} &middot; {historyItem.title}</p>
             {historyData.length === 0 ? (
-              <p className="text-sm text-slate-400 py-8 text-center">Henüz değişiklik yok</p>
+              <p className="text-sm text-slate-600 py-8 text-center">Henüz değişiklik yok</p>
             ) : (
               <div className="space-y-3">
                 {historyData.map((log: any, i: number) => (
-                  <div key={i} className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
+                  <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-purple-200">{log.fieldName}</span>
-                      <span className="text-[10px] text-slate-400">{new Date(log.changedAt).toLocaleString('tr-TR')}</span>
+                      <span className="text-xs font-bold text-violet-700">{log.fieldName}</span>
+                      <span className="text-[10px] text-slate-500">{new Date(log.changedAt).toLocaleString('tr-TR')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="text-red-300/70 line-through">{log.oldValue || '\u2014'}</span>
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 5h4M5.5 3l2 2-2 2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
-                      <span className="text-emerald-200 font-medium">{log.newValue || '\u2014'}</span>
+                      <span className="text-red-600 line-through font-mono">{log.oldValue || '\u2014'}</span>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-slate-500"><path d="M3 5h4M5.5 3l2 2-2 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                      <span className="text-emerald-700 font-bold font-mono">{log.newValue || '\u2014'}</span>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1.5">{log.changedBy?.fullName || ''}</p>
+                    <p className="text-[10px] text-slate-500 mt-1.5 font-medium">{log.changedBy?.fullName || ''}</p>
                   </div>
                 ))}
               </div>
             )}
-            <button onClick={() => setHistoryItem(null)} className="mt-5 px-4 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-white/[0.06] w-full transition-all font-medium">Kapat</button>
+            <button onClick={() => setHistoryItem(null)} className="mt-5 px-4 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-100 w-full transition-all font-semibold border border-slate-200">Kapat</button>
           </div>
         </div>
       )}
