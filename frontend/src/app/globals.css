@@ -368,3 +368,122 @@ input.bg-white\/\[0\.05\], input[class*="bg-white/[0.0"], textarea.bg-white\/\[0
 h1.text-white, h2.text-white, h3.text-white, h4.text-white { color: #0f172a !important; }
 h1, h2, h3, h4 { color: #0f172a; }
 
+/* ============================================================ */
+/* SPECTACULAR FX — aurora blobs, neon, glow, grain, animations */
+/* ============================================================ */
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  pointer-events: none;
+  will-change: transform;
+}
+.aurora-blue  { width: 620px; height: 620px; top: -180px; left: -160px;  background: radial-gradient(circle at 30% 30%, #60a5fa 0%, transparent 60%); animation: auroraDrift 22s ease-in-out infinite; }
+.aurora-cyan  { width: 560px; height: 560px; bottom: -200px; right: -160px; background: radial-gradient(circle at 70% 70%, #22d3ee 0%, transparent 60%); animation: auroraDrift 28s ease-in-out infinite reverse; }
+.aurora-indigo{ width: 540px; height: 540px; top: 35%; left: 45%; background: radial-gradient(circle at 50% 50%, #818cf8 0%, transparent 60%); animation: auroraDrift 35s ease-in-out infinite; opacity: 0.32; }
+
+@keyframes auroraDrift {
+  0%   { transform: translate(0,0) scale(1); }
+  33%  { transform: translate(60px,-40px) scale(1.08); }
+  66%  { transform: translate(-50px,30px) scale(0.95); }
+  100% { transform: translate(0,0) scale(1); }
+}
+
+/* Glass surface upgraded for hero panels */
+.glass-hero {
+  background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(239,246,255,0.88) 100%);
+  border: 1px solid rgba(37,99,235,0.18);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  box-shadow:
+    0 24px 60px -20px rgba(37,99,235,0.25),
+    0 0 0 1px rgba(255,255,255,0.6) inset,
+    0 1px 0 rgba(255,255,255,0.9) inset;
+}
+
+/* Animated conic gradient border */
+.neon-border {
+  position: relative;
+  border-radius: 1.25rem;
+  isolation: isolate;
+}
+.neon-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--neon-angle, 0deg), #2563eb, #06b6d4, #6366f1, #3b82f6, #2563eb);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  z-index: -1;
+  opacity: 0.7;
+  animation: neonSpin 6s linear infinite;
+}
+@property --neon-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes neonSpin {
+  to { --neon-angle: 360deg; }
+}
+
+/* Tilt-on-hover card */
+.tilt-card { transform-style: preserve-3d; transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s; }
+.tilt-card:hover { transform: translateY(-4px) rotateX(2deg) rotateY(-2deg); box-shadow: 0 30px 60px -20px rgba(37,99,235,0.35); }
+
+/* KPI shine sweep */
+.shine { position: relative; overflow: hidden; }
+.shine::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform .8s ease;
+}
+.shine:hover::after { transform: translateX(120%); }
+
+/* Counter pulse */
+@keyframes pop {
+  0% { transform: scale(0.94); opacity: 0; }
+  60%{ transform: scale(1.04); opacity: 1; }
+  100%{ transform: scale(1); opacity: 1; }
+}
+.animate-pop { animation: pop .6s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Slow ping for status dots */
+@keyframes pingSoft {
+  0%   { transform: scale(1); opacity: .8; }
+  80%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.animate-ping-soft::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: currentColor; opacity: .5; animation: pingSoft 1.8s ease-out infinite;
+}
+
+/* Gradient frame for hero numbers */
+.num-gradient {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Soft floating */
+@keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.float-slow { animation: floatY 6s ease-in-out infinite; }
+
+/* Live dot */
+.live-dot {
+  position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.18);
+}
+.live-dot::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  background: rgba(16,185,129,0.35); animation: pingSoft 1.6s ease-out infinite;
+}
+
+

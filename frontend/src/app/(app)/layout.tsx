@@ -26,13 +26,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen relative bg-gradient-to-br from-blue-50 via-white to-sky-50">
-      {/* Clean base background for maximum readability */}
-      <div className="fixed inset-0 z-0">
+      {/* Aurora command-center background */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-sky-50" />
-        <div className="absolute inset-0 opacity-40" style={{
-          backgroundImage: 'linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px), linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
+        {/* Animated aurora blobs */}
+        <div className="aurora-blob aurora-blue" />
+        <div className="aurora-blob aurora-cyan" />
+        <div className="aurora-blob aurora-indigo" />
+        {/* Grid */}
+        <div className="absolute inset-0 opacity-[0.35]" style={{
+          backgroundImage: 'linear-gradient(90deg, rgba(37,99,235,0.05) 1px, transparent 1px), linear-gradient(rgba(37,99,235,0.05) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          maskImage: 'radial-gradient(ellipse at center, #000 40%, transparent 90%)',
         }} />
+        {/* Top sheen */}
+        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
       </div>
 
       <Sidebar />
