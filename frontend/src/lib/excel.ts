@@ -470,7 +470,7 @@ const KALEM_FILLS: Record<string, string> = {
 const BOM_HEADERS = [
   '#', 'Level', 'Uzmanlık', 'Montaj', 'Title',
   'MalzemeNo', 'MalzemeNo SAP',
-  'Kalem Tipi', 'Sipariş', 'Dağıtım', 'Birim',
+  'Kalem Tipi', 'Sipariş', 'Dağıtım', 'Üretilecek Araç', 'Birim',
   'Qty', 'Toplam Miktar',
   'Durum', 'Son Güncelleme',
 ];
@@ -550,7 +550,7 @@ export async function exportProjectExcel(
   const ws = wb.addWorksheet('BOM', { views: [{ state: 'frozen', ySplit: 1 }] });
 
   // Project name banner — slate-900 with red accent rail
-  ws.mergeCells('A1:O1');
+  ws.mergeCells('A1:P1');
   const banner = ws.getRow(1);
   banner.getCell(1).value = `  ${projectName}`;
   banner.getCell(1).font = { bold: true, size: 15, color: { argb: 'FFFFFFFF' }, name: 'Calibri' };
@@ -582,6 +582,7 @@ export async function exportProjectExcel(
       item.rowNumber, lvl, item.uzmanlik || '', item.montaj || '',
       item.title, item.malzemeNo || '', item.malzemeNoSap || '',
       kalemTipi, item.siparis || '', item.dagitim || '',
+      item.prototip2 === 'X' ? 'X' : '',
       item.birim || '',
       typeof item.quantity === 'number' ? item.quantity : 1,
       item.toplamMiktar != null ? item.toplamMiktar : '',
@@ -626,13 +627,21 @@ export async function exportProjectExcel(
       sc.font = { bold: true, size: 10, name: 'Calibri', color: { argb: 'FFB91C1C' } };
     }
 
+    // Üretilecek Araç chip (col 11) — X = rose pill (web rose-500/20 ile uyumlu)
+    if (item.prototip2 === 'X') {
+      const pc = r.getCell(11);
+      pc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } }; // rose-100
+      pc.font = { bold: true, size: 10, name: 'Calibri', color: { argb: 'FFE11D48' } }; // rose-600
+      pc.alignment = { vertical: 'middle', horizontal: 'center' };
+    }
+
     // Modified status highlight
     if (item.status === 'modified') {
-      r.getCell(14).font = { bold: true, color: { argb: 'FF047857' }, size: 10, name: 'Calibri' };
-      r.getCell(14).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+      r.getCell(15).font = { bold: true, color: { argb: 'FF047857' }, size: 10, name: 'Calibri' };
+      r.getCell(15).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
     } else if (item.status === 'flagged') {
-      r.getCell(14).font = { bold: true, color: { argb: 'FFB91C1C' }, size: 10, name: 'Calibri' };
-      r.getCell(14).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
+      r.getCell(15).font = { bold: true, color: { argb: 'FFB91C1C' }, size: 10, name: 'Calibri' };
+      r.getCell(15).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
     }
 
     r.height = 18;
@@ -645,9 +654,10 @@ export async function exportProjectExcel(
   ws.getColumn(2).width = 7;  // Level
   ws.getColumn(8).width = 11; // Kalem Tipi
   ws.getColumn(9).width = 22; // Sipariş
-  ws.getColumn(11).width = 8; // Birim
-  ws.getColumn(12).width = 8; // Qty
-  ws.getColumn(13).width = 14;// Toplam Miktar
+  ws.getColumn(11).width = 14;// Üretilecek Araç
+  ws.getColumn(12).width = 8; // Birim
+  ws.getColumn(13).width = 8; // Qty
+  ws.getColumn(14).width = 14;// Toplam Miktar
 
   // ── 2. İSTATİSTİKLER SHEET ───────────────────────────────
   const ss = wb.addWorksheet('İstatistikler', { views: [{ showGridLines: false }] });
@@ -665,6 +675,9 @@ export async function exportProjectExcel(
   }> = {};
   const montajStats: Record<string, { total: number; edilecek: number; edilmeyecek: number }> = {};
   let needsReviewCount = 0;
+  let prototip2Total = 0;
+  const prototip2ByLevel: Record<number, number> = {};
+  const prototip2ByUzmanlik: Record<string, number> = {};
 
   for (const item of items) {
     const lvl: number = item.level ?? 0;
@@ -677,6 +690,13 @@ export async function exportProjectExcel(
     levelCounts[lvl] = (levelCounts[lvl] || 0) + 1;
     statusCounts[status] = (statusCounts[status] || 0) + 1;
     if (item.needsReview) needsReviewCount++;
+
+    // Üretilecek araç (prototip2 = X)
+    if (item.prototip2 === 'X') {
+      prototip2Total++;
+      prototip2ByLevel[lvl] = (prototip2ByLevel[lvl] || 0) + 1;
+      prototip2ByUzmanlik[uzm] = (prototip2ByUzmanlik[uzm] || 0) + 1;
+    }
 
     // Kalem tipi × level
     const lvlKey = String(lvl);
@@ -753,6 +773,7 @@ export async function exportProjectExcel(
     ['Güncellenmiş Kalem', statusCounts['modified'] || 0],
     ['İşaretli (Flagged)', statusCounts['flagged'] || 0],
     ['İnceleme Bekleyen', needsReviewCount],
+    ['Üretilecek Araç (X)', prototip2Total],
   ];
 
   const levelKeys = Object.keys(levelCounts).map(Number).sort((a, b) => a - b);
@@ -775,6 +796,41 @@ export async function exportProjectExcel(
     ss.getRow(nextRow).height = 17;
     nextRow++;
   }
+  nextRow += 2;
+
+  // ── SECTION 2.5: ÜRETİLECEK ARAÇ ÖZETİ ────────────────────
+  nextRow = sectionTitle(ss, '  ÜRETİLECEK ARAÇ ÖZETİ (Prototip-2 = X)', 6, 'FFE11D48');
+
+  const p2Headers = ['Kategori', 'Adet', 'Pay (%)', '', '', ''];
+  tableHeader(ss, p2Headers, nextRow, 'FFE11D48');
+  nextRow++;
+
+  const p2Rows: [string, number][] = [
+    ['Toplam Üretilecek Araç', prototip2Total],
+    ['Üretilmeyecek (X yok)', totalItems - prototip2Total],
+  ];
+  // By level
+  Object.keys(prototip2ByLevel).map(Number).sort((a, b) => a - b).forEach(l => {
+    p2Rows.push([`Level ${l} — Üretilecek`, prototip2ByLevel[l]]);
+  });
+  // Top 5 uzmanlık by prototip2
+  Object.entries(prototip2ByUzmanlik)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .forEach(([uzm, cnt]) => {
+      p2Rows.push([`· ${uzm}`, cnt]);
+    });
+
+  p2Rows.forEach(([label, val], i) => {
+    const even = i % 2 === 0;
+    const rowBg = even ? 'FFFFF1F2' : 'FFFFFFFF'; // rose-50 alternating
+    const pct = totalItems > 0 ? ((val / totalItems) * 100).toFixed(1) + '%' : '—';
+    dataCell(ss, nextRow, 1, label, { bg: rowBg, align: 'left', bold: label.startsWith('Toplam') });
+    dataCell(ss, nextRow, 2, val, { bg: 'FFFFE4E6', bold: true, textColor: 'FFE11D48' });
+    dataCell(ss, nextRow, 3, pct, { bg: rowBg, textColor: 'FFE11D48', bold: false });
+    ss.getRow(nextRow).height = 17;
+    nextRow++;
+  });
   nextRow += 2;
 
   // ── SECTION 3: UZMANILIK BAZLI ANALİZ ─────────────────────
