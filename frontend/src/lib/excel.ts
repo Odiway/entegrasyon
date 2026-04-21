@@ -422,40 +422,49 @@ export function parseBomRows(
 // EXPORT HELPERS & PALETTES
 // ────────────────────────────────────────────────────────────
 
-/** Level-based background ARGB colours (BOM sheet) */
+/** Level-based background ARGB colours (BOM sheet) — web-aligned */
 const LEVEL_FILLS: Record<number, string> = {
-  0: 'FF2D3748', // very dark – assembly root
-  1: 'FF1E3A5F', // dark blue
-  2: 'FF1B4F72', // medium blue
-  3: 'FF196F3D', // dark green
-  4: 'FF6B2D8B', // purple
+  0: 'FF0F172A', // slate-900 — root assembly (banner-like)
+  1: 'FFEFF6FF', // blue-50
+  2: 'FFF0F9FF', // sky-50
+  3: 'FFECFDF5', // emerald-50
+  4: 'FFF5F3FF', // violet-50
 };
 
-/** Level-based text colours (BOM sheet) */
+/** Level-based text colours (BOM sheet) — web-aligned */
 const LEVEL_TEXT: Record<number, string> = {
-  0: 'FFFFFFFF',
-  1: 'FFFFFFFF',
-  2: 'FFFFFFFF',
-  3: 'FFFFFFFF',
-  4: 'FFFFFFFF',
+  0: 'FFFFFFFF', // white on navy
+  1: 'FF1D4ED8', // blue-700
+  2: 'FF0369A1', // sky-700
+  3: 'FF047857', // emerald-700
+  4: 'FF6D28D9', // violet-700
 };
 
-/** Rotating palette for uzmanlık groups (stat sheet) */
+/** Left-edge accent bar colour per level (rendered as left border) */
+const LEVEL_ACCENT: Record<number, string> = {
+  0: 'FFDC2626', // red-600 (TEMSA accent on root)
+  1: 'FF3B82F6', // blue-500
+  2: 'FF0EA5E9', // sky-500
+  3: 'FF10B981', // emerald-500
+  4: 'FF8B5CF6', // violet-500
+};
+
+/** Rotating palette for uzmanlık groups (stat sheet) — web-aligned */
 const UZMANLIK_PALETTE = [
-  'FF2E86C1', 'FF1E8449', 'FF884EA0', 'FF117A65',
-  'FFB7950B', 'FF922B21', 'FF1A5276', 'FF4D5656',
-  'FF76448A', 'FF1F618D', 'FF148F77', 'FF196F3D',
-  'FF935116', 'FF7D6608', 'FF6E2F1A', 'FF1A237E',
+  'FF3B82F6', 'FF10B981', 'FF8B5CF6', 'FF0EA5E9',
+  'FFF59E0B', 'FFDC2626', 'FF1D4ED8', 'FF06B6D4',
+  'FF7C3AED', 'FF0369A1', 'FF059669', 'FF047857',
+  'FFB45309', 'FFA16207', 'FF991B1B', 'FF1E3A8A',
 ];
 
-/** Kalem tipi accent colours */
+/** Kalem tipi accent colours — web-aligned light tints */
 const KALEM_FILLS: Record<string, string> = {
-  F: 'FFDFF0FF', // light blue  – montaj
-  H: 'FFFFF3CD', // light yellow – half
-  Y: 'FFE8F5E9', // light green  – yedek
-  E: 'FFFCE4EC', // light pink   – electronic
-  X: 'FFF3E5F5', // light purple
-  C: 'FFFFEBEE', // light red
+  F: 'FFEFF6FF', // blue-50  — montaj
+  H: 'FFFEF3C7', // amber-100 — half
+  Y: 'FFECFDF5', // emerald-50 — yedek
+  E: 'FFF5F3FF', // violet-50 — electronic
+  X: 'FFE0E7FF', // indigo-100
+  C: 'FFFEE2E2', // red-100
 };
 
 const BOM_HEADERS = [
@@ -475,34 +484,37 @@ function autoWidth(ws: ExcelJS.Worksheet, minW = 10, maxW = 50) {
   });
 }
 
-function sectionTitle(ws: ExcelJS.Worksheet, text: string, cols: number, color = 'FF1F2937') {
+function sectionTitle(ws: ExcelJS.Worksheet, text: string, cols: number, color = 'FF0F172A') {
   const rowIdx = ws.rowCount + 2;
   ws.mergeCells(rowIdx, 1, rowIdx, cols);
   const r = ws.getRow(rowIdx);
   r.getCell(1).value = text;
-  r.getCell(1).font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
+  r.getCell(1).font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' }, name: 'Calibri' };
   r.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
-  r.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
-  r.height = 22;
+  r.getCell(1).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+  r.getCell(1).border = {
+    left: { style: 'thick', color: { argb: 'FFDC2626' } }, // TEMSA red side bar
+  };
+  r.height = 24;
   return rowIdx + 1; // next free row
 }
 
-function tableHeader(ws: ExcelJS.Worksheet, headers: string[], startRow: number, color = 'FF2C3E50') {
+function tableHeader(ws: ExcelJS.Worksheet, headers: string[], startRow: number, color = 'FF1E3A8A') {
   const r = ws.getRow(startRow);
   headers.forEach((h, i) => {
     const c = r.getCell(i + 1);
     c.value = h;
-    c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+    c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10, name: 'Calibri' };
     c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
     c.alignment = { horizontal: 'center', vertical: 'middle' };
     c.border = {
-      top: { style: 'thin', color: { argb: 'FF000000' } },
-      bottom: { style: 'thin', color: { argb: 'FF000000' } },
-      left: { style: 'thin', color: { argb: 'FF000000' } },
-      right: { style: 'thin', color: { argb: 'FF000000' } },
+      top:    { style: 'thin', color: { argb: 'FF1E3A8A' } },
+      bottom: { style: 'medium', color: { argb: 'FFDC2626' } }, // TEMSA red underline
+      left:   { style: 'thin', color: { argb: 'FF1E3A8A' } },
+      right:  { style: 'thin', color: { argb: 'FF1E3A8A' } },
     };
   });
-  ws.getRow(startRow).height = 18;
+  ws.getRow(startRow).height = 20;
 }
 
 function dataCell(ws: ExcelJS.Worksheet, rowIdx: number, colIdx: number, value: any, opts?: {
@@ -537,19 +549,20 @@ export async function exportProjectExcel(
   // ── 1. BOM SHEET ─────────────────────────────────────────
   const ws = wb.addWorksheet('BOM', { views: [{ state: 'frozen', ySplit: 1 }] });
 
-  // Project name banner
+  // Project name banner — slate-900 with red accent rail
   ws.mergeCells('A1:O1');
   const banner = ws.getRow(1);
-  banner.getCell(1).value = projectName;
-  banner.getCell(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-  banner.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D1B2A' } };
-  banner.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
-  banner.height = 28;
+  banner.getCell(1).value = `  ${projectName}`;
+  banner.getCell(1).font = { bold: true, size: 15, color: { argb: 'FFFFFFFF' }, name: 'Calibri' };
+  banner.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+  banner.getCell(1).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+  banner.getCell(1).border = { left: { style: 'thick', color: { argb: 'FFDC2626' } } };
+  banner.height = 32;
 
-  // Header row
+  // Header row — blue-700
   const hRowIdx = 2;
-  tableHeader(ws, BOM_HEADERS, hRowIdx, 'FF1A252F');
-  ws.getRow(hRowIdx).height = 20;
+  tableHeader(ws, BOM_HEADERS, hRowIdx, 'FF1E3A8A');
+  ws.getRow(hRowIdx).height = 22;
 
   // Freeze header
   ws.views = [{ state: 'frozen', ySplit: 2 }];
@@ -580,26 +593,49 @@ export async function exportProjectExcel(
       const c = r.getCell(i + 1);
       c.value = v;
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: baseBg } };
-      c.font = { color: { argb: textCol }, bold: lvl <= 1, size: 10 };
+      c.font = { bold: lvl <= 1, color: { argb: textCol }, size: 10, name: 'Calibri' };
+      const isFirstCell = i === 0;
       c.border = {
-        bottom: { style: 'hair', color: { argb: 'FFB0B0B0' } },
-        right: { style: 'hair', color: { argb: 'FFB0B0B0' } },
+        top:    { style: 'hair', color: { argb: 'FFE2E8F0' } }, // slate-200
+        bottom: { style: 'hair', color: { argb: 'FFE2E8F0' } },
+        right:  { style: 'hair', color: { argb: 'FFE2E8F0' } },
+        // Left edge: web-style colored accent bar on the row
+        left: isFirstCell
+          ? { style: 'medium', color: { argb: LEVEL_ACCENT[lvl] || 'FFE2E8F0' } }
+          : { style: 'hair', color: { argb: 'FFE2E8F0' } },
       };
-      c.alignment = { vertical: 'middle', horizontal: i <= 1 ? 'center' : 'left' };
+      c.alignment = { vertical: 'middle', horizontal: i <= 1 ? 'center' : 'left', indent: i === 4 ? Math.max(0, lvl - 1) : 0 };
     });
 
-    // Level indent in Title cell
-    const titleCell = r.getCell(5);
-    titleCell.alignment = { indent: Math.max(0, lvl - 1), vertical: 'middle', horizontal: 'left' };
+    // Apply web-style kalem tipi tint on the Kalem Tipi cell (col 8) for levels >= 2
+    if (lvl >= 2 && KALEM_FILLS[kalemTipi]) {
+      const kc = r.getCell(8);
+      kc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: KALEM_FILLS[kalemTipi] } };
+      kc.font = { bold: true, size: 10, name: 'Calibri', color: { argb: textCol } };
+    }
+
+    // Sipariş cell colored chip (col 9)
+    const sipText = String(item.siparis || '').toUpperCase();
+    if (sipText.includes('EDİLECEK') && !sipText.includes('MEY')) {
+      const sc = r.getCell(9);
+      sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } }; // emerald-50
+      sc.font = { bold: true, size: 10, name: 'Calibri', color: { argb: 'FF047857' } };
+    } else if (sipText.includes('EDİLMEYECEK')) {
+      const sc = r.getCell(9);
+      sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }; // red-100
+      sc.font = { bold: true, size: 10, name: 'Calibri', color: { argb: 'FFB91C1C' } };
+    }
 
     // Modified status highlight
     if (item.status === 'modified') {
-      r.getCell(14).font = { bold: true, color: { argb: 'FF059669' }, size: 10 };
+      r.getCell(14).font = { bold: true, color: { argb: 'FF047857' }, size: 10, name: 'Calibri' };
+      r.getCell(14).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
     } else if (item.status === 'flagged') {
-      r.getCell(14).font = { bold: true, color: { argb: 'FFDC2626' }, size: 10 };
+      r.getCell(14).font = { bold: true, color: { argb: 'FFB91C1C' }, size: 10, name: 'Calibri' };
+      r.getCell(14).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
     }
 
-    r.height = 16;
+    r.height = 18;
     dataRow++;
   }
 
@@ -688,11 +724,12 @@ export async function exportProjectExcel(
   // ── SECTION 1: PROJE BAŞLIĞI ──────────────────────────────
   ss.mergeCells('A1:L1');
   const ssBanner = ss.getRow(1);
-  ssBanner.getCell(1).value = `📊 ${projectName} — Proje İstatistikleri`;
-  ssBanner.getCell(1).font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
-  ssBanner.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D1B2A' } };
-  ssBanner.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
-  ssBanner.height = 36;
+  ssBanner.getCell(1).value = `  📊 ${projectName} — Proje İstatistikleri`;
+  ssBanner.getCell(1).font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' }, name: 'Calibri' };
+  ssBanner.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+  ssBanner.getCell(1).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+  ssBanner.getCell(1).border = { left: { style: 'thick', color: { argb: 'FFDC2626' } } };
+  ssBanner.height = 38;
 
   ss.mergeCells('A2:L2');
   const dateRow = ss.getRow(2);
@@ -704,10 +741,10 @@ export async function exportProjectExcel(
   let nextRow = 4;
 
   // ── SECTION 2: GENEL ÖZET ─────────────────────────────────
-  nextRow = sectionTitle(ss, '  GENEL ÖZET', 6, 'FF1A252F');
+  nextRow = sectionTitle(ss, '  GENEL ÖZET', 6, 'FF0F172A');
 
   const summaryHeaders = ['Metrik', 'Değer', '', 'Metrik', 'Değer', ''];
-  tableHeader(ss, summaryHeaders, nextRow, 'FF2C3E50');
+  tableHeader(ss, summaryHeaders, nextRow, 'FF1E3A8A');
   nextRow++;
 
   const summaryLeft: [string, any][] = [
@@ -741,7 +778,7 @@ export async function exportProjectExcel(
   nextRow += 2;
 
   // ── SECTION 3: UZMANILIK BAZLI ANALİZ ─────────────────────
-  nextRow = sectionTitle(ss, '  UZMANLIK BAZLI ANALİZ', 10, 'FF1B4F72');
+  nextRow = sectionTitle(ss, '  UZMANLIK BAZLI ANALİZ', 10, 'FF1E3A8A');
 
   const uzm_cols = [
     'Uzmanlık', 'Toplam', ...levelKeys.map(l => `L${l}`),
@@ -777,7 +814,7 @@ export async function exportProjectExcel(
   nextRow += 2;
 
   // ── SECTION 4: LEVEL × KALEM TİPİ MATRİSİ ───────────────
-  nextRow = sectionTitle(ss, '  LEVEL × KALEM TİPİ MATRİSİ', allKalemTipis.length + 3, 'FF196F3D');
+  nextRow = sectionTitle(ss, '  LEVEL × KALEM TİPİ MATRİSİ', allKalemTipis.length + 3, 'FF047857');
 
   const ktHeaders = ['Level', 'Toplam Level', ...allKalemTipis, 'Diğer'];
   tableHeader(ss, ktHeaders, nextRow, 'FF196F3D');
@@ -807,7 +844,7 @@ export async function exportProjectExcel(
   nextRow += 2;
 
   // ── SECTION 5: SİPARİŞ DURUMU LEVEL BAZLI ─────────────────
-  nextRow = sectionTitle(ss, '  SİPARİŞ DURUMU — LEVEL BAZLI', 6, 'FF884EA0');
+  nextRow = sectionTitle(ss, '  SİPARİŞ DURUMU — LEVEL BAZLI', 6, 'FF6D28D9');
 
   tableHeader(ss, ['Level', 'Sipariş Edilecek', 'Sipariş Edilmeyecek', 'Belirtilmemiş', 'Toplam', 'Sipariş %'], nextRow, 'FF884EA0');
   nextRow++;
@@ -833,7 +870,7 @@ export async function exportProjectExcel(
 
   // ── SECTION 6: MONTAJ BAZLI ÖZET ─────────────────────────
   if (montajList.length > 0) {
-    nextRow = sectionTitle(ss, '  MONTAJ BAZLI ÖZET (Level ≤ 2)', 5, 'FF117A65');
+    nextRow = sectionTitle(ss, '  MONTAJ BAZLI ÖZET (Level ≤ 2)', 5, 'FF0369A1');
 
     tableHeader(ss, ['Montaj No', 'Kayıtlı Alt Kalem', 'Sipariş Edilecek', 'Sipariş Edilmeyecek', 'Oran %'], nextRow, 'FF117A65');
     nextRow++;
@@ -856,7 +893,7 @@ export async function exportProjectExcel(
   }
 
   // ── SECTION 7: UZMANILIK × LEVEL DETAYİ (SİPARİŞ) ────────
-  nextRow = sectionTitle(ss, '  UZMANLIK × LEVEL DETAYLI SİPARİŞ ANALİZİ', allLevels.length * 2 + 2, 'FFB7950B');
+  nextRow = sectionTitle(ss, '  UZMANLIK × LEVEL DETAYLI SİPARİŞ ANALİZİ', allLevels.length * 2 + 2, 'FFB45309');
 
   const detailHeaders = ['Uzmanlık', ...allLevels.flatMap(l => [`L${l} Sipariş Edilecek`, `L${l} Edilmeyecek`])];
   tableHeader(ss, detailHeaders, nextRow, 'FF9B7700');
