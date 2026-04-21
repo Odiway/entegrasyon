@@ -469,7 +469,10 @@ export async function exportProjectExcel(
 
   // Auto-width columns
   ws.columns.forEach((col) => {
-    col.width = Math.max(12, ...(col.values?.map(v => String(v || '').length) || [12]));
+    const lengths = (col.values as any[] || [])
+      .filter((v) => v != null)
+      .map((v) => String(v).length);
+    col.width = lengths.length > 0 ? Math.max(12, ...lengths) : 12;
   });
 
   // Change history sheet
