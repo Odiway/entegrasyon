@@ -49,6 +49,25 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const userId = parseInt(params.id);
     if (userId === admin.id) return err('Kendinizi silemezsiniz', 400);
 
+    const existing = await prisma.user.findUnique({ where: { id: userId } });
+    if (!existing) return err('Kullanıcı bulunamadı', 404);
+
+    // Clear FK references before deletion to avoid constraint errors
+    await prisma.$transaction([
+      // TaskHistory entries referencing this user
+      prisma.taskHistory.deleteMany({ where: { userId } }),
+      // ChangeLogs attributed to this user
+      prisma.changeLog.deleteMany({ where: { changedById: userId } }),
+      // EditRequests by this user
+      prisma.editRequest.deleteMany({ where: { requestedBy: userId } }),
+      // Notifications for this user
+      prisma.notification.deleteMany({ where: { userId } }),
+      // Nullify assignedTo on tasks assigned to this user
+      prisma.task.updateMany({ where: { assignedToId: userId }, data: { assignedToId: null } }),
+      // Tasks created by this user must be deleted (createdById is non-nullable)
+      prisma.task.deleteMany({ where: { createdById: userId } }),
+    ]);
+
     await prisma.user.delete({ where: { id: userId } });
     return json({ ok: true });
   } catch (e: any) {
