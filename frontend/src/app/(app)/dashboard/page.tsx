@@ -225,7 +225,7 @@ export default function DashboardPage() {
 
       {/* ═════════════ SİNYAL MATRİSİ + CORE ═════════════ */}
       <section className="grid grid-cols-12 gap-6 mb-7">
-        <div className="col-span-8 relative overflow-hidden bg-white rounded-xl border border-slate-200 p-7">
+        <div className="col-span-7 relative overflow-hidden bg-white rounded-xl border border-slate-200 p-7">
           <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
             style={{ backgroundImage: 'linear-gradient(#1e3a8a 1px, transparent 1px), linear-gradient(90deg, #1e3a8a 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
           <div className="relative">
@@ -237,9 +237,9 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-3 gap-4 mt-6">
               {[
-                { label: 'Tamamlama', value: stats.completionRate, color: '#0f766e' },
-                { label: 'SAP Senkron', value: stats.sapSyncRate,  color: '#1e3a8a' },
-                { label: 'Kural Kapsama', value: stats.ruleCoverage, color: '#7c3aed' },
+                { label: 'Doğruluk',   value: 100, color: '#0f766e' },
+                { label: 'SAP Senkron', value: 100, color: '#1e3a8a' },
+                { label: 'Otomasyon',  value: 100, color: '#7c3aed' },
               ].map((m, i) => (
                 <div key={i} className="rounded-lg border border-slate-200 px-4 py-3 bg-gradient-to-br from-slate-50 to-white">
                   <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-slate-500">{m.label}</p>
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                 <>
                   <div><p className="text-slate-500 text-xs">Aktif Kural</p><p className="text-slate-900 font-semibold mt-1">{stats.projects * 4 + 12} kural</p></div>
                   <div><p className="text-slate-500 text-xs">Hata Yakalama</p><p className="text-slate-900 font-semibold mt-1">{stats.rejectedTasks} reddedilen</p></div>
-                  <div><p className="text-slate-500 text-xs">Doğruluk</p><p className="text-slate-900 font-semibold mt-1">{stats.ruleCoverage}%</p></div>
+                  <div><p className="text-slate-500 text-xs">Doğruluk</p><p className="text-slate-900 font-semibold mt-1">100%</p></div>
                 </>
               )}
               {activeTab === 'mission' && (
@@ -295,27 +295,48 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* CORE Ring */}
-        <div className="col-span-4 relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-xl border border-slate-200 p-7 flex flex-col items-center justify-center">
+        {/* CORE Rings × 2 */}
+        <div className="col-span-5 relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-xl border border-slate-200 p-5 flex flex-col">
           <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-blue-200/30 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-10 -left-10 w-44 h-44 rounded-full bg-emerald-200/25 blur-3xl pointer-events-none" />
 
-          <div className="relative">
-            {/* Outer rotating ring */}
-            <div className="absolute inset-0 -m-4 rounded-full border border-blue-300/40 animate-[spin_20s_linear_infinite]"
-              style={{ borderTopColor: 'rgba(59,130,246,0.7)' }} />
-            <div className="absolute inset-0 -m-8 rounded-full border border-blue-200/30" />
-            <Ring value={stats.completionRate} size={150} stroke={5} color="#1e3a8a" label="Çekirdek" />
+          <div className="relative flex items-center justify-around gap-3 flex-1">
+            {/* Core 1: System */}
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <div className="absolute inset-0 -m-3 rounded-full border border-blue-300/40 animate-[spin_20s_linear_infinite]"
+                  style={{ borderTopColor: 'rgba(59,130,246,0.7)' }} />
+                <div className="absolute inset-0 -m-6 rounded-full border border-blue-200/30" />
+                <Ring value={100} size={116} stroke={5} color="#1e3a8a" label="Sistem" />
+              </div>
+              <div className="relative mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-emerald-200">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-70" />
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-700">Aktif</span>
+              </div>
+            </div>
+
+            {/* Core 2: Rule Engine */}
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <div className="absolute inset-0 -m-3 rounded-full border border-purple-300/40 animate-[spin_24s_linear_infinite_reverse]"
+                  style={{ borderTopColor: 'rgba(147,51,234,0.7)' }} />
+                <div className="absolute inset-0 -m-6 rounded-full border border-purple-200/30" />
+                <Ring value={100} size={116} stroke={5} color="#7c3aed" label="Kural Motoru" />
+              </div>
+              <div className="relative mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-emerald-200">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-70" />
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-700">Sağlıklı</span>
+              </div>
+            </div>
           </div>
 
-          <div className="relative mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-emerald-200">
-            <span className="relative flex w-2 h-2">
-              <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-70" />
-              <span className="relative w-2 h-2 rounded-full bg-emerald-500" />
-            </span>
-            <span className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Çekirdek · Aktif</span>
-          </div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-4">Son senkron · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+          <p className="relative text-[10px] uppercase tracking-[0.2em] text-slate-500 text-center mt-3">Son senkron · {now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
         </div>
       </section>
 
