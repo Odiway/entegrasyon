@@ -137,10 +137,8 @@ export default function Sidebar() {
       <div className="relative px-5 py-6 border-b border-blue-100">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-sky-600 flex items-center justify-center shadow-lg shadow-blue-600/25">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white">
-                <path d="M2 4h16v3.5H2zM2 9h12v3.5H2zM2 14h14v3.5H2z" fill="currentColor" opacity="0.9" />
-              </svg>
+            <div className="w-10 h-10 rounded-xl bg-[#cc0000] flex items-center justify-center shadow-lg shadow-red-600/25 overflow-hidden p-1.5">
+              <img src="/temsa-logo.svg" alt="TEMSA" className="w-full h-full object-contain" />
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
           </div>

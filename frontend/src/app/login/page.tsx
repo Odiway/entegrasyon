@@ -75,10 +75,8 @@ export default function LoginPage() {
       <div className="login-hero-left relative z-10 flex-1 flex flex-col justify-between p-8 lg:p-12 max-w-[600px]">
         {/* Top: Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-600/30">
-            <svg width="24" height="24" viewBox="0 0 30 30" fill="none" className="text-white">
-              <path d="M4 7h22v4H4zM4 13h16v4H4zM4 19h20v4H4z" fill="currentColor" opacity="0.85" />
-            </svg>
+          <div className="w-12 h-12 rounded-xl bg-[#cc0000] flex items-center justify-center shadow-lg shadow-red-600/30 overflow-hidden p-2">
+            <img src="/temsa-logo.svg" alt="TEMSA" className="w-full h-full object-contain" />
           </div>
           <div>
             <h2 className="text-white font-bold text-lg tracking-tight">TEMSA</h2>
@@ -139,10 +137,8 @@ export default function LoginPage() {
 
             {/* TEMSA brand corner */}
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-sm">
-                <svg width="16" height="16" viewBox="0 0 30 30" fill="none" className="text-white">
-                  <path d="M4 7h22v4H4zM4 13h16v4H4zM4 19h20v4H4z" fill="currentColor" />
-                </svg>
+              <div className="w-8 h-8 rounded-lg bg-[#cc0000] flex items-center justify-center shadow-sm overflow-hidden p-1">
+                <img src="/temsa-logo.svg" alt="TEMSA" className="w-full h-full object-contain" />
               </div>
               <span className="text-[10px] text-slate-500 tracking-[0.2em] font-semibold uppercase">Güvenli Giriş</span>
             </div>
