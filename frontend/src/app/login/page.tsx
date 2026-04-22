@@ -72,7 +72,7 @@ export default function LoginPage() {
       }} />
 
       {/* Left content area */}
-      <div className="relative z-10 flex-1 flex flex-col justify-between p-8 lg:p-12 max-w-[600px]">
+      <div className="login-hero-left relative z-10 flex-1 flex flex-col justify-between p-8 lg:p-12 max-w-[600px]">
         {/* Top: Logo */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-600/30">
