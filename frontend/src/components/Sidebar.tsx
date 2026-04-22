@@ -68,10 +68,33 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifs, setShowNotifs] = useState(false);
+  const [notifFilter, setNotifFilter] = useState<'all' | 'unread'>('all');
   const notifRef = useRef<HTMLDivElement>(null);
 
   const items = user?.role === 'admin' ? [...NAV_ITEMS, ...ADMIN_NAV] : NAV_ITEMS;
   const unreadCount = notifications.filter(n => !n.isRead).length;
+  const requestTypes = new Set(['edit_request', 'edit_request_reviewed', 'task_created', 'task_status_changed', 'task_updated', 'task_assigned']);
+  const newRequestCount = notifications.filter(n => !n.isRead && (requestTypes.has(n.type) || !!n.taskId)).length;
+  const filteredNotifications = notifFilter === 'unread' ? notifications.filter(n => !n.isRead) : notifications;
+
+  const getNotifMeta = (type: string) => {
+    if (type === 'edit_request') return { label: 'Yeni Talep', chip: 'bg-blue-100 text-blue-700 border-blue-200', dot: 'bg-blue-500' };
+    if (type === 'edit_request_reviewed') return { label: 'Talep Sonucu', chip: 'bg-emerald-100 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' };
+    if (type === 'task_created') return { label: 'Yeni İş', chip: 'bg-violet-100 text-violet-700 border-violet-200', dot: 'bg-violet-500' };
+    if (type === 'task_status_changed') return { label: 'Durum Güncellendi', chip: 'bg-amber-100 text-amber-700 border-amber-200', dot: 'bg-amber-500' };
+    return { label: 'Bildirim', chip: 'bg-slate-100 text-slate-700 border-slate-200', dot: 'bg-slate-500' };
+  };
+
+  const formatRelative = (dateStr: string) => {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'şimdi';
+    if (mins < 60) return `${mins} dk önce`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} sa önce`;
+    const days = Math.floor(hours / 24);
+    return `${days} gün önce`;
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -95,6 +118,14 @@ export default function Sidebar() {
       await markNotificationsRead('all');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch {}
+  };
+
+  const handleNotificationClick = async (n: any) => {
+    if (!n.isRead) {
+      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, isRead: true } : x));
+      try { await markNotificationsRead([n.id]); } catch {}
+    }
+    setShowNotifs(false);
   };
 
   return (
@@ -125,6 +156,7 @@ export default function Sidebar() {
         <p className="px-3 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Menü</p>
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+          const isRequests = item.href === '/tasks';
           return (
             <Link
               key={item.href}
@@ -137,7 +169,12 @@ export default function Sidebar() {
             >
               <span className={`transition-colors duration-200 ${isActive ? 'text-blue-700' : 'text-slate-500 group-hover:text-slate-700'}`}>{item.icon}</span>
               {item.label}
-              {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600 shadow-sm shadow-blue-500/50" />}
+              {isRequests && newRequestCount > 0 && (
+                <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white shadow-sm">
+                  {newRequestCount > 99 ? '99+' : newRequestCount}
+                </span>
+              )}
+              {isActive && (!isRequests || newRequestCount === 0) && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600 shadow-sm shadow-blue-500/50" />}
             </Link>
           );
         })}
@@ -192,7 +229,7 @@ export default function Sidebar() {
         </button>
 
         {showNotifs && (
-          <div className="absolute bottom-full left-3 right-3 mb-2 rounded-2xl overflow-hidden shadow-2xl z-50"
+          <div className="absolute bottom-full left-0 mb-2 w-[340px] rounded-2xl overflow-hidden shadow-2xl z-50"
             style={{ background: 'rgba(255, 255, 255, 0.97)', backdropFilter: 'blur(14px)', border: '1px solid rgba(37,99,235,0.16)' }}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-blue-100">
               <h4 className="text-xs font-semibold text-slate-800">Bildirimler</h4>
@@ -202,22 +239,44 @@ export default function Sidebar() {
                 </button>
               )}
             </div>
+            <div className="px-3 py-2 border-b border-blue-50 flex items-center gap-2">
+              <button
+                onClick={() => setNotifFilter('all')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${notifFilter === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                Tümü ({notifications.length})
+              </button>
+              <button
+                onClick={() => setNotifFilter('unread')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${notifFilter === 'unread' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                Okunmamış ({unreadCount})
+              </button>
+            </div>
             <div className="max-h-72 overflow-y-auto">
-              {notifications.length === 0 ? (
+              {filteredNotifications.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-500">Bildirim yok</div>
               ) : (
-                notifications.slice(0, 20).map(n => {
+                filteredNotifications.slice(0, 30).map(n => {
                   const href = n.taskId ? `/tasks?task=${n.taskId}` : '/tasks';
+                  const meta = getNotifMeta(n.type);
                   return (
-                  <Link key={n.id} href={href} onClick={() => setShowNotifs(false)}
+                  <Link key={n.id} href={href} onClick={() => handleNotificationClick(n)}
                     className={`block px-4 py-3 border-b border-blue-50 hover:bg-blue-50 transition-colors ${
                       !n.isRead ? 'bg-blue-50/70' : ''
                     }`}>
                     <div className="flex items-start gap-2.5">
-                      {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-400 mt-1 shrink-0 shadow shadow-blue-400/50" />}
+                      <span className={`w-2 h-2 rounded-full mt-1 shrink-0 shadow ${meta.dot}`} />
                       <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-1.5 py-0.5 rounded-md border text-[9px] font-bold ${meta.chip}`}>{meta.label}</span>
+                          {!n.isRead && <span className="text-[9px] text-red-600 font-semibold">yeni</span>}
+                        </div>
                         <p className={`text-[11px] leading-relaxed ${!n.isRead ? 'text-slate-800' : 'text-slate-600'}`}>{n.message}</p>
-                        <p className="text-[9px] text-slate-500 mt-1">{new Date(n.createdAt).toLocaleString('tr-TR')}</p>
+                        <div className="mt-1 flex items-center justify-between text-[9px] text-slate-500">
+                          <span>{formatRelative(n.createdAt)}</span>
+                          <span>{new Date(n.createdAt).toLocaleString('tr-TR')}</span>
+                        </div>
                       </div>
                     </div>
                   </Link>
