@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { getTasks, updateTask, deleteTask, getTask } from '@/lib/api';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const STATUS_CFG: Record<string, { bg: string; text: string; label: string; dot: string }> = {
   open: { bg: 'bg-blue-500/10', text: 'text-blue-400', label: 'Açık', dot: 'bg-blue-400' },
@@ -20,6 +21,7 @@ const PRIORITY_CFG: Record<string, { text: string; label: string }> = {
 
 export default function TasksPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [tasks, setTasks] = useState<any[]>([]);
   const [filterStatus, setFilterStatus] = useState('');
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,12 @@ export default function TasksPage() {
 
   useEffect(() => { load(); }, [filterStatus]);
 
+  useEffect(() => {
+    const taskId = Number(searchParams.get('task'));
+    if (!taskId) return;
+    openDetail(taskId);
+  }, [searchParams]);
+
   const handleStatusChange = async (taskId: number, status: string) => {
     await updateTask(taskId, { status });
     await load();
@@ -50,7 +58,7 @@ export default function TasksPage() {
   };
 
   const handleDelete = async (taskId: number) => {
-    if (!confirm('Görevi silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Talebi silmek istediğinize emin misiniz?')) return;
     await deleteTask(taskId);
     setSelectedTask(null);
     await load();
@@ -68,11 +76,11 @@ export default function TasksPage() {
     <div className="px-8 py-6 max-w-[1400px] mx-auto animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">Görevler</h1>
+          <h1 className="text-2xl font-bold gradient-text">Talepler</h1>
           <p className="text-sm text-slate-500 mt-1">
-            {isDesigner ? 'Oluşturduğunuz görevleri takip edin' :
-             isEngineer ? 'Size atanan görevleri yönetin' :
-             'Tüm görevleri görüntüleyin'}
+            {isDesigner ? 'Oluşturduğunuz talepleri takip edin' :
+             isEngineer ? 'Size atanan talepleri yönetin' :
+             'Tüm talepleri görüntüleyin'}
           </p>
         </div>
       </div>
@@ -104,9 +112,9 @@ export default function TasksPage() {
                   <path d="M9 14l4 4 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <p className="text-lg text-slate-400">Görev bulunamadı</p>
+              <p className="text-lg text-slate-400">Talep bulunamadı</p>
               <p className="text-sm text-slate-600 mt-1">
-                {isDesigner ? 'Bir proje detayından yeni görev oluşturabilirsiniz' : 'Henüz size atanmış görev yok'}
+                {isDesigner ? 'Bir proje detayından yeni talep oluşturabilirsiniz' : 'Henüz size atanmış talep yok'}
               </p>
             </div>
           ) : (
@@ -248,7 +256,7 @@ export default function TasksPage() {
                     {isEngineer && selectedTask.status === 'open' && (
                       <button onClick={() => handleStatusChange(selectedTask.id, 'in_progress')}
                         className="w-full px-4 py-2.5 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-sm font-medium transition-all duration-200">
-                        Göreve Başla
+                        Talebe Başla
                       </button>
                     )}
                     {isEngineer && selectedTask.status === 'in_progress' && (
@@ -266,7 +274,7 @@ export default function TasksPage() {
                     {(isDesigner || user?.role === 'admin') && (
                       <button onClick={() => handleDelete(selectedTask.id)}
                         className="w-full px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium transition-all duration-200">
-                        Görevi Sil
+                        Talebi Sil
                       </button>
                     )}
                   </div>

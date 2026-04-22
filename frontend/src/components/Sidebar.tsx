@@ -30,7 +30,7 @@ const NAV_ITEMS = [
   },
   {
     href: '/tasks',
-    label: 'Görevler',
+    label: 'Talepler',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M6 4h8a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="currentColor" strokeWidth="1.5" />
@@ -207,10 +207,7 @@ export default function Sidebar() {
                 <div className="py-8 text-center text-xs text-slate-500">Bildirim yok</div>
               ) : (
                 notifications.slice(0, 20).map(n => {
-                  // Route based on notification type
-                  const href = n.type === 'edit_request' && n.taskId
-                    ? `/project/${n.taskId}?view=edit-requests`
-                    : '/tasks';
+                  const href = n.taskId ? `/tasks?task=${n.taskId}` : '/tasks';
                   return (
                   <Link key={n.id} href={href} onClick={() => setShowNotifs(false)}
                     className={`block px-4 py-3 border-b border-blue-50 hover:bg-blue-50 transition-colors ${

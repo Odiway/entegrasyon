@@ -82,7 +82,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h2 className="text-white font-bold text-lg tracking-tight">TEMSA</h2>
-            <p className="text-slate-400 text-[10px] tracking-widest uppercase">Entegrasyon Sistemi</p>
+            <p className="text-slate-200 text-[10px] tracking-widest uppercase">Entegrasyon Sistemi</p>
           </div>
         </div>
 
@@ -95,7 +95,7 @@ export default function LoginPage() {
               <span className="bg-gradient-to-r from-red-400 via-red-500 to-orange-400 bg-clip-text text-transparent">Mobilitesini</span><br />
               Bugünden Tasarlıyoruz
             </h1>
-            <p className="text-slate-400 text-sm leading-relaxed max-w-md">
+            <p className="text-slate-200 text-sm leading-relaxed max-w-md">
               PLM ve SAP entegrasyonu ile BOM dönüştürme süreçlerinizi dijitalleştirin.
               TEMSA mühendislik altyapısıyla güçlendirilmiş akıllı sistem.
             </p>
@@ -106,7 +106,7 @@ export default function LoginPage() {
             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <div>
               <p className="text-white text-sm font-semibold">{BUS_IMAGES[currentBg].name}</p>
-              <p className="text-slate-400 text-xs">{BUS_IMAGES[currentBg].desc}</p>
+              <p className="text-slate-200 text-xs">{BUS_IMAGES[currentBg].desc}</p>
             </div>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function LoginPage() {
               />
             ))}
           </div>
-          <div className="flex items-center gap-6 text-[11px] text-slate-500">
+          <div className="flex items-center gap-6 text-[11px] text-slate-200">
             <span><b className="text-white text-sm">140K+</b> üretilen araç</span>
             <span><b className="text-white text-sm">70+</b> ülke</span>
             <span><b className="text-white text-sm">60</b> yıl deneyim</span>

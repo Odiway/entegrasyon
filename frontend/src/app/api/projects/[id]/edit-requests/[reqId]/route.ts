@@ -100,6 +100,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string; re
       }
     }
 
+    const linkedTaskItem = await prisma.taskItem.findFirst({
+      where: { requestedChange: `edit_request:${reqId}` },
+      select: { taskId: true },
+    });
+
+    if (linkedTaskItem?.taskId) {
+      await prisma.task.update({
+        where: { id: linkedTaskItem.taskId },
+        data: {
+          status: status === 'approved' ? 'completed' : 'rejected',
+          completedAt: status === 'approved' ? new Date() : null,
+        },
+      });
+    }
+
     // Notify the requester
     await prisma.notification.create({
       data: {
@@ -108,7 +123,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string; re
         message: status === 'approved'
           ? `Düzenleme talebiniz onaylandı (Admin: ${user.fullName})`
           : `Düzenleme talebiniz reddedildi (Admin: ${user.fullName})`,
-        taskId: null,
+        taskId: linkedTaskItem?.taskId || null,
       },
     });
 

@@ -79,8 +79,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       },
     });
 
-    // Notify admins
-    const admins = await prisma.user.findMany({ where: { role: 'admin', isActive: true } });
     const editTypeLabels: Record<string, string> = {
       adet: 'Adet Yanlışlığı',
       siparis_hayir: 'Sipariş Edilmemeli',
@@ -88,14 +86,37 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     };
     const label = editTypeLabels[editType] || editType;
 
+    // Create a trackable task so both designer (creator) and admin (assignee) can follow this request.
+    let linkedTaskId: number | null = null;
+    const firstAdmin = await prisma.user.findFirst({ where: { role: 'admin', isActive: true }, select: { id: true } });
+    const trackingTask = await prisma.task.create({
+      data: {
+        projectId,
+        createdById: user.id,
+        assignedToId: firstAdmin?.id || null,
+        title: `Talep: ${label || editType} (#${item.rowNumber})`,
+        description: comment || `${label || editType} talebi oluşturuldu`,
+        priority: editType === 'malzeme_eksik' ? 'high' : 'medium',
+        items: {
+          create: [{
+            bomItemId,
+            requestedChange: `edit_request:${editRequest.id}`,
+          }],
+        },
+      },
+      select: { id: true },
+    });
+    linkedTaskId = trackingTask.id;
+
+    // Notify admins
+    const admins = await prisma.user.findMany({ where: { role: 'admin', isActive: true } });
     if (admins.length > 0) {
       await prisma.notification.createMany({
         data: admins.map(a => ({
           userId: a.id,
           type: 'edit_request',
           message: `${user.fullName} — "${label}" düzenleme talebi (#${item.rowNumber} ${item.title?.substring(0, 40)})`,
-          // For edit_request notifications, store projectId in taskId to enable deep-link routing
-          taskId: projectId,
+          taskId: linkedTaskId,
         })),
       });
     }
