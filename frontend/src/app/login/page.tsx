@@ -105,8 +105,8 @@ export default function LoginPage() {
           <div className="glass rounded-xl px-4 py-3 inline-flex items-center gap-3 transition-all duration-700">
             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <div>
-              <p className="text-white text-sm font-semibold">{BUS_IMAGES[currentBg].name}</p>
-              <p className="text-slate-200 text-xs">{BUS_IMAGES[currentBg].desc}</p>
+              <p className="text-[#0f172a] text-sm font-semibold">{BUS_IMAGES[currentBg].name}</p>
+              <p className="text-[#475569] text-xs">{BUS_IMAGES[currentBg].desc}</p>
             </div>
           </div>
         </div>
