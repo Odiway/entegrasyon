@@ -368,6 +368,23 @@ input.bg-white\/\[0\.05\], input[class*="bg-white/[0.0"], textarea.bg-white\/\[0
 h1.text-white, h2.text-white, h3.text-white, h4.text-white { color: #0f172a !important; }
 h1, h2, h3, h4 { color: #0f172a; }
 
+/* Login page hero is intentionally dark, so re-enable bright text there. */
+.login-hero .text-white,
+.login-hero h1.text-white,
+.login-hero h2.text-white,
+.login-hero h3.text-white,
+.login-hero h4.text-white {
+  color: #f8fafc !important;
+}
+
+.login-hero .text-slate-200,
+.login-hero .text-slate-300,
+.login-hero .text-slate-400,
+.login-hero .text-slate-500,
+.login-hero .text-slate-600 {
+  color: #e2e8f0 !important;
+}
+
 /* ============================================================ */
 /* SPECTACULAR FX — aurora blobs, neon, glow, grain, animations */
 /* ============================================================ */

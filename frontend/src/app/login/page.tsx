@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden">
+    <div className="login-hero min-h-screen flex relative overflow-hidden">
       {/* Full-screen background slideshow */}
       {BUS_IMAGES.map((img, i) => (
         <div
